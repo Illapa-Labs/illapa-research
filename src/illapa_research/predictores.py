@@ -220,6 +220,7 @@ def cargar_predictores_cache(cache: Path) -> dict[str, pd.DataFrame]:
         df = pd.concat([_resumen_diario(js1), _resumen_diario(js2)])
         df = df[~df.index.duplicated(keep="last")]
         df.attrs["elevation"] = js1["elevation"]
+        df.attrs["fuente"] = js1.get("_fuente") or "ERA5 (API de Open-Meteo)"
         out[nombre] = df
     return out
 
@@ -278,7 +279,7 @@ def cargar_con_respaldo(datos: Path, rellenar_con_power: bool = True) -> tuple[d
     datos = Path(datos)
     final = datos / "open_meteo_predictores_diarios.json"
     pred = cargar_predictores(final) if final.exists() else cargar_predictores_cache(datos / "predictores_cache")
-    fuente = {k: "ERA5 (Open-Meteo)" for k in pred}
+    fuente = {k: v.attrs.get("fuente", "ERA5 (Open-Meteo)") for k, v in pred.items()}
     power = datos / "nasa_power_diario.json"
     if rellenar_con_power and power.exists():
         for k, df in cargar_power(power).items():
