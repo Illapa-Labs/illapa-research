@@ -414,7 +414,8 @@ def _noaa_oisst(destino: Path) -> list[str]:
                 dia.index = pd.to_datetime(dia.index).tz_localize(None).normalize()
                 dia.rename("sst").to_csv(ruta)
             partes.append(pd.read_csv(ruta, index_col=0, parse_dates=True)["sst"])
-        series[nombre] = pd.concat(partes)
+        serie = pd.concat(partes)
+        series[nombre] = serie[~serie.index.duplicated(keep="last")]  # year files overlap by a day
     out = pd.DataFrame(series)
     out.index.name = "fecha"
     archivo = carpeta / "oisst_diario.csv"
