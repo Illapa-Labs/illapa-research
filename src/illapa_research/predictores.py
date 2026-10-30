@@ -93,7 +93,8 @@ def construir(
         f[f"{nombre}_lluvia_3d"] = r.rolling(3).sum()
         f[f"{nombre}_lluvia_7d_previa"] = r.shift(1).rolling(7).sum()
         f[f"{nombre}_lluvia_30d_previa"] = r.shift(1).rolling(30).sum()
-        f[f"{nombre}_lluvia_hmax"] = d["precipitation_max"]
+        if "precipitation_max" in d:
+            f[f"{nombre}_lluvia_hmax"] = d["precipitation_max"]
     # the first study's hourly rain (Chosica and upper basin) keeps the peak-hour feature
     if lluvia_horaria:
         for nombre, h in lluvia_horaria.items():
@@ -147,7 +148,8 @@ def construir(
         f["gradiente_presion_chosica_selva"] = anomalia(dp)
         f["chosica_hum_rel"] = pred["chosica"].reindex(idx)["relative_humidity_2m"]
         f["chosica_nubes"] = pred["chosica"].reindex(idx)["cloud_cover"]
-        f["chosica_vpd_anom_3d"] = _rezago_media(anomalia(pred["chosica"].reindex(idx)["vapour_pressure_deficit"]), 3)
+        if "vapour_pressure_deficit" in pred["chosica"]:
+            f["chosica_vpd_anom_3d"] = _rezago_media(anomalia(pred["chosica"].reindex(idx)["vapour_pressure_deficit"]), 3)
         f["tic_viento"] = pred["ticlio"].reindex(idx)["wind_speed_10m"]
 
 
