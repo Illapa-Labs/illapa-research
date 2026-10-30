@@ -271,3 +271,64 @@ def matrices_para_bloques(D, C: pd.DataFrame, desplazar: int = 1, hasta_temporad
         k = ts <= hasta_temporada
         base, bloque, y, ts = base[k], bloque[k], y[k], ts[k]
     return base, bloque, y, ts
+
+
+def grupos(columnas: list[str]) -> dict[str, list[str]]:
+    """The hypothesis blocks of docs/08-circulacion.md, by column name."""
+    g = {
+        "T16 u200": [c for c in columnas if c.startswith("u200")],
+        "T17 OLR y MJO": [c for c in columnas if c.startswith(("olr", "rmm", "omi"))],
+        "T18 SOI": [c for c in columnas if c.startswith("soi")],
+        "T19 850 hPa": [c for c in columnas if c.startswith(("u850", "v850", "q850", "flujo"))],
+        "T20 z500": [c for c in columnas if c.startswith("z500")],
+        "todas": list(columnas),
+    }
+    return {k: v for k, v in g.items() if v}
+
+
+def grupos_t19(columnas: list[str]) -> dict[str, list[str]]:
+    """Ablation of the 850 hPa block: one variable at a time and in pairs."""
+    u = [c for c in columnas if c.startswith("u850")]
+    v = [c for c in columnas if c.startswith("v850")]
+    q = [c for c in columnas if c.startswith("q850")]
+    f = [c for c in columnas if c.startswith("flujo")]
+    g = {"u850": u, "v850": v, "q850": q, "flujo q·u": f, "u850 + v850": u + v, "u850 + v850 + flujo": u + v + f,
+         "T19 completo": u + v + q + f}
+    return {k: x for k, x in g.items() if x}
+
+
+def correr_gpu(
+    raiz: Path, especificaciones: list[dict], n_nulas: int = 1000, C: float = 0.03, dias_antes: int = 0,
+    desde: int = 1984, quitar: tuple[int, ...] = (), hasta_temporada: int | None = None, semilla: int = 0,
+    dispositivo_: str | None = None, verbose: bool = True,
+) -> pd.DataFrame:
+    """Gain of each block against `n_nulas` null worlds, with leave-season-out and leave-episode-out folds.
+
+    `especificaciones`: list of {"prueba": name, "columnas": [...]}. The scenario (label with the
+    day before, window, dropped seasons, last season) is set by the other arguments and written
+    in every row, so tables of different scenarios can be stacked.
+    """
+    from . import evaluacion_diaria as E
+    from . import modelo_diario as md
+    from . import nino as N
+
+    D = md.cargar_datos(Path(raiz), dias_antes=dias_antes, desde=desde, quitar_temporadas=quitar)
+    Cir = construir(Path(raiz) / "datos", D.F.index)
+    base, bloque, y, ts = matrices_para_bloques(D, Cir, 1, hasta_temporada)
+    eps = [e for e in N.episodios(D.temporadas) if any(s in set(ts) for s in e)]
+    out = []
+    for esp in especificaciones:
+        cols = [c + "_circ" for c in esp["columnas"] if c + "_circ" in bloque.columns]
+        if not cols:
+            continue
+        for tipo in ("temporada", "episodio"):
+            folds = [f for f in E.pliegues(ts, tipo, eps if tipo == "episodio" else None) if len(f)]
+            r = ganancia_bloque(base.to_numpy(), bloque[cols].to_numpy(), y.to_numpy(), ts, folds, C=C,
+                                n_nulas=n_nulas, semilla=semilla, dispositivo_=dispositivo_)
+            r.update(prueba=esp["prueba"], pliegues=tipo, dias_antes=dias_antes, desde=desde,
+                     quitar=",".join(map(str, quitar)), hasta_temporada=hasta_temporada or 9999,
+                     filas=len(y), positivos=int(y.sum()))
+            out.append(r)
+            if verbose:
+                print(f"{esp['prueba']:24s} {tipo:9s} ganancia={r['ganancia']:+.4f} p95={r['nula_p95']:.4f} p={r['p']:.4f}", flush=True)
+    return pd.DataFrame(out)
