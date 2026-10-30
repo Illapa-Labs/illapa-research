@@ -27,12 +27,12 @@ def test_cuencas_coinciden_con_las_areas_publicadas(cuencas):
 
 
 def test_cuencas_tienen_atributos_fisicos_consistentes(cuencas):
-    assert len(cuencas) > 50
+    assert len(cuencas) > 100
     for f in cuencas.values():
         p = f["properties"]
         assert shape(f["geometry"]).is_valid
         assert p["relieve_m"] == pytest.approx(p["z_max_m"] - p["z_min_m"], abs=0.1)
-        assert p["area_km2"] >= 1.0
+        assert p["area_km2"] >= 0.4
         assert p["longitud_cauce_km"] > 0
         assert p["melton"] == pytest.approx(p["relieve_m"] / (p["area_km2"] * 1e6) ** 0.5, rel=0.01)
 

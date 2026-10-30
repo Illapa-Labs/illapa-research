@@ -1,7 +1,7 @@
 nombre,alias,lon,lat,tipo_referencia,fuente_referencia,area_ref_km2,cuenca_slug
 Quirio,Quiro;Quirio;San Antonio de Quirio,-76.716607,-11.936046,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia del huayco de Quirio,,
 Pedregal,Pedregal;San Antonio de Pedregal;Pedregal Alto,-76.701708,-11.931734,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia de la quebrada Pedregal,,
-Carossio,Carossio;Carosio,,,sin_ubicar,"Tesis UNFV 2018 (Sánchez Meza, tomando SIGRID): cauce de 1,64 km de UTM 315700 E 8682200 N a 316400 E 8681200 N, entre La Libertad y Corrales; con ese error de unos 300 m cae junto a dos cuencas de 1,25 y 1,37 km2 y a 260 m de La Ronda: no se puede decidir",,
+Carossio,Carossio;Carosio,,,faja_ana,"Acuerdo de Concejo N° 010-2016/CDL (El Peruano), referencia UTM 18S 316230 E 8681389 N, y Ordenanza N° 2542 (15 de 15 vértices): dentro de esta cuenca de 0,55 km2",,q766856-119262
 Los Laureles,Los Laureles;Laureles;Los Cóndores;Los Condores,-76.747999,-11.976535,punto_en_cauce,"Proyecto previo huaico (INGEMMET): punto de referencia. Los Cóndores es la misma cuenca: los 280 hitos de la faja marginal de la ANA (RD 0656-2022-ANA-AAA.CF, UTM 18S) caen dentro de ella",,
 Río Seco,Río Seco;Rio Seco;Qubebrada Río Seco,-76.883,-11.951,desembocadura_osm,OpenStreetMap: la quebrada Río Seco termina aquí en el Rímac,,
 Chacrasana,Chacrasana,-76.74288,-11.96181,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 310218 E 8677071 N; área 4,7 km2",4.7,
@@ -9,10 +9,10 @@ La Ronda,La Ronda;La Ronda (río Seco),-76.67727,-11.9323,punto_utm_igp,"IGP 202
 Barba Blanca,Barba Blanca,-76.62251,-11.84016,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 323250 E 8690608 N (distrito de Callahuanca); área 3,5 km2",3.5,
 Cashahuacra,Cashahuacra;Cashahuasca,,,sin_ubicar,"Solo un punto aproximado de Mapcarta/OSM (-76.6703; -11.9029), a 246 m de una cuenca de 15 km2 (salida -76.663; -11.913): no se asignó. El informe INGEMMET A6680 (Núñez et al., 2015) debe traer la ubicación y no se pudo descargar",,
 Santo Domingo,Santo Domingo,,,faja_ana,"ANA RD 1156-2025-ANA-AAA.CF (SIGRID 19947): puntos de campo UTM 18S 314701 E 8679015 N, 314867 E 8678996 N y 315340 E 8678884 N, a 0-53 m de la cuenca de 3,71 km2 (la siguiente queda a 236 m)",,q767014-119441
-Mariscal Castilla,Mariscal Castilla,,,sin_ubicar,Sin coordenadas,,
-La Cantuta,La Cantuta;La Canuta;Cantuta,,,faja_ana_aproximada,"ANA RD 075-2016-ANA-AAA.CAÑETE-FORTALEZA (SIGRID 6074, OCR), RD 0609-2025 (SIGRID 19341) y Ordenanza 2542: la faja en el abanico queda a unos 165 m (mediana) de la cuenca de 13,96 km2 y a 544 m de la de 3,71 km2 (Santo Domingo). Confianza media",,q767108-119481
+Mariscal Castilla,Mariscal Castilla;Castilla,,,faja_ana,"Ordenanza N° 2542 (33 de 39 vértices) y ANA RD 077-2016 (SIGRID 6065, OCR; 33 de 37 puntos) dentro de esta cuenca de 0,88 km2",,q766900-119319
+La Cantuta,La Cantuta;La Canuta;Cantuta,,,faja_ana,"ANA RD 075-2016 (SIGRID 6074, OCR; 25 de 25 puntos UTM 18S), RD 0609-2025 (SIGRID 19341) y Ordenanza N° 2542 (27 de 27 vértices) caen dentro de esta cuenca de 0,90 km2 (con el umbral de 1 km2 no aparecía)",,q767033-119451
 Huampaní,Huampaní;Huampani,,,sin_ubicar,Sin coordenadas,,
-La Libertad,La Libertad,,,sin_ubicar,Sin coordenadas,,
+La Libertad,La Libertad,,,faja_ana,"Ordenanza N° 2542, anexo 2 (SIGRID 16316): 25 de 25 vértices UTM 18S dentro de esta cuenca de 0,60 km2",,q766925-119343
 Huaycoloro,Huaycoloro;Jicamarca (Huaycoloro),,,sin_ubicar,Sin coordenadas,,
 Huascata,Huascata,,,sin_ubicar,Sin coordenadas,,
 La Floresta,La Floresta,,,sin_ubicar,Sin coordenadas,,

@@ -41,7 +41,7 @@ RESOLUCION_M = 30.0
 VENTANA_DEM = (-77.0, -12.15, -76.0, -11.0)
 # Outlets are kept inside this window (west, south, east, north): Chaclacayo to Ricardo Palma.
 VENTANA_SALIDAS = (-76.90, -12.02, -76.52, -11.80)
-AREA_MIN_KM2 = 1.0
+AREA_MIN_KM2 = 0.4
 AREA_RIO_KM2 = 200.0
 RIOS_PRINCIPALES = ("Río Rímac", "Río Santa Eulalia")
 BURN_M = 30.0

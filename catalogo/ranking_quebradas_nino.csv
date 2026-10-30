@@ -1,73 +1,122 @@
 posicion,slug,nombre,salida_lon,salida_lat,area_km2,melton,pendiente_cauce_1085_pct,pendiente_media_pct,fisica,edificios_1km,dias_activacion,temporadas_nino_activas,temporadas_nino,temporadas_no_nino_activas,temporadas_no_nino,tasa_nino,tasa_nino_ic80_bajo,tasa_nino_ic80_alto,evidencia,nivel,descripcion_nivel
-1,pedregal,Quebrada Pedregal,-76.7005,-11.9424,9.8172,0.478,19.5359,57.3538,46.5278,1910,14,6.0,22,3.0,23,0.2826,0.1682,0.4056,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-2,quirio,Quebrada Quirio,-76.7083,-11.9446,10.0224,0.3856,17.0583,57.7622,40.2778,1989,13,6.0,22,2.0,23,0.2826,0.1682,0.4056,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-3,chacrasana,Quebrada Chacrasana,-76.7401,-11.9644,4.9941,0.489,22.1468,56.1701,52.7778,274,8,5.0,22,0.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-4,los-laureles,Quebrada Los Laureles,-76.7577,-11.9711,9.0468,0.3596,18.6572,52.5354,33.6806,231,12,5.0,22,1.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+1,pedregal,Quebrada Pedregal,-76.7005,-11.9424,9.8172,0.478,19.5359,57.3538,46.5278,508,14,6.0,22,3.0,23,0.2826,0.1682,0.4056,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+2,quirio,Quebrada Quirio,-76.7083,-11.9446,10.0224,0.3856,17.0583,57.7622,40.2778,779,13,6.0,22,2.0,23,0.2826,0.1682,0.4056,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+3,chacrasana,Quebrada Chacrasana,-76.7401,-11.9644,4.9941,0.489,22.1468,56.1701,52.7778,195,8,5.0,22,0.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+4,los-laureles,Quebrada Los Laureles,-76.7577,-11.9711,9.0468,0.3596,18.6572,52.5354,33.6806,127,12,5.0,22,1.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
 5,huascaran,Quebrada Huascarán,-76.7966,-11.9803,9.7515,0.3472,14.2678,52.0674,25.6944,2,6,5.0,22,0.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
 6,california,Quebrada California,-76.7301,-11.9558,8.3376,0.3322,12.8365,52.189,23.6111,33,5,5.0,22,0.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-7,corrales,Quebrada Corrales,-76.6798,-11.9241,1.2465,0.9242,45.4797,70.1764,,695,7,5.0,22,1.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-8,santo-domingo,Quebrada Santo Domingo,-76.7014,-11.9441,3.7134,0.5728,22.699,60.285,64.5833,267,5,4.0,22,0.0,23,0.1957,0.0981,0.3053,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-9,la-ronda,Quebrada La Ronda,-76.6861,-11.9273,8.8317,0.4829,20.2464,62.793,56.25,1700,6,4.0,22,1.0,23,0.1957,0.0981,0.3053,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-10,yanacoto,Quebrada Yanacoto,-76.7309,-11.9561,4.8492,0.5056,22.4738,54.6797,55.5556,11,4,3.0,22,0.0,23,0.1522,0.0661,0.252,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-11,cupiche,Quebrada Cupiche,-76.6114,-11.9142,9.207,0.4861,24.6287,64.8149,64.5833,2,3,2.0,22,0.0,23,0.1087,0.0372,0.1955,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-12,la-cantuta,Quebrada La Cantuta,-76.7108,-11.9481,13.9644,0.3765,14.6127,59.0936,40.2778,282,3,2.0,22,1.0,23,0.1087,0.0372,0.1955,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-13,cusipata,Quebrada Cusipata,-76.7779,-11.9753,8.388,0.3596,16.9166,42.5546,21.875,31,2,2.0,22,0.0,23,0.1087,0.0372,0.1955,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-14,barba-blanca,Quebrada Barba Blanca,-76.6236,-11.8363,3.1977,0.7806,41.4782,57.905,81.25,0,1,1.0,22,0.0,23,0.0652,0.0133,0.1339,fisica+historial,2,activada en 1 temporada Niño (documentada)
-15,vallecito,Quebrada Vallecito,-76.8052,-11.9825,15.7482,0.3279,10.338,45.9817,15.2778,0,1,1.0,22,0.0,23,0.0652,0.0133,0.1339,fisica+historial,2,activada en 1 temporada Niño (documentada)
-16,q766253-118376,,-76.6253,-11.8376,4.7673,0.9386,40.9866,71.1771,95.8333,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-17,q766359-118568,,-76.6359,-11.8568,2.2968,0.8337,46.5379,66.7639,95.1389,1,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-18,q766478-118779,,-76.6478,-11.8779,2.9457,0.7483,38.5317,68.894,90.9722,13,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-19,q766344-118501,,-76.6344,-11.8501,6.3747,0.7407,35.3139,73.26,90.9722,1,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-20,q766282-118146,,-76.6282,-11.8146,9.1809,0.6404,39.8903,71.8798,90.2778,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-21,q766111-119137,,-76.6111,-11.9137,3.3444,0.804,36.7972,64.9412,86.8056,2,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-22,q766245-118043,,-76.6245,-11.8043,2.6163,1.0702,43.8358,58.5485,85.4167,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-23,q766561-119226,,-76.6561,-11.9226,3.042,0.6297,27.8974,64.9688,79.8611,120,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-24,q766322-118476,,-76.6322,-11.8476,16.8093,0.6109,26.0711,68.3999,79.1667,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-25,q766203-119180,,-76.6203,-11.918,8.9055,0.6188,26.0744,66.7074,79.1667,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-26,q766464-118747,,-76.6464,-11.8747,3.528,0.6491,28.989,61.649,77.0833,13,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-27,q766431-118712,,-76.6431,-11.8712,11.6442,0.5909,25.7521,65.5938,75.0,24,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-28,q765536-119164,,-76.5536,-11.9164,10.5849,0.686,29.0628,56.5657,72.2222,2,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-29,q766548-118933,,-76.6548,-11.8933,5.3208,0.4826,26.956,65.9627,70.8333,30,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-30,q765693-119131,,-76.5693,-11.9131,6.5952,0.5181,25.0818,64.6543,68.75,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
-31,santa-ines,Quebrada Santa Inés,-76.7679,-11.9735,2.5965,0.4985,21.5371,48.299,47.2222,288,0,0.0,22,0.0,23,0.0217,0.0004,0.059,fisica+historial,4,sin historial ubicado; susceptibilidad física media
-32,q768011-119819,,-76.8011,-11.9819,2.8449,0.5047,26.1471,53.2437,59.7222,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-33,q765263-119025,,-76.5263,-11.9025,48.0987,0.4522,22.1448,62.2065,54.8611,10,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-34,q766629-119131,,-76.6629,-11.9131,14.9895,0.4203,21.9874,62.0877,52.7778,88,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-35,q766282-118165,,-76.6282,-11.8165,40.923,0.4961,21.0822,57.3308,52.0833,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-36,q765569-119164,,-76.5569,-11.9164,14.985,0.4536,25.5726,52.9684,50.0,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-37,q768665-119232,,-76.8665,-11.9232,7.3422,0.5273,19.698,47.6166,46.5278,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-38,q766407-119246,,-76.6407,-11.9246,13.6746,0.3652,17.9281,61.6359,42.3611,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-39,q768785-119418,,-76.8785,-11.9418,11.0448,0.4554,18.275,47.3484,36.1111,3,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-40,q768215-119861,,-76.8215,-11.9861,2.4516,0.4523,20.4081,45.2718,36.1111,37,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
-41,q768107-119832,,-76.8107,-11.9832,8.6859,0.3286,12.977,47.2749,20.1389,19,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-42,q768776-119421,,-76.8776,-11.9421,2.3499,0.3657,10.2828,39.3917,15.9722,0,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-43,q768918-119629,,-76.8918,-11.9629,18.6795,0.2772,11.4437,45.0954,14.5833,69,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-44,q768383-119934,,-76.8383,-11.9934,7.2846,0.2752,13.4174,43.1354,14.5833,69,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-45,q768643-120070,,-76.8643,-12.007,6.5016,0.2709,10.7976,45.1772,13.1944,300,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-46,q768403-119985,,-76.8403,-11.9985,2.997,0.3549,10.3789,31.8055,12.5,27,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-47,q768453-120033,,-76.8453,-12.0033,4.6197,0.3476,8.469,31.8074,9.7222,357,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-48,q768513-120055,,-76.8513,-12.0055,21.5757,0.2433,9.3096,43.6447,8.3333,766,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-49,q768999-120136,,-76.8999,-12.0136,12.0159,0.2334,4.665,36.6992,3.4722,1051,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
-50,cobian,Quebrada Cobián,-76.8245,-11.9878,1.7946,0.4516,14.2569,44.8782,,8,0,0.0,22,0.0,23,0.0217,0.0004,0.059,fisica+historial,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-51,q768938-119670,,-76.8938,-11.967,1.6281,0.6301,23.9749,50.3243,,3085,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-52,q768930-120131,,-76.893,-12.0131,1.8162,0.2946,5.2664,18.396,,475,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-53,q768734-120080,,-76.8734,-12.008,1.2852,0.2273,1.6261,11.6362,,1015,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-54,q768342-119907,,-76.8342,-11.9907,1.2591,0.5642,17.975,31.8948,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-55,q767900-119774,,-76.79,-11.9774,1.4103,0.4265,15.7681,36.4184,,8,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-56,q767732-119737,,-76.7732,-11.9737,1.08,0.6804,35.6821,55.857,,43,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-57,q767572-119706,,-76.7572,-11.9706,1.7955,0.6949,34.6824,62.8553,,293,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-58,q767351-119612,,-76.7351,-11.9612,1.5435,0.6686,33.7178,60.0489,,31,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-59,q767320-119588,,-76.732,-11.9588,1.1376,0.65,25.8995,49.4375,,52,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-60,q767246-119523,,-76.7246,-11.9523,1.1484,0.6647,24.2151,41.5859,,116,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-61,q767218-119518,,-76.7218,-11.9518,1.3914,0.696,20.332,44.6777,,334,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-62,q766745-119231,,-76.6745,-11.9231,1.3707,0.5338,5.8245,36.4443,,366,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-63,q766598-118966,,-76.6598,-11.8966,1.1097,0.7803,41.1812,59.4984,,133,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-64,q766514-119259,,-76.6514,-11.9259,1.9296,0.6066,32.4933,52.4545,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-65,q766506-118833,,-76.6506,-11.8833,1.9062,0.7343,36.2276,65.3266,,15,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-66,q766398-118628,,-76.6398,-11.8628,1.4427,1.003,41.3939,68.6605,,39,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-67,q766288-118208,,-76.6288,-11.8208,1.7739,0.6259,24.944,51.9962,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-68,q766286-118412,,-76.6286,-11.8412,1.3563,0.971,47.2933,71.382,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-69,q766248-118065,,-76.6248,-11.8065,1.1232,1.4125,56.1425,75.2157,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-70,q766012-119113,,-76.6012,-11.9113,1.0611,1.0014,59.931,69.312,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-71,q765858-119111,,-76.5858,-11.9111,1.0089,0.7658,37.208,65.2893,,1,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
-72,q765715-119098,,-76.5715,-11.9098,1.0143,0.852,66.2228,80.5537,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+7,carossio,Quebrada Carossio,-76.6856,-11.9262,0.5544,1.0582,59.477,72.7272,,504,6,5.0,22,0.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+8,corrales,Quebrada Corrales,-76.6798,-11.9241,1.2465,0.9242,45.4797,70.1764,,633,7,5.0,22,1.0,23,0.2391,0.1322,0.3563,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+9,santo-domingo,Quebrada Santo Domingo,-76.7014,-11.9441,3.7134,0.5728,22.699,60.285,64.5833,51,5,4.0,22,0.0,23,0.1957,0.0981,0.3053,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+10,la-ronda,Quebrada La Ronda,-76.6861,-11.9273,8.8317,0.4829,20.2464,62.793,56.25,240,6,4.0,22,1.0,23,0.1957,0.0981,0.3053,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+11,mariscal-castilla,Quebrada Mariscal Castilla,-76.69,-11.9319,0.8775,0.9321,40.1918,67.954,,285,5,4.0,22,1.0,23,0.1957,0.0981,0.3053,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+12,yanacoto,Quebrada Yanacoto,-76.7309,-11.9561,4.8492,0.5056,22.4738,54.6797,55.5556,5,4,3.0,22,0.0,23,0.1522,0.0661,0.252,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+13,la-libertad,Quebrada La Libertad,-76.6925,-11.9343,0.6012,0.8772,38.8732,59.2414,,342,3,3.0,22,0.0,23,0.1522,0.0661,0.252,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+14,cupiche,Quebrada Cupiche,-76.6114,-11.9142,9.207,0.4861,24.6287,64.8149,64.5833,2,3,2.0,22,0.0,23,0.1087,0.0372,0.1955,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+15,cusipata,Quebrada Cusipata,-76.7779,-11.9753,8.388,0.3596,16.9166,42.5546,21.875,27,2,2.0,22,0.0,23,0.1087,0.0372,0.1955,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+16,la-cantuta,Quebrada La Cantuta,-76.7033,-11.9451,0.8991,0.5265,28.0963,46.9341,,57,3,2.0,22,1.0,23,0.1087,0.0372,0.1955,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+17,barba-blanca,Quebrada Barba Blanca,-76.6236,-11.8363,3.1977,0.7806,41.4782,57.905,81.25,0,1,1.0,22,0.0,23,0.0652,0.0133,0.1339,fisica+historial,2,activada en 1 temporada Niño (documentada)
+18,vallecito,Quebrada Vallecito,-76.8052,-11.9825,15.7482,0.3279,10.338,45.9817,15.2778,0,1,1.0,22,0.0,23,0.0652,0.0133,0.1339,fisica+historial,2,activada en 1 temporada Niño (documentada)
+19,q766253-118376,,-76.6253,-11.8376,4.7673,0.9386,40.9866,71.1771,95.8333,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+20,q766359-118568,,-76.6359,-11.8568,2.2968,0.8337,46.5379,66.7639,95.1389,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+21,q766478-118779,,-76.6478,-11.8779,2.9457,0.7483,38.5317,68.894,90.9722,13,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+22,q766344-118501,,-76.6344,-11.8501,6.3747,0.7407,35.3139,73.26,90.9722,1,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+23,q766282-118146,,-76.6282,-11.8146,9.1809,0.6404,39.8903,71.8798,90.2778,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+24,q766111-119137,,-76.6111,-11.9137,3.3444,0.804,36.7972,64.9412,86.8056,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+25,q766245-118043,,-76.6245,-11.8043,2.6163,1.0702,43.8358,58.5485,85.4167,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+26,q766561-119226,,-76.6561,-11.9226,3.042,0.6297,27.8974,64.9688,79.8611,11,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+27,q766322-118476,,-76.6322,-11.8476,16.8093,0.6109,26.0711,68.3999,79.1667,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+28,q766203-119180,,-76.6203,-11.918,8.9055,0.6188,26.0744,66.7074,79.1667,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+29,q766464-118747,,-76.6464,-11.8747,3.528,0.6491,28.989,61.649,77.0833,13,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+30,q766431-118712,,-76.6431,-11.8712,11.6442,0.5909,25.7521,65.5938,75.0,3,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+31,q765536-119164,,-76.5536,-11.9164,10.5849,0.686,29.0628,56.5657,72.2222,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+32,q766548-118933,,-76.6548,-11.8933,5.3208,0.4826,26.956,65.9627,70.8333,30,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+33,q765693-119131,,-76.5693,-11.9131,6.5952,0.5181,25.0818,64.6543,68.75,0,0,,22,,23,,,,solo fisica,3,sin historial ubicado; susceptibilidad física alta (tercio superior)
+34,santa-ines,Quebrada Santa Inés,-76.7679,-11.9735,2.5965,0.4985,21.5371,48.299,47.2222,196,0,0.0,22,0.0,23,0.0217,0.0004,0.059,fisica+historial,4,sin historial ubicado; susceptibilidad física media
+35,q768011-119819,,-76.8011,-11.9819,2.8449,0.5047,26.1471,53.2437,59.7222,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+36,q765263-119025,,-76.5263,-11.9025,48.0987,0.4522,22.1448,62.2065,54.8611,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+37,q766629-119131,,-76.6629,-11.9131,14.9895,0.4203,21.9874,62.0877,52.7778,61,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+38,q766282-118165,,-76.6282,-11.8165,40.923,0.4961,21.0822,57.3308,52.0833,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+39,q765569-119164,,-76.5569,-11.9164,14.985,0.4536,25.5726,52.9684,50.0,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+40,q768665-119232,,-76.8665,-11.9232,7.3422,0.5273,19.698,47.6166,46.5278,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+41,q766407-119246,,-76.6407,-11.9246,13.6746,0.3652,17.9281,61.6359,42.3611,0,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+42,q767108-119481,,-76.7108,-11.9481,13.9644,0.3765,14.6127,59.0936,40.2778,272,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+43,q768785-119418,,-76.8785,-11.9418,11.0448,0.4554,18.275,47.3484,36.1111,3,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+44,q768215-119861,,-76.8215,-11.9861,2.4516,0.4523,20.4081,45.2718,36.1111,37,0,,22,,23,,,,solo fisica,4,sin historial ubicado; susceptibilidad física media
+45,q768107-119832,,-76.8107,-11.9832,8.6859,0.3286,12.977,47.2749,20.1389,19,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+46,q768776-119421,,-76.8776,-11.9421,2.3499,0.3657,10.2828,39.3917,15.9722,0,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+47,q768918-119629,,-76.8918,-11.9629,18.6795,0.2772,11.4437,45.0954,14.5833,58,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+48,q768383-119934,,-76.8383,-11.9934,7.2846,0.2752,13.4174,43.1354,14.5833,2,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+49,q768643-120070,,-76.8643,-12.007,6.5016,0.2709,10.7976,45.1772,13.1944,164,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+50,q768403-119985,,-76.8403,-11.9985,2.997,0.3549,10.3789,31.8055,12.5,13,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+51,q768453-120033,,-76.8453,-12.0033,4.6197,0.3476,8.469,31.8074,9.7222,216,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+52,q768513-120055,,-76.8513,-12.0055,21.5757,0.2433,9.3096,43.6447,8.3333,210,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+53,q768999-120136,,-76.8999,-12.0136,12.0159,0.2334,4.665,36.6992,3.4722,1051,0,,22,,23,,,,solo fisica,5,sin historial ubicado; susceptibilidad física baja
+54,cobian,Quebrada Cobián,-76.8245,-11.9878,1.7946,0.4516,14.2569,44.8782,,8,0,0.0,22,0.0,23,0.0217,0.0004,0.059,fisica+historial,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+55,q768941-119710,,-76.8941,-11.971,0.8154,0.2901,3.7933,29.9356,,3026,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+56,q768938-119670,,-76.8938,-11.967,1.6281,0.6301,23.9749,50.3243,,674,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+57,q768930-120131,,-76.893,-12.0131,1.8162,0.2946,5.2664,18.396,,302,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+58,q768853-120107,,-76.8853,-12.0107,0.4626,0.0623,1.5483,2.4211,,425,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+59,q768734-120080,,-76.8734,-12.008,1.2852,0.2273,1.6261,11.6362,,337,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+60,q768588-120057,,-76.8588,-12.0057,0.4905,0.2421,1.6719,7.8676,,308,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+61,q768403-119955,,-76.8403,-11.9955,0.5256,0.3952,23.0285,38.9616,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+62,q768342-119907,,-76.8342,-11.9907,1.2591,0.5642,17.975,31.8948,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+63,q767900-119774,,-76.79,-11.9774,1.4103,0.4265,15.7681,36.4184,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+64,q767853-119772,,-76.7853,-11.9772,0.7713,0.6869,20.7456,43.0152,,10,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+65,q767732-119737,,-76.7732,-11.9737,1.08,0.6804,35.6821,55.857,,43,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+66,q767635-119713,,-76.7635,-11.9713,0.5265,0.9513,41.6315,64.4223,,158,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+67,q767572-119706,,-76.7572,-11.9706,1.7955,0.6949,34.6824,62.8553,,40,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+68,q767530-119692,,-76.753,-11.9692,0.7047,0.7952,35.4934,42.5723,,86,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+69,q767508-119682,,-76.7508,-11.9682,0.6786,0.8562,39.0785,48.2163,,192,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+70,q767370-119625,,-76.737,-11.9625,0.4653,0.7519,34.4935,34.9756,,1,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+71,q767351-119612,,-76.7351,-11.9612,1.5435,0.6686,33.7178,60.0489,,13,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+72,q767320-119588,,-76.732,-11.9588,1.1376,0.65,25.8995,49.4375,,52,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+73,q767246-119523,,-76.7246,-11.9523,1.1484,0.6647,24.2151,41.5859,,92,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+74,q767232-119521,,-76.7232,-11.9521,0.4023,0.4378,6.3913,33.7188,,31,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+75,q767218-119518,,-76.7218,-11.9518,1.3914,0.696,20.332,44.6777,,172,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+76,q767063-119446,,-76.7063,-11.9446,0.4824,0.5579,20.8743,43.0616,,82,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+77,q767011-119430,,-76.7011,-11.943,0.4986,0.6599,24.4287,47.1938,,95,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+78,q766953-119384,,-76.6953,-11.9384,0.441,0.4789,19.5725,36.7858,,529,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+79,q766897-119311,,-76.6897,-11.9311,0.4536,0.7315,29.963,42.6829,,115,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+80,q766745-119231,,-76.6745,-11.9231,1.3707,0.5338,5.8245,36.4443,,324,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+81,q766668-119231,,-76.6668,-11.9231,0.5004,0.8067,33.2551,56.9265,,43,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+82,q766637-119033,,-76.6637,-11.9033,0.585,0.7364,44.5878,48.9328,,106,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+83,q766635-119234,,-76.6635,-11.9234,0.6255,0.7485,39.71,48.2919,,5,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+84,q766598-118966,,-76.6598,-11.8966,1.1097,0.7803,41.1812,59.4984,,39,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+85,q766581-118958,,-76.6581,-11.8958,0.9243,0.7194,31.6637,62.4359,,1,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+86,q766536-119237,,-76.6536,-11.9237,0.7083,0.897,38.4878,63.6679,,1,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+87,q766514-119259,,-76.6514,-11.9259,1.9296,0.6066,32.4933,52.4545,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+88,q766506-118833,,-76.6506,-11.8833,1.9062,0.7343,36.2276,65.3266,,15,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+89,q766506-119251,,-76.6506,-11.9251,0.8163,1.0828,46.6843,65.109,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+90,q766470-119248,,-76.647,-11.9248,0.4293,1.6016,51.5128,62.8527,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+91,q766462-118747,,-76.6462,-11.8747,0.6183,0.7759,44.57,52.4408,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+92,q766428-118714,,-76.6428,-11.8714,0.8766,1.0141,54.2245,70.4541,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+93,q766398-118628,,-76.6398,-11.8628,1.4427,1.003,41.3939,68.6605,,16,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+94,q766392-118614,,-76.6392,-11.8614,0.8064,0.8351,36.4291,55.1632,,11,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+95,q766378-118590,,-76.6378,-11.859,0.864,0.6491,25.2158,48.7425,,6,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+96,q766317-118457,,-76.6317,-11.8457,0.4617,1.1747,62.0446,69.4257,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+97,q766296-118192,,-76.6296,-11.8192,0.9333,1.1765,64.891,70.0814,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+98,q766293-118208,,-76.6293,-11.8208,0.9612,1.2568,64.6968,80.3015,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+99,q766288-118208,,-76.6288,-11.8208,1.7739,0.6259,24.944,51.9962,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+100,q766286-118412,,-76.6286,-11.8412,1.3563,0.971,47.2933,71.382,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+101,q766277-119222,,-76.6277,-11.9222,0.5508,0.9872,46.2964,65.131,,5,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+102,q766265-118100,,-76.6265,-11.81,0.423,0.9371,40.2675,46.6503,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+103,q766248-118065,,-76.6248,-11.8065,1.1232,1.4125,56.1425,75.2157,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+104,q766245-118054,,-76.6245,-11.8054,0.7632,1.073,39.5962,58.3735,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+105,q766092-119142,,-76.6092,-11.9142,0.6228,1.4108,45.9852,64.1575,,1,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+106,q766056-119121,,-76.6056,-11.9121,0.5274,1.2409,60.5986,65.5084,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+107,q766012-119113,,-76.6012,-11.9113,1.0611,1.0014,59.931,69.312,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+108,q765949-119075,,-76.5949,-11.9075,0.9828,1.2752,60.1587,72.068,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+109,q765880-119105,,-76.588,-11.9105,0.6831,1.2871,58.7561,73.74,,1,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+110,q765858-119111,,-76.5858,-11.9111,1.0089,0.7658,37.208,65.2893,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+111,q765715-119098,,-76.5715,-11.9098,1.0143,0.852,66.2228,80.5537,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+112,q765492-119137,,-76.5492,-11.9137,0.441,0.5076,16.2831,27.229,,2,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+113,q765450-119111,,-76.545,-11.9111,0.9846,0.7382,27.9318,48.3537,,2,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+114,q765436-119097,,-76.5436,-11.9097,0.6228,0.8671,49.343,66.1392,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+115,q765406-119078,,-76.5406,-11.9078,0.567,0.6729,26.6466,41.4634,,2,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+116,q765395-119073,,-76.5395,-11.9073,0.7362,0.6915,32.8446,55.2448,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+117,q765340-119041,,-76.534,-11.9041,0.7002,0.8944,41.2902,63.9761,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+118,q765318-119019,,-76.5318,-11.9019,0.4851,1.6678,54.7803,64.8444,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+119,q765287-119016,,-76.5287,-11.9016,0.711,1.424,59.3345,70.2536,,9,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+120,q765252-119033,,-76.5252,-11.9033,0.7605,0.6227,35.8633,43.0316,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
+121,q765246-119028,,-76.5246,-11.9028,0.8442,1.497,50.4291,64.6809,,0,0,,22,,23,,,,solo fisica,6,"no evaluable: menos de 2 km², bajo la resolución del DEM"
