@@ -89,17 +89,29 @@ def _icen_causal(icen: pd.DataFrame, idx: pd.DatetimeIndex) -> pd.DataFrame:
 
 
 def cargar_datos(raiz: Path = Path("."), dias_antes: int = 0, desde: int = 1984,
-                 quitar_temporadas: tuple[int, ...] = ()) -> Datos:
-    """Build the feature table and labels from `datos/` (whatever is already downloaded)."""
+                 quitar_temporadas: tuple[int, ...] = (), nino: str = "icen") -> Datos:
+    """Build the feature table and labels from `datos/` (whatever is already downloaded).
+
+    `nino` picks the Niño definition used for episodes, the regime split and the hindsight flag:
+    "icen" (official ICEN/ENFEN, the default) or "n12" (the older Niño 1+2 proxy).
+    """
     datos = Path(raiz) / "datos"
     pred, fuente_pred = _cargar_predictores(datos)
     sst, fuente_sst = _cargar_sst(datos)
     caudal = P.cargar_caudal(datos / "open_meteo_caudal_glofas.json")
     horario = cargar_horario(datos / "open_meteo_horario_estudio.json")
-    F = P.construir(pred, caudal, sst if len(sst.columns) else None, horario)
+    with warnings.catch_warnings():
+        # `construir` adds ~100 columns one by one; the copy below defragments the frame.
+        warnings.simplefilter("ignore", pd.errors.PerformanceWarning)
+        F = P.construir(pred, caudal, sst if len(sst.columns) else None, horario).copy()
     temporadas = N.cargar_temporadas(datos)
+    if nino == "n12":
+        temporadas = temporadas.assign(nino_costero=temporadas["nino_costero_n12"])
+        temporadas["nino"] = temporadas["nino_global"] | temporadas["nino_costero"]
+    elif nino != "icen":
+        raise ValueError(nino)
     icen = N.cargar_icen(datos / "enso" / "igp_icen.txt")
-    F = F.join(_icen_causal(icen, F.index))
+    F = F.join(_icen_causal(icen, F.index)).copy()
     eventos = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True)
     y = E.etiquetas(eventos, F.index, dias_antes)
     ts_todas = E.temporadas_de(F.index)
@@ -433,3 +445,80 @@ def robustez(raiz: Path, teorias: tuple[str, ...] = ("lluvia_dia", "antecedentes
         t["dias_con_huaico"] = int(y.sum())
         filas.append(t.reset_index())
     return pd.concat(filas, ignore_index=True)
+
+
+# ---------------------------------------------------------------- null worlds on the GPU
+def nulas_gpu(X: pd.DataFrame, y: pd.Series, ts: np.ndarray, c: float = 0.03, n_nulas: int = 2000,
+              semilla: int = 0) -> dict[str, float]:
+    """Real out-of-fold AP and the AP of `n_nulas` shifted-label worlds, same ridge fit and folds.
+
+    Uses `gpu.ap_real_y_nulas` (PyTorch; CPU if there is no CUDA). The labels of a null world
+    are rolled inside each season, so it keeps the number of events and their clustering.
+    """
+    from . import gpu
+
+    return gpu.ap_real_y_nulas(X.to_numpy(dtype=float), y.to_numpy(), ts, C=c, n_nulas=n_nulas, semilla=semilla)
+
+
+def tabla_nulas(X: dict[str, pd.DataFrame], y: pd.Series, ts: np.ndarray,
+                teorias: tuple[str, ...] = ("lluvia_dia", "antecedentes", "lluvia+antecedentes"),
+                n_nulas: int = 2000, c: float = 0.03) -> pd.DataFrame:
+    filas = []
+    for k in teorias:
+        r = nulas_gpu(X[k], y, ts, c, n_nulas)
+        r["teoria"] = k
+        filas.append(r)
+    return pd.DataFrame(filas).set_index("teoria")
+
+
+# ---------------------------------------------------------------- full report
+SELECCION_PARSIMONIOSA = (
+    "chosica_h_lluvia_1d", "chosica_h_lluvia_3d", "chosica_h_pico", "mat_lluvia_1d", "chosica_suelo_prev",
+    "chosica_h_lluvia_7d_previa_prev", "sst_nino12_anom_30d_prev", "sea_temp_anom_prev",
+    "sea_radiacion_anom_prev", "caudal_rimac-chosica_max_7d_prev", "icen_mes_previo",
+)
+
+
+def informe(raiz: Path, dias_antes: int = 0, nino: str = "icen", n_nulas: int = 2000, n_jobs: int = -1,
+            con_nulas: bool = True, con_ablacion: bool = True) -> dict:
+    """All the tables of chapter 05 for one labelling and one Niño definition."""
+    D = cargar_datos(raiz, dias_antes=dias_antes, nino=nino)
+    X, y, ts, mes = matrices(D)
+    yv = y.to_numpy()
+    out: dict = {"inventario": {k: v for k, v in D.inventario.items() if k != "mask"},
+                 "dias": len(y), "positivos": int(yv.sum()), "temporadas": len(np.unique(ts))}
+    res = correr_teorias(D, "temporada", n_jobs)
+    out["teorias"] = tabla_metricas(res, y)
+    pref = res["fecha"].p
+    out["intervalos"] = {k: intervalos_por_temporada(yv, res[k].p, pref, ts).loc[
+        ["ap", "auc", "brier_skill", "aciertos_con_5pc_alarmas"]]
+        for k in ("lluvia_dia", "antecedentes", "lluvia+antecedentes", "+nino", "no_lineal")}
+    out["episodio"] = tabla_metricas(correr_teorias(D, "episodio", n_jobs, con_oraculo=False), y)
+    folds_b = pliegues_bloques(ts, 5)
+    resB = {k: validar_anidado(X[k], y, ts, folds_b, n_jobs=n_jobs)
+            for k in ("lluvia_dia", "antecedentes", "lluvia+antecedentes", "+nino")}
+    resB["fecha"] = Resultado(E.p_climatologia(y, mes, folds_b), [], None, [])
+    out["bloques"] = tabla_metricas(resB, y)
+    out["regimen"] = {k: por_regimen(y, res[k], ts, D.temporadas) for k in ("lluvia_dia", "lluvia+antecedentes", "+nino")}
+    out["calibracion"] = calibracion(yv, res["+nino"].p)
+    est = estabilidad_coeficientes(res["lluvia+antecedentes"])
+    out["coeficientes"] = est
+    out["configuraciones"] = pd.Series(res["+nino"].configs).astype(str).value_counts()
+    out["sobreajuste"] = sobreajuste(X["+nino"], y, ts, res["+nino"])
+    sel = [c for c in SELECCION_PARSIMONIOSA if c in X["+nino"].columns]
+    par = validar_anidado(X["+nino"][sel], y, ts, [f for f in E.pliegues(ts, "temporada") if len(f)], n_jobs=n_jobs)
+    out["parsimonioso"] = pd.Series(metricas_completas(yv, par.p, pref))
+    out["parsimonioso_vars"] = sel
+    if con_ablacion:
+        filas = {"completo (T5)": metricas_completas(yv, res["+nino"].p, pref)}
+        for fam in ("mar", "caudal", "calor_altura", "humedad_y_circulacion", "suelo", "lluvia_previa", "nino_icen"):
+            filas[f"sin {fam}"] = metricas_completas(yv, ablacion(D, fam, n_jobs=n_jobs).p, pref)
+        out["ablacion"] = pd.DataFrame(filas).T
+    if con_nulas:
+        out["nulas"] = tabla_nulas(X, y, ts, n_nulas=n_nulas)
+    # one-stage vs two-stage cut-offs
+    out["dos_etapas_cortes"] = pd.Series({
+        q: metricas_completas(yv, dos_etapas(X["dos_etapas"], X["_lluvia_fuerte_base"]["chosica_h_lluvia_3d"], y, ts,
+                                           [f for f in E.pliegues(ts, "temporada") if len(f)], cuantil=q, n_jobs=n_jobs).p,
+                              pref)["ap"] for q in (0.8, 0.9, 0.95)})
+    return out

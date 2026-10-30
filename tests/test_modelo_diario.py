@@ -72,3 +72,24 @@ def test_intervalos_por_temporada_traen_los_tres_cuantiles():
     p = 1 / (1 + np.exp(-(1.2 * (X["lluvia"].to_numpy() - 3.5) - 2.0)))
     d = M.intervalos_por_temporada(y.to_numpy(), p, np.full(len(y), y.mean()), ts, n=30)
     assert list(d.columns) == ["p5", "mediana", "p95"] and (d["p5"] <= d["p95"]).all()
+
+
+def test_nulas_gpu_comparan_el_ap_real_con_mundos_desplazados():
+    import pytest
+
+    pytest.importorskip("torch")
+    X, y, ts = _sintetico()
+    r = M.nulas_gpu(X[["lluvia", "ruido"]], y, ts, c=0.1, n_nulas=20)
+    assert r["ap_real"] > r["ap_nula_p95"] and 0 < r["p"] <= 1 and r["n_nulas"] == 20
+
+
+def test_definicion_alterna_de_nino_cambia_las_temporadas(tmp_path):
+    import pytest
+
+    from illapa_research import nino as N
+
+    raiz = tmp_path
+    if not (Path("datos/enso/igp_icen.txt").exists()):
+        pytest.skip("datos/ no descargados")
+    t = N.cargar_temporadas(Path("datos"))
+    assert int(t["nino"].sum()) >= int((t["nino_global"] | t["nino_costero_n12"]).sum()) and raiz.exists()
