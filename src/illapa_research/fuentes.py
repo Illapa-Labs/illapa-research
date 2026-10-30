@@ -478,6 +478,7 @@ CAJAS_CIRCULACION = {
     "u850_selva": ("uwnd", 850, (-14.0, -8.0, 288.0, 294.0)),
     "v850_selva": ("vwnd", 850, (-14.0, -8.0, 288.0, 294.0)),
     "q850_selva": ("shum", 850, (-14.0, -8.0, 288.0, 294.0)),
+    "z500_chile_peru": ("hgt", 500, (-30.0, -15.0, 275.0, 288.0)),
 }
 CAJA_OLR = (-15.0, -5.0, 290.0, 305.0)
 PSL_NCSS = "https://psl.noaa.gov/thredds/ncss/grid/Datasets"
@@ -494,7 +495,11 @@ def _ncss_media(ruta: str, variable: str, caja: tuple, ini: str, fin: str, nivel
     if nivel is not None:
         params["vertCoord"] = nivel
     for intento in range(8):
-        resp = requests.get(f"{PSL_NCSS}/{ruta}", params=params, headers={"User-Agent": USER_AGENT}, timeout=300)
+        try:
+            resp = requests.get(f"{PSL_NCSS}/{ruta}", params=params, headers={"User-Agent": USER_AGENT}, timeout=300)
+        except requests.RequestException:
+            time.sleep(15 * (intento + 1))
+            continue
         if resp.ok and resp.content[:3] == b"CDF":
             break
         time.sleep(30 * (intento + 1))
@@ -565,6 +570,73 @@ def _bom_rmm(destino: Path) -> list[str]:
     resp.raise_for_status()
     f.write_text(resp.text, encoding="utf-8")
     return [str(f.relative_to(destino.parent))]
+
+
+# Boxes (west, south, east, north) of the CHIRPS series: the ERA5 predictor points +-0.1 degrees,
+# fixed before looking at any result. Each box is 4 x 4 cells of 0.05 degrees.
+CAJAS_CHIRPS = {
+    "chosica": (-76.80, -12.03, -76.60, -11.83),
+    "santa-eulalia-alta": (-76.50, -11.80, -76.30, -11.60),
+    "matucana": (-76.48, -11.94, -76.28, -11.74),
+    "ticlio": (-76.30, -11.70, -76.10, -11.50),
+    "selva-tarma": (-75.79, -11.52, -75.59, -11.32),
+}
+CHIRPS_URL = "https://data.chc.ucsb.edu/products/CHIRPS/v3.0/daily/final/sat/{a}/chirps-v3.0.sat.{a}.{m:02d}.{d:02d}.tif"
+
+
+def _chirps_dia(fecha) -> dict:
+    """Mean of the box cells for one day, read with a windowed request (a few kB per box)."""
+    import rasterio
+    from rasterio.windows import from_bounds
+
+    url = "/vsicurl/" + CHIRPS_URL.format(a=fecha.year, m=fecha.month, d=fecha.day)
+    fila = {"fecha": fecha.strftime("%Y-%m-%d")}
+    for _ in range(5):
+        try:
+            with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif",
+                              GDAL_HTTP_MAX_RETRY="3", GDAL_HTTP_RETRY_DELAY="2"):
+                with rasterio.open(url) as src:
+                    for nombre, (w, s, e, n) in CAJAS_CHIRPS.items():
+                        a = src.read(1, window=from_bounds(w, s, e, n, src.transform), masked=True)
+                        fila[nombre] = float(a.mean()) if a.count() else None
+            return fila
+        except Exception:  # noqa: BLE001 - network errors of many kinds; retried
+            time.sleep(5)
+    raise RuntimeError(f"CHIRPS no respondió para {fecha:%Y-%m-%d}")
+
+
+def _chirps_v3(destino: Path) -> list[str]:
+    """CHIRPS v3 daily rainfall (IMERG-timed, 'sat'), box means, November to April, 1998 to today.
+
+    CHIRPS' daily values are its pentad totals (stations + satellite) spread over the days with the
+    timing of NASA IMERG; the timing is therefore independent of ERA5. Each season is cached in
+    `chirps_cache/`.
+    """
+    from concurrent.futures import ThreadPoolExecutor
+
+    import pandas as pd
+
+    cache = destino / "chirps_cache"
+    cache.mkdir(parents=True, exist_ok=True)
+    hoy = pd.Timestamp.today().normalize()
+    partes = []
+    for temporada in range(1998, hoy.year + 1):
+        ruta = cache / f"temporada_{temporada}.csv"
+        ini = max(pd.Timestamp(f"{temporada - 1}-11-01"), pd.Timestamp("1998-01-01"))
+        fin = min(pd.Timestamp(f"{temporada}-04-30"), hoy - pd.Timedelta(days=45))
+        if fin < ini:
+            continue
+        if not ruta.exists() or temporada == hoy.year:
+            dias = pd.date_range(ini, fin, freq="D")
+            with ThreadPoolExecutor(12) as pool:
+                filas = list(pool.map(_chirps_dia, dias))
+            pd.DataFrame(filas).to_csv(ruta, index=False)
+            print(f"  CHIRPS temporada {temporada}: {len(filas)} días", flush=True)
+        partes.append(pd.read_csv(ruta, parse_dates=["fecha"]))
+    total = pd.concat(partes).drop_duplicates("fecha").sort_values("fecha")
+    archivo = destino / "chirps_v3_sat_diario.csv"
+    total.round(3).to_csv(archivo, index=False)
+    return [str(archivo.relative_to(destino.parent))]
 
 
 FUENTES: dict[str, Fuente] = {
@@ -681,6 +753,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Datos públicos de la Oficina de Meteorología de Australia; se citan",
             atribucion="Wheeler & Hendon (2004), Australian Bureau of Meteorology (RMM)",
             descargar=_bom_rmm,
+        ),
+        Fuente(
+            id="chirps-v3",
+            nombre="CHIRPS v3 diario (sat, tiempo de IMERG): medias de 5 cajas, noviembre a abril, 1998 a hoy",
+            url="https://www.chc.ucsb.edu/data/chirps3",
+            licencia="Dominio público y CC BY 4.0 (Climate Hazards Center)",
+            atribucion="Funk, C. et al. (2026), CHIRPS v3, Scientific Data 13, 718, doi:10.1038/s41597-026-07096-4",
+            descargar=_chirps_v3,
         ),
     )
 }
