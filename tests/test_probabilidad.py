@@ -97,6 +97,9 @@ def test_ficha_de_punta_a_punta_con_datos_sinteticos():
 
 def test_describir_nombra_estacion_y_dia_anterior():
     assert pr.describir("chosica_h_lluvia_3d") == "lluvia de 3 días en Chosica"
-    assert pr.describir("tic_temp_anom_prev") == "temperatura en Ticlio (del día anterior)"
+    assert pr.describir("tic_temp_anom_prev") == "temperatura en Ticlio (valor de ayer)"
+    assert pr.describir("mat_lluvia_1d_prev") == "lluvia de ayer en Matucana"
+    assert pr.describir("gradiente_presion_chosica_selva_prev").startswith("gradiente de presión entre Chosica")
+    assert pr.describir("sst_nino12_anom_30d_prev") == "temperatura del mar en la región Niño 1+2 (media de 30 días) (valor de ayer)"
     assert "Niño 1+2" in pr.describir("sst_nino12_alza_7d_prev")
     assert pr.describir("caudal_rimac-chosica_anom_prev").startswith("caudal del Rímac")

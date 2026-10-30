@@ -377,13 +377,15 @@ _VARIABLE = [
     (r"sst_.*_anom_7d", "temperatura del mar (media de 7 días)"), (r"sst_.*_anom", "temperatura del mar"),
     (r"icen_3m", "ICEN medio de los 3 meses previos"), (r"icen_mes", "ICEN del mes previo"),
 ]
-_MAR = {"nino12": "región Niño 1+2", "costa_peru": "costa de Perú", "costa_lima": "costa de Lima"}
+_MAR = {"nino12": "la región Niño 1+2", "costa_peru": "la costa de Perú", "costa_lima": "la costa de Lima"}
 
 
 def describir(columna: str) -> str:
-    """Short Spanish name of a feature column (with the station and, for lags, 'del día anterior')."""
+    """Short Spanish name of a feature column (with the station and, for lags, "de ayer")."""
     base = columna.removesuffix("_prev")
     previo = columna.endswith("_prev")
+    if base.startswith("gradiente_presion"):
+        return "gradiente de presión entre Chosica y la selva" + (" (valor de ayer)" if previo else "")
     nombre = None
     for patron, texto in _VARIABLE:
         if re.search(patron, base):
@@ -394,7 +396,14 @@ def describir(columna: str) -> str:
     if base.startswith("sst_"):
         for k, v in _MAR.items():
             if base.startswith(f"sst_{k}"):
-                lugar = f" ({v})"
+                lugar = f" en {v}"
+        m = re.search(r"alza_(\d+)d", base)
+        if m:
+            nombre = f"{nombre} en {m.group(1)} días"
+        if "anom_30d" in base:
+            nombre, lugar = "temperatura del mar", lugar + " (media de 30 días)"
+        elif "anom_7d" in base:
+            nombre, lugar = "temperatura del mar", lugar + " (media de 7 días)"
     elif base.startswith("caudal_"):
         lugar = " del Rímac" if "rimac" in base else " de Santa Eulalia"
     elif not base.startswith("icen"):
@@ -402,7 +411,14 @@ def describir(columna: str) -> str:
             if base.startswith(pref + "_") or base == pref:
                 lugar = f" en {v}" if not v.startswith("el ") else f" ({v})"
                 break
-    return f"{nombre}{lugar}" + (" (del día anterior)" if previo else "")
+    texto = f"{nombre}{lugar}"
+    if not previo:
+        return texto
+    if nombre == "lluvia del día":
+        return f"lluvia de ayer{lugar}"
+    if nombre.startswith(("pico horario", "máximo de lluvia en 3")):
+        return f"{nombre} de ayer{lugar}"
+    return f"{texto} (valor de ayer)"
 
 
 # ------------------------------------------------------------------ the fitted sheet
