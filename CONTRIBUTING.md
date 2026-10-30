@@ -1,5 +1,3 @@
-**Español** | [English](CONTRIBUTING.en.md)
-
 # Cómo colaborar
 
 Gracias por querer ayudar. Illapa Research es el kit de investigación de un proyecto comunitario de código abierto: no tiene anuncios, no se monetiza y busca ser útil para quien vive o viaja por zonas de lluvias fuertes en el Perú.

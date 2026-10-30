@@ -1,5 +1,3 @@
-**Español** | [English](README.en.md)
-
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="branding/chakana-mark-for-dark-backgrounds.svg">

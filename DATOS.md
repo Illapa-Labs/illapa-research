@@ -1,5 +1,3 @@
-**Español** | [English](DATOS.en.md)
-
 # Datos y atribución
 
 La licencia AGPL de este repositorio cubre el **código**, no los datos. `descargar-datos` solo baja fuentes con licencia clara; cada descarga queda registrada en `datos/MANIFIESTO.json`. Revisión del 29 de octubre de 2026. Este proyecto no es el dueño de estos datos ni los garantiza.
