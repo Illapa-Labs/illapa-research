@@ -168,7 +168,7 @@ def prueba_nula(
 
 
 def rezagos(
-    F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, lags: range = range(0, 15),
+    F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, lags: range = range(15),
     mask: np.ndarray | None = None, n_boot: int = 200, semilla: int = 0,
 ) -> pd.DataFrame:
     """AUC of each feature as it was `lag` days before the day, with a season bootstrap interval.

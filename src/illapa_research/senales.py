@@ -1,0 +1,245 @@
+"""Signals and lags: which conditions, how many days before, go with a huaico day?
+
+Everything here is descriptive and tested against nulls. Positives are few and cluster, so:
+
+* AUC of a feature at lag L is judged against labels cyclically shifted inside each season
+  (same number of events and same clustering, no link with the weather);
+* the many (variable x lag) tests are corrected with Benjamini-Hochberg and the expected number
+  of chance hits is reported;
+* event composites group consecutive days into one episode, so 2017 (23 days) counts once.
+
+Lag 0 is the day itself: it describes the storm, it is not a precursor. Only lag >= 1 is
+information available before the day.
+"""
+
+from __future__ import annotations
+
+import re
+from collections.abc import Callable
+from datetime import timedelta
+from pathlib import Path
+
+import numpy as np
+import pandas as pd
+from scipy.stats import rankdata
+
+from . import evaluacion_diaria as ev_d
+from . import predictores as P
+from .catalogo import Evento
+
+# Pre-registered hypotheses: columns are selected by regular expression on the feature name.
+HIPOTESIS: dict[str, dict[str, str]] = {
+    "H1": {
+        "texto": "La temperatura del mar (anomalía y alza de 3/7/14 días) sube días antes del huaico.",
+        "patron": r"^sst_",
+    },
+    "H2": {
+        "texto": "El calor aguas arriba (anomalía de temperatura y de la isoterma de 0 °C, nieve) precede "
+        "al huaico o al aumento de caudal.",
+        "patron": r"^(tic|sea|mat)_(temp_anom|cero_anom|temp_cambio|nieve)",
+    },
+    "H3": {
+        "texto": "La humedad de la selva (punto de rocío, nubes) y el gradiente de presión selva-costa "
+        "preceden al huaico.",
+        "patron": r"^(selva_|costa_|gradiente_)",
+    },
+    "H4": {
+        "texto": "El caudal de GloFAS y la humedad del suelo señalan condiciones previas.",
+        "patron": r"^(caudal_|.*suelo)",
+    },
+    "H5": {
+        "texto": "El efecto del mar es de régimen lento (interanual) y no un disparador diario: al quitar "
+        "la media de cada temporada su señal desaparece.",
+        "patron": r"^sst_",
+    },
+}
+LLUVIA = r"(lluvia|_h_pico|_h_3h_max)"
+
+
+def columnas_de(F: pd.DataFrame, hipotesis: str) -> list[str]:
+    patron = re.compile(HIPOTESIS[hipotesis]["patron"])
+    return [c for c in F.columns if patron.search(c) and not re.search(LLUVIA, c)]
+
+
+def cargar_matriz(datos: Path, eventos: list[Evento]) -> dict:
+    """Daily feature matrix, labels and what was available.
+
+    Reads the final ERA5 file when `descargar-datos` finished, or the per-point cache otherwise,
+    and every OISST box whose yearly files are complete.
+    """
+    from . import estudio_eventos as ee
+
+    final = datos / "open_meteo_predictores_diarios.json"
+    pred = P.cargar_predictores(final) if final.exists() else P.cargar_predictores_cache(datos / "predictores_cache")
+    sst = P.cargar_sst_cache(datos / "enso" / "oisst_cache")
+    caudal = P.cargar_caudal(datos / "open_meteo_caudal_glofas.json")
+    horario = ee.cargar_horario(datos / "open_meteo_horario_estudio.json")
+    F = P.construir(pred, caudal, sst, horario)
+    y = ev_d.etiquetas(eventos, F.index)
+    ts = ev_d.temporadas_de(F.index)
+    mask = P.temporada_mask(F.index) & (F.index.year >= 1984)
+    return {
+        "F": F, "y": y, "temporada": ts, "mask": mask,
+        "puntos_era5": sorted(pred), "cajas_sst": list(sst.columns),
+        "ultimo_dia": F.index.max(),
+    }
+
+
+# ---------------------------------------------------------------- fast AUC and permutation nulls
+def _rangos_lag(F: pd.DataFrame, columnas: list[str], lag: int, mask: np.ndarray, temporada: np.ndarray,
+                centrar: bool) -> tuple[np.ndarray, np.ndarray]:
+    """(ranks with NaN -> 0, valid indicator) of lagged features over the masked rows."""
+    X = F[columnas].shift(lag)
+    X = X[mask]
+    if centrar:
+        X = ev_d.centrar_por_temporada(X, temporada[mask])
+    V = X.notna().to_numpy()
+    R = np.zeros(X.shape)
+    for j in range(X.shape[1]):
+        v = V[:, j]
+        if v.sum() > 10:
+            R[v, j] = rankdata(X.iloc[:, j].to_numpy()[v])
+    return R, V.astype(float)
+
+
+def _auc_desde_rangos(y: np.ndarray, R: np.ndarray, V: np.ndarray) -> np.ndarray:
+    n1 = y @ V
+    n0 = V.sum(axis=0) - n1
+    s = y @ R
+    with np.errstate(invalid="ignore", divide="ignore"):
+        a = (s - n1 * (n1 + 1) / 2) / (n1 * n0)
+    a[(n1 < 5) | (n0 < 5)] = np.nan
+    return a
+
+
+def _desplazar_etiquetas(y: np.ndarray, temporada: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+    ys = y.copy()
+    for s in np.unique(temporada):
+        i = np.flatnonzero(temporada == s)
+        ys[i] = np.roll(y[i], int(rng.integers(5, max(6, len(i) - 5))))
+    return ys
+
+
+def bh(p: np.ndarray, q: float = 0.10) -> np.ndarray:
+    """Benjamini-Hochberg: True where the hypothesis is rejected at false-discovery rate q."""
+    p = np.asarray(p, dtype=float)
+    ok = ~np.isnan(p)
+    sal = np.zeros(len(p), dtype=bool)
+    idx = np.flatnonzero(ok)
+    orden = idx[np.argsort(p[idx])]
+    m = len(orden)
+    pasa = p[orden] <= q * (np.arange(1, m + 1) / m)
+    if pasa.any():
+        sal[orden[: np.flatnonzero(pasa).max() + 1]] = True
+    return sal
+
+
+def rezagos_nula(
+    F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, mask: np.ndarray,
+    lags: range = range(0, 15), centrar: bool = False, n_null: int = 300, semilla: int = 0,
+    q: float = 0.10,
+) -> pd.DataFrame:
+    """AUC per (variable, lag) with a two-sided p-value against season-shifted labels and BH.
+
+    Returns one row per pair with `auc`, `p`, `senal` (passes BH at `q`) and, in `attrs`, the
+    expected number of chance hits `q * n_tests` plus the number of hits observed.
+    """
+    rng = np.random.default_rng(semilla)
+    yv = y.to_numpy()[mask].astype(float)
+    ts = temporada[mask]
+    nulls = [_desplazar_etiquetas(yv, ts, rng) for _ in range(n_null)]
+    filas = []
+    for lag in lags:
+        R, V = _rangos_lag(F, columnas, lag, mask, temporada, centrar)
+        a = _auc_desde_rangos(yv, R, V)
+        nul = np.array([_auc_desde_rangos(yn, R, V) for yn in nulls])  # (n_null, vars)
+        for j, c in enumerate(columnas):
+            if np.isnan(a[j]):
+                continue
+            d = np.abs(nul[:, j] - 0.5)
+            p = (1 + np.sum(d >= abs(a[j] - 0.5))) / (n_null + 1)
+            filas.append({"variable": c, "lag": lag, "auc": a[j], "p": p})
+    out = pd.DataFrame(filas)
+    out["senal"] = bh(out["p"].to_numpy(), q)
+    out.attrs["esperados_por_azar"] = q * len(out)
+    out.attrs["observados"] = int(out["senal"].sum())
+    out.attrs["n_pruebas"] = len(out)
+    return out
+
+
+# ------------------------------------------------------------------------------- composites
+def episodios_de_dias(dias: list, hueco: int = 3) -> list[pd.Timestamp]:
+    """First day of every run of event days separated by at most `hueco` days."""
+    ds = sorted({pd.Timestamp(d) for d in dias})
+    out: list[pd.Timestamp] = []
+    previo = None
+    for d in ds:
+        if previo is None or (d - previo).days > hueco:
+            out.append(d)
+        previo = d
+    return out
+
+
+def compuesto(
+    serie: pd.Series, inicios: list[pd.Timestamp], temporada_de: Callable[[pd.Timestamp], int],
+    dias: pd.DatetimeIndex, lags: range = range(-14, 4), n_null: int = 500, semilla: int = 0,
+) -> pd.DataFrame:
+    """Mean z-score of `serie` around the start of each episode, against shifted dates.
+
+    A lag of -k is k days before the episode start. The null moves every episode to a random
+    day of the same rainy season, so seasonality and persistence stay in the null.
+    """
+    rng = np.random.default_rng(semilla)
+    s = serie.reindex(pd.date_range(dias.min() - timedelta(days=20), dias.max() + timedelta(days=20)))
+    base = serie[dias[np.isin(dias.month, [12, 1, 2, 3, 4])]]
+    z = (s - base.mean()) / base.std()
+    lags_l = list(lags)
+
+    def media(fechas: list[pd.Timestamp]) -> np.ndarray:
+        m = np.array([[z.get(f + timedelta(days=k), np.nan) for k in lags_l] for f in fechas])
+        return np.nanmean(m, axis=0)
+
+    obs = media(inicios)
+    por_temp: dict[int, list[pd.Timestamp]] = {}
+    for d in dias:
+        por_temp.setdefault(temporada_de(d), []).append(d)
+    nul = np.empty((n_null, len(lags_l)))
+    for i in range(n_null):
+        nul[i] = media([por_temp[temporada_de(d)][int(rng.integers(len(por_temp[temporada_de(d)])))] for d in inicios])
+    p = np.array([(1 + np.sum(np.abs(nul[:, j] - nul[:, j].mean()) >= abs(obs[j] - nul[:, j].mean()))) / (n_null + 1)
+                  for j in range(len(lags_l))])
+    return pd.DataFrame({"lag": lags_l, "z_medio": obs, "nula_p5": np.percentile(nul, 5, axis=0),
+                         "nula_p95": np.percentile(nul, 95, axis=0), "p": p})
+
+
+# --------------------------------------------------------------------- season-level regime
+def regimen_temporada(
+    F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, mask: np.ndarray,
+    n_perm: int = 2000, semilla: int = 0, q: float = 0.10,
+) -> pd.DataFrame:
+    """Spearman correlation between the season mean of each feature and the season's event days.
+
+    One point per rainy season, so day clustering cannot inflate the evidence; the p-value
+    permutes the seasons' event counts.
+    """
+    from scipy.stats import spearmanr
+
+    rng = np.random.default_rng(semilla)
+    ts = temporada[mask]
+    medias = F[columnas][mask].groupby(ts).mean()
+    n_ev = pd.Series(y.to_numpy()[mask], index=None).groupby(ts).sum()
+    n_ev = n_ev.reindex(medias.index)
+    filas = []
+    for c in columnas:
+        x = medias[c]
+        ok = x.notna()
+        if ok.sum() < 12:
+            continue
+        rho = spearmanr(x[ok], n_ev[ok]).statistic
+        perm = np.array([spearmanr(x[ok], rng.permutation(n_ev[ok].to_numpy())).statistic for _ in range(n_perm)])
+        p = (1 + np.sum(np.abs(perm) >= abs(rho))) / (n_perm + 1)
+        filas.append({"variable": c, "temporadas": int(ok.sum()), "spearman": rho, "p": p})
+    out = pd.DataFrame(filas)
+    out["senal"] = bh(out["p"].to_numpy(), q)
+    out.attrs["esperados_por_azar"] = q * len(out)
+    return out
