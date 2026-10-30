@@ -62,4 +62,4 @@ def test_el_corte_entre_year_y_chunk_puede_variar_por_variable():
     assert ea.archivo_de(datetime(2023, 1, 1, tzinfo=UTC), 2021)[0].startswith("chunk_")
     segs = ea.segmentos(datetime(2023, 12, 20, tzinfo=UTC), datetime(2024, 1, 10, tzinfo=UTC), 2023)
     assert segs[0][0] == "year_2023.om" and segs[-1][0].startswith("chunk_")
-    assert sum(b - a for _, a, b, _ in segs) == 22 * 24 + 1
+    assert sum(b - a for _, a, b, _ in segs) == 21 * 24 + 1
