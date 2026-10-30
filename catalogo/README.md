@@ -34,9 +34,12 @@ Cada archivo `eventos_*.csv` trae una fuente distinta y `cargar_todos()` los jun
 | `eventos_coen.csv` | Informes del COEN-INDECI leídos completos | 2016, 2017, 2020 y 2024 |
 | `eventos_nuevos_1981_1998.csv` | INDECI (emergencias de 1998), INGEMMET y la tesis de la UNFV | 1981 a 1998 |
 | `eventos_nuevos_2013_2020.csv` | Prensa (El Comercio, América TV, Panamericana), INDECI | 2014 a 2020 |
+| `eventos_observatorio_enso.csv` | Catálogo «Memoria de desastres» de [PillB/observatorio-enso-peru](https://github.com/PillB/observatorio-enso-peru) (DesInventar, SINPAD, prensa): solo las fechas de tipo Huayco/Alud en Lurigancho-Chosica, Chaclacayo, Santa Eulalia y Ricardo Palma que no estaban en las otras fuentes | 1981 a 2026; 66 fechas, 20 con quebrada identificada |
 | `eventos_nuevos_2021_2026.csv` | Prensa (Andina, La República, Infobae, Trome, El Peruano) | 2023 a 2026 |
 
 Solo se registró una fecha cuando alguien leyó una fuente que da el día. Lo que no se pudo confirmar quedó fuera: los detalles están en las notas de investigación, que no forman parte de este repositorio. Los años 1990 a 1997, 1999 a 2008, 2010 a 2011 y 2021 a 2022 siguen sin eventos documentados, lo que no prueba que no los hubo.
+
+Las filas del observatorio son **registros por distrito**: la mayoría no dice qué quebrada se activó (`(sin quebrada)`) y el tipo «Huayco/Alud» puede incluir deslizamientos o inundaciones mal clasificados. Se dejaron en confianza media y con la licencia de su origen en `fuente` (DesInventar: uso libre con atribución; SINPAD: información pública).
 
 Dudas conocidas: el evento de Chosica de febrero de 2015 fue el lunes 9 según la prensa (el IGP dice el 10); el de 1998 aparece el 24 (IGP) y el 25 y 26 (Valverde); algunas filas de 2019 son crecidas de agua que Defensa Civil no consideró huaico; las filas de 2017 de la Municipalidad no dicen qué quebrada se activó cada día.
 
