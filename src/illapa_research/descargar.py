@@ -8,7 +8,7 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
-from .fuentes import FUENTES
+from .fuentes import FUENTES, NO_POR_DEFECTO
 from .fuentes_restringidas import FUENTES_OPT_IN
 
 TODAS = {**FUENTES, **FUENTES_OPT_IN}
@@ -68,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
         print("Subido:", ", ".join(subir(args.subir_hf, args.destino, args.publico)),
               "(repositorio público)" if args.publico else "(repositorio privado)")
         return 0
-    descargar(args.destino, args.solo or list(FUENTES))  # opt-in sources never run by default
+    descargar(args.destino, args.solo or [i for i in FUENTES if i not in NO_POR_DEFECTO])  # opt-in sources never run by default
     print(f"Listo. Licencias y atribuciones en {args.destino / 'MANIFIESTO.json'}")
     return 0
 

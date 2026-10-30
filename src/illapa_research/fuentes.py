@@ -650,6 +650,24 @@ def _igp_ec(destino: Path) -> list[str]:
     return [str(salida.relative_to(destino.parent))]
 
 
+def _cpc_lluvia(destino: Path) -> list[str]:
+    """NOAA CPC gauge-based daily rain (0.5 degrees) at the predictor points, one request per year."""
+    from .lluvia_satelital import descargar_cpc
+
+    return [str(descargar_cpc(destino).relative_to(destino.parent))]
+
+
+def _persiann_cdr(destino: Path) -> list[str]:
+    """NOAA NCEI PERSIANN-CDR daily rain (0.25 degrees), November to April, ~6 500 files."""
+    from .lluvia_satelital import descargar_persiann
+
+    return [str(descargar_persiann(destino).relative_to(destino.parent))]
+
+
+# Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
+NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr"})
+
+
 FUENTES: dict[str, Fuente] = {
     f.id: f
     for f in (
@@ -780,6 +798,22 @@ FUENTES: dict[str, Fuente] = {
             licencia="Datos públicos del IGP; sin licencia explícita (se citan)",
             atribucion="Instituto Geofísico del Perú (IGP); Takahashi et al. (2011), doi:10.1029/2011GL047364",
             descargar=_igp_ec,
+        ),
+        Fuente(
+            id="cpc-lluvia",
+            nombre="NOAA CPC: lluvia diaria de pluviómetros (0,5°) en los puntos de predictores",
+            url="https://psl.noaa.gov/data/gridded/data.cpc.globalprecip.html",
+            licencia="Dominio público (gobierno de EE. UU.)",
+            atribucion="NOAA PSL, CPC Global Unified Gauge-Based Analysis of Daily Precipitation",
+            descargar=_cpc_lluvia,
+        ),
+        Fuente(
+            id="persiann-cdr",
+            nombre="NOAA NCEI PERSIANN-CDR: lluvia diaria satelital (0,25°), noviembre a abril, en los puntos de predictores",
+            url="https://doi.org/10.7289/V51V5BWQ",
+            licencia="Dominio público (NOAA NCEI Climate Data Record)",
+            atribucion="Ashouri et al. (2015), BAMS, doi:10.1175/BAMS-D-13-00068.1; NOAA NCEI CDR PERSIANN",
+            descargar=_persiann_cdr,
         ),
     )
 }
