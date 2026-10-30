@@ -72,6 +72,7 @@ def cargar_matriz(datos: Path, eventos: list[Evento], rellenar_con_power: bool =
     pred, _fuente = P.cargar_con_respaldo(datos, rellenar_con_power=rellenar_con_power)
     diario = datos / "enso" / "oisst_diario.csv"
     sst = P.cargar_sst(diario) if diario.exists() else P.cargar_sst_cache(datos / "enso" / "oisst_cache")
+    sst = sst[~sst.index.duplicated(keep="last")]
     caudal = P.cargar_caudal(datos / "open_meteo_caudal_glofas.json")
     horario = ee.cargar_horario(datos / "open_meteo_horario_estudio.json")
     F = P.construir(pred, caudal, sst, horario)
