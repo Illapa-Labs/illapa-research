@@ -303,7 +303,13 @@ def nombrar(cuencas: list[dict], referencias: list[dict], tolerancia_m: float = 
     """
     for c in cuencas:
         c.update(nombre="", ubicacion="sin_nombre")
+        c["_slug_coord"] = f"q{-c['salida_lon'] * 10000:.0f}-{-c['salida_lat'] * 10000:.0f}"
     for ref in referencias:
+        if ref.get("cuenca_slug"):
+            for c in cuencas:
+                if c["_slug_coord"] == ref["cuenca_slug"]:
+                    c.update(nombre=f"Quebrada {ref['nombre']}", ubicacion="referencia")
+            continue
         if ref["lon"] is None:
             continue
         x, y = _A_UTM.transform(ref["lon"], ref["lat"])
@@ -321,9 +327,7 @@ def nombrar(cuencas: list[dict], referencias: list[dict], tolerancia_m: float = 
                 elegida = min(candidatas, key=lambda c: c["area_km2"])
             elegida.update(nombre=f"Quebrada {ref['nombre']}", ubicacion="referencia")
     for c in cuencas:
-        c["slug"] = slug(c["nombre"][len("Quebrada "):]) if c["nombre"] else (
-            f"q{-c['salida_lon'] * 10000:.0f}-{-c['salida_lat'] * 10000:.0f}"
-        )
+        c["slug"] = slug(c["nombre"][len("Quebrada "):]) if c["nombre"] else c["_slug_coord"]
 
 
 def exposicion_edificios(cuencas: list[dict], centros: np.ndarray, radio_m: float = 1000.0) -> None:

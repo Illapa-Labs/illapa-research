@@ -240,6 +240,164 @@ def _noaa_enso(destino: Path) -> list[str]:
     return escritos
 
 
+# Predictor points for the daily event model (name, latitude, longitude): high Rímac headwaters,
+# the Santa Eulalia valley, the town, the coast and the Amazon side of the divide.
+PUNTOS_PREDICTORES = (
+    ("ticlio", -11.60, -76.20),
+    ("santa-eulalia-alta", -11.70, -76.40),
+    ("matucana", -11.84, -76.38),
+    ("chosica", -11.93, -76.70),
+    ("costa-lima", -12.05, -77.12),
+    ("selva-tarma", -11.42, -75.69),
+)
+VARIABLES_HORARIAS = (
+    "temperature_2m,relative_humidity_2m,dew_point_2m,pressure_msl,cloud_cover,precipitation,"
+    "snowfall,wind_speed_10m,soil_moisture_0_to_7cm,vapour_pressure_deficit,shortwave_radiation"
+)
+# Boxes (south, north, west, east, stride) for the daily sea surface temperature of OISST.
+CAJAS_SST = {
+    "nino12": (-10.0, 0.0, -90.0, -80.0, 4),
+    "costa_peru": (-14.0, -8.0, -82.0, -77.0, 4),
+    "costa_lima": (-13.5, -11.5, -78.5, -76.5, 1),
+}
+
+
+def _open_meteo_predictores(destino: Path) -> list[str]:
+    """Daily summaries of ERA5 variables at several points, 1983 to today.
+
+    Each point and period is cached in `predictores_cache/`: the free API limits calls per hour,
+    so a rerun continues where the last one stopped and waits out the limit when it hits it.
+    """
+    import pandas as pd
+
+    cache = destino / "predictores_cache"
+    cache.mkdir(parents=True, exist_ok=True)
+    hoy = time.strftime("%Y-%m-%d")
+    salida = {}
+    for nombre, lat, lon in PUNTOS_PREDICTORES:
+        partes = []
+        for ini, fin in (("1983-01-01", "1999-12-31"), ("2000-01-01", hoy)):
+            ruta = cache / f"{nombre}_{ini[:4]}.json"
+            if ruta.exists() and ini == "1983-01-01":
+                js = json.loads(ruta.read_text(encoding="utf-8"))
+            else:
+                if ruta.exists() and json.loads(ruta.read_text(encoding="utf-8")).get("_hasta") == hoy:
+                    js = json.loads(ruta.read_text(encoding="utf-8"))
+                else:
+                    for _ in range(12):
+                        resp = requests.get(
+                            "https://archive-api.open-meteo.com/v1/archive",
+                            params={"latitude": lat, "longitude": lon, "start_date": ini, "end_date": fin,
+                                    "hourly": VARIABLES_HORARIAS, "timezone": "America/Lima"},
+                            headers={"User-Agent": USER_AGENT},
+                            timeout=300,
+                        )
+                        if resp.ok and "hourly" in resp.json():
+                            break
+                        print(f"  límite de Open-Meteo ({resp.status_code}); espero 10 min", flush=True)
+                        time.sleep(600)
+                    else:
+                        raise RuntimeError(f"Open-Meteo no respondió para {nombre} {ini}")
+                    js = resp.json()
+                    js["_hasta"] = hoy
+                    ruta.write_text(json.dumps(js), encoding="utf-8")
+                    time.sleep(20)
+            df = pd.DataFrame(js["hourly"])
+            df["time"] = pd.to_datetime(df["time"])
+            d = df.set_index("time").resample("D").agg(
+                {
+                    "temperature_2m": ["mean", "max", "min"],
+                    "relative_humidity_2m": "mean",
+                    "dew_point_2m": "mean",
+                    "pressure_msl": "mean",
+                    "cloud_cover": "mean",
+                    "precipitation": ["sum", "max"],
+                    "snowfall": "sum",
+                    "wind_speed_10m": "mean",
+                    "soil_moisture_0_to_7cm": "mean",
+                    "vapour_pressure_deficit": "mean",
+                    "shortwave_radiation": "sum",
+                }
+            )
+            d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
+            partes.append(d)
+            salida.setdefault(nombre, {})["elevation"] = js.get("elevation")
+        total = pd.concat(partes)
+        salida[nombre]["fecha"] = [t.strftime("%Y-%m-%d") for t in total.index]
+        salida[nombre]["columnas"] = {c: [None if pd.isna(v) else round(float(v), 3) for v in total[c]]
+                                       for c in total.columns}
+    archivo = destino / "open_meteo_predictores_diarios.json"
+    archivo.write_text(json.dumps(salida), encoding="utf-8")
+    return [str(archivo.relative_to(destino.parent))]
+
+
+def _open_meteo_caudal(destino: Path) -> list[str]:
+    """GloFAS river discharge (Open-Meteo flood API) near Chosica, Matucana and the Santa Eulalia."""
+    puntos = (("rimac-chosica", -11.93, -76.70), ("rimac-matucana", -11.84, -76.38),
+              ("santa-eulalia", -11.90, -76.60))
+    salida = {}
+    for nombre, lat, lon in puntos:
+        for _ in range(6):
+            resp = requests.get(
+                "https://flood-api.open-meteo.com/v1/flood",
+                params={"latitude": lat, "longitude": lon, "start_date": "1984-01-01",
+                        "end_date": time.strftime("%Y-%m-%d"), "daily": "river_discharge"},
+                headers={"User-Agent": USER_AGENT},
+                timeout=300,
+            )
+            if resp.ok and "daily" in resp.json():
+                break
+            time.sleep(65)
+        else:
+            raise RuntimeError(f"Flood API no respondió para {nombre}")
+        js = resp.json()
+        salida[nombre] = {"lat": js["latitude"], "lon": js["longitude"], "elevation": js.get("elevation"),
+                          "fecha": js["daily"]["time"], "river_discharge": js["daily"]["river_discharge"]}
+        time.sleep(5)
+    archivo = destino / "open_meteo_caudal_glofas.json"
+    archivo.write_text(json.dumps(salida), encoding="utf-8")
+    return [str(archivo.relative_to(destino.parent))]
+
+
+def _noaa_oisst(destino: Path) -> list[str]:
+    """Daily NOAA OISST v2.1 sea surface temperature, area means of three Pacific boxes."""
+    import io
+
+    import pandas as pd
+
+    carpeta = destino / "enso"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    series = {}
+    for nombre, (s, n, w, e, paso) in CAJAS_SST.items():
+        partes = []
+        for anio in range(1982, int(time.strftime("%Y")) + 1):
+            ini = f"{anio}-01-01" if anio > 1982 else "1982-01-01"
+            fin = f"{anio}-12-31" if anio < int(time.strftime("%Y")) else time.strftime("%Y-%m-%d")
+            url = (
+                "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg_LonPM180.csv?"
+                f"sst[({ini}):1:({fin})][(0.0):1:(0.0)][({s}):{paso}:({n})][({w}):{paso}:({e})]"
+            )
+            for _ in range(5):
+                try:
+                    texto = _get(url, timeout=300).text
+                    break
+                except requests.RequestException:
+                    time.sleep(20)
+            else:
+                raise RuntimeError(f"ERDDAP no respondió para {nombre} {anio}")
+            df = pd.read_csv(io.StringIO(texto), skiprows=[1])
+            partes.append(df.groupby("time")["sst"].mean())
+            time.sleep(1)
+        serie = pd.concat(partes)
+        serie.index = pd.to_datetime(serie.index).tz_localize(None).normalize()
+        series[nombre] = serie
+    out = pd.DataFrame(series)
+    out.index.name = "fecha"
+    archivo = carpeta / "oisst_diario.csv"
+    out.round(3).to_csv(archivo)
+    return [str(archivo.relative_to(destino.parent))]
+
+
 FUENTES: dict[str, Fuente] = {
     f.id: f
     for f in (
@@ -298,6 +456,30 @@ FUENTES: dict[str, Fuente] = {
             licencia="Dominio público (gobierno de EE. UU.)",
             atribucion="NOAA Climate Prediction Center",
             descargar=_noaa_enso,
+        ),
+        Fuente(
+            id="open-meteo-predictores",
+            nombre="Open-Meteo (ERA5): resumen diario de 11 variables en 6 puntos, 1983 a hoy",
+            url="https://open-meteo.com",
+            licencia="CC BY 4.0 (API gratuita solo para uso no comercial)",
+            atribucion="Weather data by Open-Meteo.com",
+            descargar=_open_meteo_predictores,
+        ),
+        Fuente(
+            id="open-meteo-caudal",
+            nombre="Open-Meteo (GloFAS): caudal diario del Rímac y Santa Eulalia, 1984 a hoy",
+            url="https://open-meteo.com/en/docs/flood-api",
+            licencia="CC BY 4.0 (API gratuita solo para uso no comercial)",
+            atribucion="Weather data by Open-Meteo.com; GloFAS (Copernicus Emergency Management Service)",
+            descargar=_open_meteo_caudal,
+        ),
+        Fuente(
+            id="noaa-oisst",
+            nombre="NOAA OISST v2.1: temperatura diaria del mar (Niño 1+2, costa de Perú y Lima)",
+            url="https://www.ncei.noaa.gov/products/optimum-interpolation-sst",
+            licencia="Dominio público (gobierno de EE. UU.)",
+            atribucion="NOAA OISST v2.1 (Huang et al. 2021), vía ERDDAP de CoastWatch",
+            descargar=_noaa_oisst,
         ),
     )
 }

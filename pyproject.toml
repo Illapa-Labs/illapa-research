@@ -16,6 +16,7 @@ dependencies = [
     "numpy>=2.4.6",
     "pandas>=3.1.0",
     "scipy>=1.17.1",
+    "scikit-learn>=1.9.1",
 ]
 
 [project.optional-dependencies]
@@ -26,7 +27,7 @@ dev = ["pytest>=8", "ruff>=0.6"]
 descargar-datos = "illapa_research.descargar:main"
 delimitar-quebradas = "illapa_research.quebradas:main"
 filtro-quebradas = "illapa_research.filtro:main"
-modelo-quebradas = "illapa_research.modelo:main"
+modelo-quebradas = "illapa_research.modelo_quebradas:main"
 
 [build-system]
 requires = ["hatchling"]
