@@ -79,3 +79,14 @@ def test_robustez_marca_la_senal_estable_y_no_el_ruido():
     r = S.robustez(F, y, ["senal", "ruido"], ts, masc, lags=range(1, 6), centrar=False, n_null=300)
     assert r[(r.variable == "senal") & (r.lag == 3)]["robusta"].iloc[0]
     assert not r[r.variable == "ruido"]["robusta"].any()
+
+
+def test_auc_lote_coincide_con_la_version_de_una_etiqueta():
+    rng = np.random.default_rng(3)
+    n = 400
+    F = pd.DataFrame({"a": rng.normal(size=n), "b": rng.normal(size=n)})
+    R, V = S._rangos_lag(F, ["a", "b"], 0, np.ones(n, bool), np.zeros(n, int), False)
+    Y = (rng.random((5, n)) < 0.1).astype(np.float32)
+    lote = S._auc_lote(Y, R.astype(np.float32), V.astype(np.float32), torch_=True)  # CPU/NumPy when no torch
+    uno = np.array([S._auc_desde_rangos(y, R, V) for y in Y.astype(float)])
+    assert np.allclose(lote, uno, atol=1e-5)

@@ -61,7 +61,7 @@ def columnas_de(F: pd.DataFrame, hipotesis: str) -> list[str]:
     return [c for c in F.columns if patron.search(c) and not re.search(LLUVIA, c)]
 
 
-def cargar_matriz(datos: Path, eventos: list[Evento]) -> dict:
+def cargar_matriz(datos: Path, eventos: list[Evento], rellenar_con_power: bool = False) -> dict:
     """Daily feature matrix, labels and what was available.
 
     Reads the final ERA5 file when `descargar-datos` finished, or the per-point cache otherwise,
@@ -69,7 +69,7 @@ def cargar_matriz(datos: Path, eventos: list[Evento]) -> dict:
     """
     from . import estudio_eventos as ee
 
-    pred, _fuente = P.cargar_con_respaldo(datos)
+    pred, _fuente = P.cargar_con_respaldo(datos, rellenar_con_power=rellenar_con_power)
     sst = P.cargar_sst_cache(datos / "enso" / "oisst_cache")
     caudal = P.cargar_caudal(datos / "open_meteo_caudal_glofas.json")
     horario = ee.cargar_horario(datos / "open_meteo_horario_estudio.json")
@@ -79,7 +79,7 @@ def cargar_matriz(datos: Path, eventos: list[Evento]) -> dict:
     mask = P.temporada_mask(F.index) & (F.index.year >= 1984)
     return {
         "F": F, "y": y, "temporada": ts, "mask": mask,
-        "puntos_era5": sorted(pred), "cajas_sst": list(sst.columns),
+        "puntos_era5": sorted(pred), "fuentes_era5": _fuente, "cajas_sst": list(sst.columns),
         "ultimo_dia": F.index.max(),
     }
 
@@ -105,6 +105,36 @@ def _auc_desde_rangos(y: np.ndarray, R: np.ndarray, V: np.ndarray) -> np.ndarray
     n1 = y @ V
     n0 = V.sum(axis=0) - n1
     s = y @ R
+    with np.errstate(invalid="ignore", divide="ignore"):
+        a = (s - n1 * (n1 + 1) / 2) / (n1 * n0)
+    a[(n1 < 5) | (n0 < 5)] = np.nan
+    return a
+
+
+def _auc_lote(Y: np.ndarray, R: np.ndarray, V: np.ndarray, torch_: bool = False) -> np.ndarray:
+    """AUC of every label row of `Y` (B, n) for every feature column: shape (B, features).
+
+    One matrix product per call. With `torch_` (and PyTorch installed) it runs on the GPU when
+    there is one; the result is the same as the NumPy path up to float rounding.
+    """
+    if torch_:
+        try:
+            import torch
+
+            dev = "cuda" if torch.cuda.is_available() else "cpu"
+            Yt = torch.as_tensor(Y, dtype=torch.float32, device=dev)
+            Rt = torch.as_tensor(R, dtype=torch.float32, device=dev)
+            Vt = torch.as_tensor(V, dtype=torch.float32, device=dev)
+            n1, s = Yt @ Vt, Yt @ Rt
+            n0 = Vt.sum(0)[None, :] - n1
+            a = (s - n1 * (n1 + 1) / 2) / (n1 * n0)
+            a[(n1 < 5) | (n0 < 5)] = float("nan")
+            return a.cpu().numpy()
+        except ImportError:
+            pass
+    n1 = Y @ V
+    n0 = V.sum(axis=0)[None, :] - n1
+    s = Y @ R
     with np.errstate(invalid="ignore", divide="ignore"):
         a = (s - n1 * (n1 + 1) / 2) / (n1 * n0)
     a[(n1 < 5) | (n0 < 5)] = np.nan
@@ -147,7 +177,7 @@ def bh(p: np.ndarray, q: float = 0.10) -> np.ndarray:
 def rezagos_nula(
     F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, mask: np.ndarray,
     lags: range = range(15), centrar: bool = False, n_null: int = 300, semilla: int = 0,
-    q: float = 0.10, modo_nula: str = "local",
+    q: float = 0.10, modo_nula: str = "local", usar_torch: bool = False, trozo: int = 2000,
 ) -> pd.DataFrame:
     """AUC per (variable, lag) with a two-sided p-value against season-shifted labels and BH.
 
@@ -159,12 +189,15 @@ def rezagos_nula(
     rng = np.random.default_rng(semilla)
     yv = y.to_numpy()[mask].astype(float)
     ts = temporada[mask]
-    nulls = [_desplazar_etiquetas(yv, ts, rng, modo_nula) for _ in range(n_null)]
+    nulls = np.array([_desplazar_etiquetas(yv, ts, rng, modo_nula) for _ in range(n_null)], dtype=np.float32)
     filas = []
     for lag in lags:
         R, V = _rangos_lag(F, columnas, lag, mask, temporada, centrar)
         a = _auc_desde_rangos(yv, R, V)
-        nul = np.array([_auc_desde_rangos(yn, R, V) for yn in nulls])  # (n_null, vars)
+        nul = np.concatenate([
+            _auc_lote(nulls[i : i + trozo], R.astype(np.float32), V.astype(np.float32), usar_torch)
+            for i in range(0, n_null, trozo)
+        ])  # (n_null, vars)
         for j, c in enumerate(columnas):
             if np.isnan(a[j]):
                 continue
@@ -282,7 +315,7 @@ def mascaras_robustez(
 def robustez(
     F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray,
     mascaras: dict[str, np.ndarray], lags: range = range(1, 15), centrar: bool = True,
-    n_null: int = 1000, q: float = 0.10, p_nominal: float = 0.10,
+    n_null: int = 1000, q: float = 0.10, p_nominal: float = 0.10, usar_torch: bool = False,
 ) -> pd.DataFrame:
     """AUC, p-value and verdict per (variable, lag) in each mask, and whether it is robust.
 
@@ -293,7 +326,8 @@ def robustez(
     """
     partes = []
     for nombre, mask in mascaras.items():
-        r = rezagos_nula(F, y, columnas, temporada, mask, lags, centrar=centrar, n_null=n_null, q=q)
+        r = rezagos_nula(F, y, columnas, temporada, mask, lags, centrar=centrar, n_null=n_null, q=q,
+                         usar_torch=usar_torch)
         r["ventana"] = nombre
         partes.append(r)
     t = pd.concat(partes)
