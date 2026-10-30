@@ -30,6 +30,10 @@ hf = [
 gpu = [
     "torch>=2.4",
 ]
+era5 = [
+    "omfiles>=1.2.0",
+    "s3fs>=2026.9.0",
+]
 
 [project.scripts]
 descargar-datos = "illapa_research.descargar:main"
