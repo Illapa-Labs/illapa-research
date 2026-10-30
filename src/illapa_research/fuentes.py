@@ -594,7 +594,7 @@ def _chirps_dia(fecha) -> dict:
     for _ in range(5):
         try:
             entorno = rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif",
-                                   GDAL_HTTP_MAX_RETRY="3", GDAL_HTTP_RETRY_DELAY="2")
+                                   GDAL_HTTP_MAX_RETRY="3", GDAL_HTTP_RETRY_DELAY="2", GDAL_HTTP_TIMEOUT="30")
             with entorno, rasterio.open(url) as src:
                 if abs(src.bounds.left + 180) > 0.1 or src.width != 7200:
                     raise OSError("geotransform inesperado")
@@ -630,7 +630,7 @@ def _chirps_v3(destino: Path) -> list[str]:
             continue
         if not ruta.exists() or temporada == hoy.year:
             dias = pd.date_range(ini, fin, freq="D")
-            with ThreadPoolExecutor(12) as pool:
+            with ThreadPoolExecutor(4) as pool:
                 filas = list(pool.map(_chirps_dia, dias))
             pd.DataFrame(filas).to_csv(ruta, index=False)
             print(f"  CHIRPS temporada {temporada}: {len(filas)} días", flush=True)
