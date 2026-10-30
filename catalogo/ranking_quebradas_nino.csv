@@ -1,7 +1,7 @@
 posicion,slug,nombre,salida_lon,salida_lat,area_km2,melton,pendiente_cauce_1085_pct,pendiente_media_pct,fisica,edificios_1km,dias_activacion,temporadas_nino_activas,temporadas_nino,temporadas_no_nino_activas,temporadas_no_nino,tasa_nino,tasa_nino_ic80_bajo,tasa_nino_ic80_alto,evidencia,nivel,descripcion_nivel
 1,pedregal,Quebrada Pedregal,-76.7005,-11.9424,9.8172,0.478,19.5359,57.3538,46.5278,1910,14,6.0,15,3.0,30,0.4062,0.2535,0.5644,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
 2,quirio,Quebrada Quirio,-76.7083,-11.9446,10.0224,0.3856,17.0583,57.7622,40.2778,1989,13,6.0,15,2.0,30,0.4062,0.2535,0.5644,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
-3,los-laureles,Quebrada Los Laureles,-76.7577,-11.9711,9.0468,0.3596,18.6572,52.5354,33.6806,231,5,4.0,15,0.0,30,0.2812,0.1464,0.4289,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
+3,los-laureles,Quebrada Los Laureles,-76.7577,-11.9711,9.0468,0.3596,18.6572,52.5354,33.6806,231,12,5.0,15,1.0,30,0.3438,0.1984,0.4982,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
 4,la-ronda,Quebrada La Ronda,-76.6861,-11.9273,8.8317,0.4829,20.2464,62.793,56.25,1700,6,3.0,15,2.0,30,0.2188,0.0982,0.3557,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
 5,chacrasana,Quebrada Chacrasana,-76.7401,-11.9644,4.9941,0.489,22.1468,56.1701,52.7778,274,8,3.0,15,2.0,30,0.2188,0.0982,0.3557,fisica+historial,1,activada en 2 o más temporadas Niño (documentada)
 6,barba-blanca,Quebrada Barba Blanca,-76.6236,-11.8363,3.1977,0.7806,41.4782,57.905,81.25,0,1,1.0,15,0.0,30,0.0938,0.0196,0.1911,fisica+historial,2,activada en 1 temporada Niño (documentada)

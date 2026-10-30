@@ -1,20 +1,19 @@
 nombre,alias,lon,lat,tipo_referencia,fuente_referencia
 Quirio,Quiro;Quirio;San Antonio de Quirio,-76.716607,-11.936046,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia del huayco de Quirio
 Pedregal,Pedregal;San Antonio de Pedregal;Pedregal Alto,-76.701708,-11.931734,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia de la quebrada Pedregal
-Carossio,Carossio;Carosio,,,sin_ubicar,"El punto del proyecto previo huaico (-76,683938; -11,924717) queda a 275 m de una cuenca de 8,8 km2 y a 350 m de otra de 1,2 km2: no se puede decidir"
-Los Laureles,Los Laureles;Laureles,-76.747999,-11.976535,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia de la quebrada Los Laureles
+Carossio,Carossio;Carosio,,,sin_ubicar,"Tesis UNFV 2018 (Sánchez Meza, tomando SIGRID): cauce de 1,64 km de UTM 315700 E 8682200 N a 316400 E 8681200 N, entre La Libertad y Corrales; con ese error de unos 300 m cae junto a dos cuencas de 1,25 y 1,37 km2 y a 260 m de La Ronda: no se puede decidir"
+Los Laureles,Los Laureles;Laureles;Los Cóndores;Los Condores,-76.747999,-11.976535,punto_en_cauce,"Proyecto previo huaico (INGEMMET): punto de referencia. Los Cóndores es la misma cuenca: los 280 hitos de la faja marginal de la ANA (RD 0656-2022-ANA-AAA.CF, UTM 18S) caen dentro de ella"
 Río Seco,Río Seco;Rio Seco;Qubebrada Río Seco,-76.883,-11.951,desembocadura_osm,OpenStreetMap: la quebrada Río Seco termina aquí en el Rímac
 Chacrasana,Chacrasana,-76.74288,-11.96181,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 310218 E 8677071 N; área 4,7 km2"
 La Ronda,La Ronda;La Ronda (río Seco),-76.67727,-11.9323,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 317344 E 8680380 N (distrito de Ricardo Palma); área 8,9 km2"
 Barba Blanca,Barba Blanca,-76.62251,-11.84016,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 323250 E 8690608 N (distrito de Callahuanca); área 3,5 km2"
-Los Cóndores,Los Cóndores;Los Condores,,,sin_ubicar,Chaclacayo; sin coordenadas
 Corrales,Corrales,,,sin_ubicar,Sin coordenadas
-Cashahuacra,Cashahuacra;Cashahuasca,,,sin_ubicar,Sin coordenadas
+Cashahuacra,Cashahuacra;Cashahuasca,,,sin_ubicar,"Solo un punto aproximado de Mapcarta/OSM (-76.6703; -11.9029), a 246 m de una cuenca de 15 km2 (salida -76.663; -11.913): no se asignó. El informe INGEMMET A6680 (Núñez et al., 2015) debe traer la ubicación y no se pudo descargar"
 Santo Domingo,Santo Domingo,,,sin_ubicar,Sin coordenadas
 Mariscal Castilla,Mariscal Castilla,,,sin_ubicar,Sin coordenadas
 California,California,,,sin_ubicar,Sin coordenadas
 La Cantuta,La Cantuta;La Canuta,,,sin_ubicar,Sin coordenadas de la quebrada
-Yanacoto,Yanacoto,,,sin_ubicar,Sin coordenadas de la quebrada
+Yanacoto,Yanacoto,,,sin_ubicar,"INGEMMET A7458: los locales Yanacoto I y II (UTM 311962 8678070 y 311823 8678304) están en la margen izquierda de la quebrada Yanacoto y en el abanico de la Santa María; las cuencas vecinas de 4,85 y 8,34 km2 son candidatas, sin decidir"
 Huampaní,Huampaní;Huampani,,,sin_ubicar,Sin coordenadas
 Rayos de Sol,Rayos de Sol;Rayos del Sol,,,sin_ubicar,Sin coordenadas de la quebrada
 La Libertad,La Libertad,,,sin_ubicar,Sin coordenadas
