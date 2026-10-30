@@ -28,7 +28,7 @@ La lluvia del día separa los días de huaico del resto (AUC 0,82 en el notebook
 | Dato | Fuente | Licencia / uso | Cómo se obtiene |
 |---|---|---|---|
 | Fechas de huaico (día exacto, confianza no baja): 147 fechas, 118 en temporadas 1984-2026, 64 episodios | `catalogo/` (INDECI, IGP, prensa; cada fila cita su fuente) | Hechos citados | ya en el repositorio |
-| Temperatura diaria del mar | NOAA OISST v2.1 vía ERDDAP de CoastWatch; promedios por caja de 4 por 4 (1°) o de 0,25° | Dominio público | `descargar-datos --solo noaa-oisst` |
+| Temperatura diaria del mar | NOAA OISST v2.1 vía ERDDAP de CoastWatch; promedios de la caja Niño 1+2 y de la costa de Perú (celdas de 1°) y de la costa de Lima (0,25°) | Dominio público | `descargar-datos --solo noaa-oisst` |
 | Temperatura, humedad, presión, nubes, nieve, suelo, radiación en 6 puntos | Open-Meteo (ERA5), resúmenes diarios | CC BY 4.0; la API gratuita es solo no comercial | `descargar-datos --solo open-meteo-predictores` |
 | Caudal diario | Open-Meteo (GloFAS v4), 3 puntos cerca de Chosica y Matucana | CC BY 4.0; modelo, no medición | `descargar-datos --solo open-meteo-caudal` |
 | Lluvia horaria y suelo en Chosica y la cuenca alta | Open-Meteo (ERA5), de la primera fase | CC BY 4.0 | `descargar-datos --solo open-meteo-horario` |
@@ -36,10 +36,10 @@ La lluvia del día separa los días de huaico del resto (AUC 0,82 en el notebook
 
 Anomalías respecto de una climatología suavizada por día del año de 1991-2020. La isoterma de 0 °C se estima con la temperatura a 2 m y un gradiente estándar de 6,5 K/km (no se usó una variable de nivel de congelamiento: la API histórica no la entrega).
 
-### Con qué datos se corrió (corrida del 30 de octubre de 2026)
+### Con qué datos se corrió (corrida del 30 de octubre de 2026, mar completo)
 
 - ERA5: **3 de 6 puntos** (Matucana, Santa Eulalia alta y Ticlio). **Faltan Chosica, la costa de Lima y la selva de Tarma**: la API gratuita limita las llamadas por hora y la descarga sigue en curso. Por eso **H3 (selva y gradiente de presión) no se pudo probar todavía** y no se dice nada sobre ella.
-- Mar: cajas **Niño 1+2 y costa de Perú** completas (1982-2026); la caja de la costa de Lima está a medias y no se usó.
+- Mar: las tres cajas (**Niño 1+2, costa de Perú y costa de Lima**) completas, 1982 a octubre de 2026.
 - Caudal GloFAS: 3 puntos, 1984-2026 (los dos puntos «Rímac Chosica» y «Santa Eulalia» caen casi en la misma celda y se comportan igual).
 - Lluvia horaria y suelo de Chosica y de la cuenca alta de la primera fase.
 
@@ -57,8 +57,8 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 
 ### Visión general
 
-- **660 pruebas** (variable × rezago) en el período completo: 107 pasan Benjamini-Hochberg; 148 tienen p < 0,05 contra 33 esperadas por azar. Sin la media de cada temporada: 106 y 144. Es decir, **hay estructura de verdad**, pero buena parte es persistencia: variables muy autocorrelacionadas (suelo, caudal) dan el mismo hallazgo en rezagos vecinos, que no son pruebas independientes.
-- **47 de 616** combinaciones con rezago ≥ 1 son robustas. Por hipótesis: H4, 21 de 182; H2, 21 de 294; H1, 5 de 140.
+- **735 pruebas** (variable × rezago 0 a 14) en el período completo: 121 pasan Benjamini-Hochberg; 165 tienen p < 0,05 contra 37 esperadas por azar. Sin la media de cada temporada: 121 y 162. Es decir, **hay estructura de verdad**, pero buena parte es persistencia: variables muy autocorrelacionadas (suelo, caudal) dan el mismo hallazgo en rezagos vecinos, que no son pruebas independientes.
+- **56 de 686** combinaciones con rezago ≥ 1 son robustas. Por hipótesis: H4, 21 de 182; H2, 21 de 294; H1, 14 de 210.
 
 ### H4 · Suelo y caudal: la señal más fuerte, y lo más obvio
 
@@ -66,12 +66,12 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 - **Alza del caudal en 3 días** (GloFAS): AUC 0,64-0,65 con 5 a 7 días de antelación, robusta; más fuerte en temporadas sin Niño (AUC 0,82) que en temporadas Niño (0,62), aunque con pocos eventos.
 - Suelo de ERA5 en Matucana y Santa Eulalia alta: AUC 0,59-0,62 con 1 a 4 días.
 
-### H1 · El mar: sí en régimen, poco como disparador diario (H5)
+### H1 · El mar: sí en régimen y también una señal diaria débil (H5)
 
-- Anomalía del mar en Niño 1+2 y costa de Perú, un día antes: **AUC 0,71** (0,66 a 14 días). Casi todo es **entre temporadas**: al quitar la media de cada temporada baja a **0,59-0,60** y la anomalía de 30 días, a 0,51-0,53.
-- Correlación entre temporadas (43): alza del mar de la costa en 14 días **ρ = 0,41** (p = 0,004), anomalía Niño 1+2 **0,39** (p = 0,008), anomalía de 7 días 0,38 (p = 0,014). Pasan la corrección 8 de 20 variables probadas (cinco del mar, el suelo de Chosica y dos de caudal; esperadas por azar a p < 0,05: 1).
-- **Lo que sí queda dentro de la temporada**: el **alza del mar de la costa de Perú en 14 días** tiene AUC 0,64 con 1 a 3 días de antelación (centrada), es robusta (0,65 desde 2009, 0,65 en temporadas Niño y 0,59 en las que no) y en el composite 7 de los 14 días previos al inicio del episodio quedan por encima de la banda nula. El alza de 7 días en Niño 1+2 también pasa, solo con rezago de 1 día (0,59).
-- Lectura: H5 se confirma en lo grueso (el mar marca el régimen), pero hay una señal diaria débil, de calentamiento rápido de la costa en las dos semanas previas. No se sabe si es causa, es consecuencia de un patrón de circulación común o es una coincidencia con pocos episodios.
+- Anomalía del mar en Niño 1+2 y costa de Perú, un día antes: **AUC 0,71** (0,66 a 14 días). Es sobre todo **entre temporadas**: al quitar la media de cada temporada baja a **0,59-0,60**, y la anomalía de 30 días a 0,51-0,53.
+- Correlación entre temporadas (43): alza del mar de la costa de Perú en 14 días **ρ = 0,41** (p = 0,007), anomalía Niño 1+2 **0,39** (p = 0,008), anomalía de 7 días 0,38 (p = 0,013). Pasan la corrección 8 de 25 variables probadas (cinco del mar, el suelo de Chosica y dos de caudal; esperadas por azar a p < 0,05: 1,2).
+- **Lo que queda dentro de la temporada** es el **alza del mar en 14 días**: AUC centrado **0,66** (costa de Lima) y **0,64** (costa de Perú) con 1 a 3 días de antelación; robusta en las dos cajas (0,66 y 0,65 desde 2009; 0,64-0,66 en temporadas Niño y 0,59-0,66 en las que no). La anomalía de la costa de Lima el día anterior también (0,64 centrada). En el composite, de los 14 días previos al inicio del episodio, 7 (costa de Perú) y 4 (costa de Lima) quedan por encima de la banda nula; ninguno por debajo. El alza de 7 días en Niño 1+2 pasa solo con rezago de 1 día (0,59).
+- Lectura: H5 se confirma en lo grueso (el mar marca el régimen; la anomalía de largo plazo pierde toda la señal al centrar), pero hay una señal diaria débil de **calentamiento rápido de la costa en las dos semanas previas**, consistente en tres cajas y en las ventanas de cobertura. No se sabe si es causa, es consecuencia de un patrón de circulación común (menos viento costero y más nubosidad antes de un evento) o es coincidencia con pocos episodios; con 64 episodios y muchas pruebas, se trata como hipótesis para probar con datos nuevos, no como mecanismo.
 
 ### H2 · Calor aguas arriba: no hay precursor de calor; hay frío y nubes el día anterior
 
@@ -98,7 +98,7 @@ Los valores a rezago 0 son más extremos que a rezago 1 en las variables de temp
 
 ## 7. Qué falta y qué se pide a otros módulos
 
-- Reejecutar el notebook cuando lleguen `open_meteo_predictores_diarios.json` (Chosica, costa de Lima, selva de Tarma) y la caja de la costa de Lima de OISST; probar H3 y repetir H2 con más puntos.
+- Reejecutar el notebook cuando lleguen `open_meteo_predictores_diarios.json` (Chosica, costa de Lima, selva de Tarma); probar H3 y repetir H2 con más puntos.
 - Repetir la prueba con **lluvia como control** (efecto de la variable una vez descontada la lluvia del día y de los días previos), en un modelo multivariable validado dejando temporadas fuera; esto lo cubre el notebook 05, no este.
 - Cambios sugeridos en otros archivos (no hechos aquí, por ser de otro dueño):
   - `predictores.construir`: añadir el flag `rezago_minimo` por familia, para que el modelo diario solo use información de ≥ 1 día antes, y guardar el nivel de congelamiento si alguna fuente lo entrega.
