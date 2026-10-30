@@ -26,6 +26,7 @@ ARCHIVOS = {
     "open_meteo_predictores_diarios.json": "open-meteo-predictores",
     "predictores_cache": "open-meteo-predictores",
     "open_meteo_caudal_glofas.json": "open-meteo-caudal",
+    "nasa_power_diario.json": "nasa-power",
     "open_meteo_horario_estudio.json": "open-meteo-horario",
     "open_meteo_lluvia_diaria.json": "open-meteo",
     "osm_aguas_chosica.json": "osm-aguas",
