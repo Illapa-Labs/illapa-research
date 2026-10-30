@@ -69,8 +69,7 @@ def cargar_matriz(datos: Path, eventos: list[Evento]) -> dict:
     """
     from . import estudio_eventos as ee
 
-    final = datos / "open_meteo_predictores_diarios.json"
-    pred = P.cargar_predictores(final) if final.exists() else P.cargar_predictores_cache(datos / "predictores_cache")
+    pred, _fuente = P.cargar_con_respaldo(datos)
     sst = P.cargar_sst_cache(datos / "enso" / "oisst_cache")
     caudal = P.cargar_caudal(datos / "open_meteo_caudal_glofas.json")
     horario = ee.cargar_horario(datos / "open_meteo_horario_estudio.json")

@@ -65,10 +65,8 @@ class Datos:
 
 
 def _cargar_predictores(datos: Path) -> tuple[dict[str, pd.DataFrame], str]:
-    consolidado = datos / "open_meteo_predictores_diarios.json"
-    if consolidado.exists():
-        return P.cargar_predictores(consolidado), "consolidado"
-    return P.cargar_predictores_cache(datos / "predictores_cache"), "cache parcial"
+    pred, fuente = P.cargar_con_respaldo(datos)
+    return pred, "; ".join(f"{k}: {v}" for k, v in sorted(fuente.items()))
 
 
 def _cargar_sst(datos: Path) -> tuple[pd.DataFrame, str]:

@@ -443,6 +443,35 @@ def _igp_icen(destino: Path) -> list[str]:
     return [str(icen.relative_to(destino.parent)), str(eventos.relative_to(destino.parent))]
 
 
+def _nasa_power(destino: Path) -> list[str]:
+    """NASA POWER (MERRA-2) daily values at the predictor points; no key and no hourly cap.
+
+    A second reanalysis: it fills the points that Open-Meteo (ERA5) cannot serve while its daily
+    quota is spent, and lets the analyses check that a signal does not belong to one dataset.
+    """
+    parametros = "T2M,T2M_MAX,T2M_MIN,T2MDEW,RH2M,QV2M,PS,WS10M,CLOUD_AMT,PRECTOTCORR,ALLSKY_SFC_SW_DWN"
+    salida = {}
+    for nombre, lat, lon in PUNTOS_PREDICTORES:
+        resp = _get(
+            "https://power.larc.nasa.gov/api/temporal/daily/point",
+            params={"parameters": parametros, "community": "RE", "longitude": lon, "latitude": lat,
+                    "start": "19830101", "end": time.strftime("%Y%m%d"), "format": "JSON"},
+            timeout=300,
+        )
+        js = resp.json()
+        par = js["properties"]["parameter"]
+        fechas = sorted(next(iter(par.values())))
+        salida[nombre] = {
+            "lat": lat, "lon": lon, "elevation": js["geometry"]["coordinates"][2],
+            "fecha": [f"{f[:4]}-{f[4:6]}-{f[6:]}" for f in fechas],
+            "columnas": {k: [None if v[f] == -999 else v[f] for f in fechas] for k, v in par.items()},
+        }
+        time.sleep(2)
+    archivo = destino / "nasa_power_diario.json"
+    archivo.write_text(json.dumps(salida), encoding="utf-8")
+    return [str(archivo.relative_to(destino.parent))]
+
+
 FUENTES: dict[str, Fuente] = {
     f.id: f
     for f in (
@@ -533,6 +562,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Datos públicos del IGP; sin licencia explícita (se citan)",
             atribucion="Instituto Geofísico del Perú (IGP) y ENFEN, ICEN y lista de eventos El Niño/La Niña costeros",
             descargar=_igp_icen,
+        ),
+        Fuente(
+            id="nasa-power",
+            nombre="NASA POWER (MERRA-2): resumen diario en los 6 puntos de predictores, 1983 a hoy",
+            url="https://power.larc.nasa.gov/",
+            licencia="Datos abiertos de la NASA; cítese POWER",
+            atribucion="NASA Prediction Of Worldwide Energy Resources (POWER) Project, MERRA-2",
+            descargar=_nasa_power,
         ),
     )
 }

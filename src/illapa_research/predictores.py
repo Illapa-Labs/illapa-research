@@ -235,3 +235,52 @@ def cargar_sst_cache(cache: Path) -> pd.DataFrame:
     out = pd.DataFrame({k: v[~v.index.duplicated(keep="last")] for k, v in series.items()})
     out.index.name = "fecha"
     return out
+
+
+def cargar_power(ruta: Path) -> dict[str, pd.DataFrame]:
+    """NASA POWER (MERRA-2) daily values with the column names of the ERA5 summaries.
+
+    Units differ a little (pressure is at the grid-cell surface, not sea level; cloud is a
+    fraction scale), which is harmless for anomalies and differences of anomalies, the only
+    way the features use them.
+    """
+    datos = json.loads(Path(ruta).read_text(encoding="utf-8"))
+    out = {}
+    for punto, d in datos.items():
+        c = pd.DataFrame(d["columnas"], index=pd.to_datetime(d["fecha"]), dtype=float)
+        df = pd.DataFrame(
+            {
+                "temperature_2m": c["T2M"],
+                "temperature_2m_max": c["T2M_MAX"],
+                "temperature_2m_min": c["T2M_MIN"],
+                "dew_point_2m": c["T2MDEW"],
+                "relative_humidity_2m": c["RH2M"],
+                "pressure_msl": c["PS"] * 10.0,
+                "cloud_cover": c["CLOUD_AMT"],
+                "precipitation_sum": c["PRECTOTCORR"],
+                "wind_speed_10m": c["WS10M"],
+                "shortwave_radiation_sum": c["ALLSKY_SFC_SW_DWN"],
+            }
+        )
+        df.attrs["elevation"] = d["elevation"]
+        out[punto] = df
+    return out
+
+
+def cargar_con_respaldo(datos: Path, rellenar_con_power: bool = True) -> tuple[dict[str, pd.DataFrame], dict[str, str]]:
+    """Daily point data: ERA5 (consolidated file, or the cache of what is downloaded) and, for
+    the points ERA5 does not have yet, NASA POWER (MERRA-2, a much coarser grid).
+
+    Returns the data and the source of each point, so every result can say which one it used.
+    """
+    datos = Path(datos)
+    final = datos / "open_meteo_predictores_diarios.json"
+    pred = cargar_predictores(final) if final.exists() else cargar_predictores_cache(datos / "predictores_cache")
+    fuente = {k: "ERA5 (Open-Meteo)" for k in pred}
+    power = datos / "nasa_power_diario.json"
+    if rellenar_con_power and power.exists():
+        for k, df in cargar_power(power).items():
+            if k not in pred:
+                pred[k] = df
+                fuente[k] = "MERRA-2 (NASA POWER, malla gruesa)"
+    return pred, fuente
