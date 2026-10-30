@@ -593,12 +593,14 @@ def _chirps_dia(fecha) -> dict:
     fila = {"fecha": fecha.strftime("%Y-%m-%d")}
     for _ in range(5):
         try:
-            with rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif",
-                              GDAL_HTTP_MAX_RETRY="3", GDAL_HTTP_RETRY_DELAY="2"):
-                with rasterio.open(url) as src:
-                    for nombre, (w, s, e, n) in CAJAS_CHIRPS.items():
-                        a = src.read(1, window=from_bounds(w, s, e, n, src.transform), masked=True)
-                        fila[nombre] = float(a.mean()) if a.count() else None
+            entorno = rasterio.Env(GDAL_DISABLE_READDIR_ON_OPEN="EMPTY_DIR", CPL_VSIL_CURL_ALLOWED_EXTENSIONS=".tif",
+                                   GDAL_HTTP_MAX_RETRY="3", GDAL_HTTP_RETRY_DELAY="2")
+            with entorno, rasterio.open(url) as src:
+                if abs(src.bounds.left + 180) > 0.1 or src.width != 7200:
+                    raise OSError("geotransform inesperado")
+                for nombre, (w, s, e, n) in CAJAS_CHIRPS.items():
+                    a = src.read(1, window=from_bounds(w, s, e, n, src.transform), masked=True)
+                    fila[nombre] = float(a.mean()) if a.count() else None
             return fila
         except Exception:  # noqa: BLE001 - network errors of many kinds; retried
             time.sleep(5)
@@ -637,6 +639,15 @@ def _chirps_v3(destino: Path) -> list[str]:
     archivo = destino / "chirps_v3_sat_diario.csv"
     total.round(3).to_csv(archivo, index=False)
     return [str(archivo.relative_to(destino.parent))]
+
+
+def _igp_ec(destino: Path) -> list[str]:
+    """E and C indices (Takahashi et al. 2011, ERSSTv5) as published by the IGP."""
+    carpeta = destino / "enso"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    salida = carpeta / "igp_ec_ersstv5.txt"
+    salida.write_text(_get("http://met.igp.gob.pe/datos/ecindex_ersstv5.txt").text, encoding="utf-8")
+    return [str(salida.relative_to(destino.parent))]
 
 
 FUENTES: dict[str, Fuente] = {
@@ -761,6 +772,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Dominio público y CC BY 4.0 (Climate Hazards Center)",
             atribucion="Funk, C. et al. (2026), CHIRPS v3, Scientific Data 13, 718, doi:10.1038/s41597-026-07096-4",
             descargar=_chirps_v3,
+        ),
+        Fuente(
+            id="igp-ec",
+            nombre="IGP: índices E y C mensuales (Takahashi et al. 2011, ERSSTv5)",
+            url="http://met.igp.gob.pe/variabclim/indices.html",
+            licencia="Datos públicos del IGP; sin licencia explícita (se citan)",
+            atribucion="Instituto Geofísico del Perú (IGP); Takahashi et al. (2011), doi:10.1029/2011GL047364",
+            descargar=_igp_ec,
         ),
     )
 }

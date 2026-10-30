@@ -23,6 +23,7 @@ ARCHIVOS = {
     "enso/noaa_nino12.txt": "noaa-enso",
     "enso/igp_icen.txt": "igp-icen",
     "enso/igp_eventos_el_nino_costero.csv": "igp-icen",
+    "enso/igp_ec_ersstv5.txt": "igp-ec",
     "open_meteo_predictores_diarios.json": "open-meteo-predictores",
     "predictores_cache": "open-meteo-predictores",
     "open_meteo_caudal_glofas.json": "open-meteo-caudal",
@@ -31,13 +32,17 @@ ARCHIVOS = {
     "open_meteo_lluvia_diaria.json": "open-meteo",
     "osm_aguas_chosica.json": "osm-aguas",
     "osm_edificios_centros.json": "osm-edificios",
+    "circulacion/ncep_olr_diario.csv": "noaa-circulacion",
+    "circulacion/omi.txt": "noaa-circulacion",
+    "circulacion/soi_cpc.txt": "noaa-circulacion",
+    "circulacion/rmm.txt": "bom-rmm",
     "MANIFIESTO.json": "",
 }
 
 
 # Sources left out of a public mirror: no explicit licence (the IGP publishes the ICEN without one).
 # They are small and `descargar-datos --solo igp-icen` fetches them from the IGP.
-EXCLUIDAS_EN_PUBLICO = {"igp-icen"}
+EXCLUIDAS_EN_PUBLICO = {"igp-icen", "bom-rmm"}  # bom-rmm: the BoM gives no explicit redistribution licence
 
 # Extra credit lines that the licences of some sources ask for in any redistribution.
 ATRIBUCIONES = {
