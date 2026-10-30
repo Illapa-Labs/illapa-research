@@ -368,3 +368,45 @@ def nula_bloque(
         p = correr_bloque(X_base, ex, y, ts, folds, n_jobs).p
         out.append(average_precision_score(yv[ok], p[ok]) - average_precision_score(yv[ok], base[ok]))
     return np.array(out)
+
+
+# ---------------------------------------------------------------- T28: complement or replace ERA5
+def columnas_lluvia_era5(columnas: list[str], puntos: tuple[str, ...] = ("mat", "sea", "tic")) -> list[str]:
+    """ERA5 rain columns of the upper-basin points (same day and shifted), the ones CHIRPS can replace."""
+    base = tuple(f"{p}_lluvia_" for p in puntos)
+    return [c for c in columnas if c.removesuffix("_prev").startswith(base)]
+
+
+def evaluar_chirps(
+    X_base: pd.DataFrame, chirps_cols: pd.DataFrame, y: pd.Series, ts: np.ndarray, desde: int = 1998,
+    n_jobs: int = 8,
+) -> pd.DataFrame:
+    """Complement and substitution tests on the seasons that have CHIRPS (`desde` on).
+
+    Three models, all fitted and scored on the same rows and the same season-out folds:
+    ``era5`` (the base design), ``era5+chirps`` (the CHIRPS columns added) and ``chirps en vez de
+    era5`` (the upper-basin ERA5 rain columns replaced by their CHIRPS counterparts). The change
+    in average precision is paired with a bootstrap of seasons.
+    """
+    dentro = (ts >= desde) & chirps_cols.notna().any(axis=1).to_numpy()
+    Xb = X_base[dentro]
+    Cx = chirps_cols[dentro]
+    ys, tss = y[dentro], ts[dentro]
+    folds = [f for f in E.pliegues(tss, "temporada") if len(f)]
+    ref = MD.validar_anidado(Xb, ys, tss, folds, n_jobs=n_jobs)
+    sust = Xb.drop(columns=columnas_lluvia_era5(list(Xb.columns)))
+    modelos = {
+        "era5": ref,
+        "era5+chirps": correr_bloque(Xb, Cx, ys, tss, folds, n_jobs),
+        "chirps en vez de era5": correr_bloque(sust, Cx, ys, tss, folds, n_jobs),
+    }
+    yv = ys.to_numpy()
+    pf = E.p_climatologia(ys, np.asarray(ys.index.month), folds)
+    filas = []
+    for nombre, r in modelos.items():
+        m = MD.metricas_completas(yv, r.p, pf)
+        d = ap_pareado(yv, r.p, ref.p, tss)
+        filas.append({"modelo": nombre, "dias": len(ys), "eventos": int(yv.sum()), "ap": m["ap"], "ap_base": m["ap_base"],
+                      "auc": m["auc"], "aciertos_con_5pc_alarmas": m["aciertos_con_5pc_alarmas"],
+                      "delta_ap_vs_era5": d["delta_ap"], "p5": d["p5"], "p95": d["p95"]})
+    return pd.DataFrame(filas)

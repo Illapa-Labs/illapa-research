@@ -82,3 +82,17 @@ def test_comparar_con_era5_separa_cola_y_correlacion():
     F = pd.DataFrame({"mat_lluvia_1d": era})
     r = H.comparar_con_era5(chirps, F, {"mat": "mat_lluvia_1d"})
     assert r.loc[0, "corr_pearson"] > 0.99 and r.loc[0, "media_chirps_5pc_era5"] > r.loc[0, "media_era5_5pc_era5"]
+
+
+def test_columnas_lluvia_era5_toma_las_del_dia_y_las_desplazadas_de_la_cuenca_alta():
+    cols = ["mat_lluvia_1d", "mat_lluvia_7d_previa_prev", "sea_lluvia_3d", "tic_lluvia_hmax", "chosica_h_lluvia_1d",
+            "chirps_matucana_1d", "mat_temp_anom"]
+    assert H.columnas_lluvia_era5(cols) == ["mat_lluvia_1d", "mat_lluvia_7d_previa_prev", "sea_lluvia_3d", "tic_lluvia_hmax"]
+
+
+def test_variables_chirps_son_causales_en_los_acumulados_previos():
+    idx = pd.date_range("2020-01-01", periods=10, freq="D")
+    ch = pd.DataFrame({"matucana": np.arange(10.0)}, index=idx)
+    V = H.variables_chirps(ch, idx)
+    assert V["chirps_matucana_1d"].iloc[5] == 5.0
+    assert V["chirps_matucana_7d_previa"].iloc[8] == sum(range(1, 8))  # days 1..7, not day 8 itself
