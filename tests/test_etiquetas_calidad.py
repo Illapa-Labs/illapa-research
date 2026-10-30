@@ -71,3 +71,18 @@ def test_metricas_sobre_da_lift_mayor_que_uno_si_el_modelo_ordena_bien():
     p = np.where(y == 1, 0.6, 0.04) + rng.uniform(0, 0.02, 1000)
     m = ec.metricas_sobre(y, p, np.full(1000, y.mean()), ts, n=30)
     assert m["lift"] > 5 and m["ap_p5"] <= m["ap"] <= m["ap_p95"] + 1e-9 and m["eventos"] == int(y.sum())
+
+
+def test_bootstrap_gpu_intervalos_y_diferencia_pareada():
+    import pytest
+
+    pytest.importorskip("torch")
+    rng = np.random.default_rng(1)
+    ts = np.repeat(np.arange(15), 60)
+    base = (rng.uniform(size=900) < 0.06).astype(int)
+    p = np.where(base == 1, 0.5, 0.03) + rng.uniform(0, 0.03, 900)
+    sub = base * (rng.uniform(size=900) < 0.5)
+    r = ec.bootstrap_gpu({"base": base, "sub": sub}, p, np.full(900, base.mean()), ts, B=60, dispositivo_="cpu")
+    assert set(r.index) == {"base", "sub"}
+    assert r.loc["base", "auc_p5"] <= r.loc["base", "auc"] <= r.loc["base", "auc_p95"] + 1e-9
+    assert "d_auc_p5" in r.columns and np.isnan(r.loc["base", "d_auc_p5"])

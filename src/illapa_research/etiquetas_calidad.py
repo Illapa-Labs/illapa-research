@@ -229,3 +229,84 @@ def falsos_positivos(p: pd.Series, y: pd.Series, k: int = 20, separacion_dias: i
         if len(elegidos) == k:
             break
     return pd.DataFrame({"p": p.loc[elegidos]})
+
+
+def bootstrap_gpu(
+    etiquetas: dict[str, np.ndarray], p: np.ndarray, p_ref: np.ndarray, ts: np.ndarray, B: int = 3000,
+    semilla: int = 0, mascara: np.ndarray | None = None, referencia: str = "base",
+    dispositivo_: str | None = None,
+) -> pd.DataFrame:
+    """Season bootstrap of AP, lift, AUC and hits at 5 % alarms for several labels at once.
+
+    Every label is scored with the same `B` resamples of whole seasons (`gpu.auc_ap_lote`), so the
+    difference to the reference label is paired. Returns, per label and metric, the point value,
+    the 5th / 95th percentiles of the resamples and, for AUC and lift, the 5th / 95th percentile of
+    the difference to `referencia` (an interval that excludes 0 means a real difference).
+    """
+    from . import gpu
+
+    mascara = np.ones(len(p), dtype=bool) if mascara is None else mascara
+    ts_m = ts[mascara]
+    seasons = np.unique(ts_m)
+    filas_de = {s: np.flatnonzero(mascara & (ts == s)) for s in seasons}
+    rng = np.random.default_rng(semilla)
+    largo = max(len(v) for v in filas_de.values())
+    indices = []
+    for _ in range(B):
+        idx = np.concatenate([filas_de[s] for s in rng.choice(seasons, len(seasons))])
+        indices.append(idx)
+    nmax = max(len(i) for i in indices)
+    I = np.zeros((B, nmax), dtype=np.int64)
+    M = np.zeros((B, nmax))
+    for b, idx in enumerate(indices):
+        I[b, : len(idx)] = idx
+        M[b, : len(idx)] = 1.0
+    del largo
+    P = p[I]
+    out: dict[str, dict[str, np.ndarray]] = {}
+    for nombre, y in etiquetas.items():
+        Y = y[I].astype(float)
+        auc, ap = gpu.auc_ap_lote(Y, P, M, dispositivo_)
+        tasa = (Y * M).sum(axis=1) / M.sum(axis=1)
+        # hits with 5 % of the scored days in alarm
+        hits = np.empty(B)
+        for b in range(B):
+            k = int(M[b].sum())
+            pb, yb = P[b, :k], Y[b, :k]
+            corte = np.quantile(pb, 0.95)
+            hits[b] = yb[pb >= corte].sum() / max(yb.sum(), 1)
+        out[nombre] = {"ap": ap, "lift": ap / np.clip(tasa, 1e-9, None), "auc": auc, "hits5": hits}
+    filas = []
+    ref = out[referencia]
+    yv = {k: v[mascara] for k, v in etiquetas.items()}
+    from .modelo_diario import metricas_completas
+
+    for nombre, m in out.items():
+        punto = metricas_completas(yv[nombre], p[mascara], p_ref[mascara])
+        fila = {"etiqueta": nombre, "eventos": int(yv[nombre].sum()), "ap": punto["ap"],
+                "lift": punto["ap"] / punto["ap_base"], "auc": punto["auc"],
+                "hits5": punto["aciertos_con_5pc_alarmas"]}
+        for k in ("ap", "lift", "auc", "hits5"):
+            lo, hi = np.percentile(m[k], [5, 95])
+            fila[f"{k}_p5"], fila[f"{k}_p95"] = float(lo), float(hi)
+        if nombre != referencia:
+            for k in ("lift", "auc"):
+                lo, hi = np.percentile(m[k] - ref[k], [5, 95])
+                fila[f"d_{k}_p5"], fila[f"d_{k}_p95"] = float(lo), float(hi)
+        filas.append(fila)
+    return pd.DataFrame(filas).set_index("etiqueta")
+
+
+def nulas_por_etiqueta(
+    X: pd.DataFrame, etiquetas: dict[str, np.ndarray], ts: np.ndarray, n_nulas: int = 2000, C: float = 0.03,
+    dispositivo_: str | None = None,
+) -> pd.DataFrame:
+    """Out-of-fold AP of every label against `n_nulas` worlds with the labels shifted inside each
+    season (same events per season and clustering, no link to the weather)."""
+    from . import gpu
+
+    filas = {}
+    for nombre, y in etiquetas.items():
+        r = gpu.ap_real_y_nulas(X.to_numpy(), y.astype(int), ts, C=C, n_nulas=n_nulas, dispositivo_=dispositivo_)
+        filas[nombre] = r
+    return pd.DataFrame(filas).T
