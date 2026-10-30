@@ -14,3 +14,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [07 · Calidad de las etiquetas](07-calidad-de-etiquetas.md) | Etiquetas alternativas, sesgo por era, falsos positivos | `07` |
 | [08 · Circulación de gran escala](08-circulacion.md) | Viento en altura, convección, MJO | `08` |
 | [09 · Literatura de mecanismos](09-literatura-mecanismos.md) | Qué ocurre antes de las lluvias que activan huaicos y qué falta probar | — |
+| [12 · Cómputo: CPU y GPU](12-computo-gpu.md) | Cómo se ejecutan los miles de modelos de las pruebas nulas y cuánto se gana | — |
