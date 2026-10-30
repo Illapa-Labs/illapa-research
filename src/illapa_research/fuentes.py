@@ -664,8 +664,15 @@ def _persiann_cdr(destino: Path) -> list[str]:
     return [str(descargar_persiann(destino).relative_to(destino.parent))]
 
 
+def _era5_aws(destino: Path) -> list[str]:
+    """ERA5 / ERA5-Land read from the Open-Meteo files in AWS open data (no API quota)."""
+    from .era5_alterno import descargar_puntos
+
+    return descargar_puntos(destino)
+
+
 # Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
-NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr"})
+NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr", "era5-aws"})
 
 
 FUENTES: dict[str, Fuente] = {
@@ -814,6 +821,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Dominio público (NOAA NCEI Climate Data Record)",
             atribucion="Ashouri et al. (2015), BAMS, doi:10.1175/BAMS-D-13-00068.1; NOAA NCEI CDR PERSIANN",
             descargar=_persiann_cdr,
+        ),
+        Fuente(
+            id="era5-aws",
+            nombre="ERA5 y ERA5-Land desde los archivos de Open-Meteo en AWS (puntos que faltan en la caché de la API)",
+            url="https://registry.opendata.aws/open-meteo/",
+            licencia="CC BY 4.0 (Open-Meteo); datos de Copernicus Climate Change Service (ERA5), uso libre con atribución",
+            atribucion="Weather data by Open-Meteo.com; contains modified Copernicus Climate Change Service information (ERA5, ERA5-Land)",
+            descargar=_era5_aws,
         ),
     )
 }

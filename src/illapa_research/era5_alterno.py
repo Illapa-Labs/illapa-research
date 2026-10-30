@@ -263,3 +263,39 @@ def escribir_cache(df: pd.DataFrame, nombre: str, z_punto: float, destino: Path,
         ruta.write_text(json.dumps(js), encoding="utf-8")
         rutas.append(ruta)
     return rutas
+
+
+def elevacion_dem(lat: float, lon: float) -> float:
+    """Copernicus GLO-30 elevation (m) at a point, read by range requests from the public COG."""
+    import math
+
+    import rasterio
+
+    la, lo = math.floor(lat), math.floor(lon)
+    n = f"Copernicus_DSM_COG_10_{'S' if la < 0 else 'N'}{abs(la):02d}_00_{'W' if lo < 0 else 'E'}{abs(lo):03d}_00_DEM"
+    with rasterio.open(f"https://copernicus-dem-30m.s3.amazonaws.com/{n}/{n}.tif") as src:
+        return float(next(src.sample([(lon, lat)]))[0])
+
+
+def descargar_puntos(destino: Path, puntos: list[tuple[str, float, float, str]] | None = None,
+                     solo_faltantes: bool = True, hilos: int = 4) -> list[str]:
+    """Fill `predictores_cache/` for the points that Open-Meteo did not serve.
+
+    `puntos`: (name, lat, lon, comma-separated variables); by default the points of
+    `fuentes.PUNTOS_PREDICTORES` that have no cache file yet, with `fuentes.VARIABLES_POR_PUNTO`.
+    """
+    from .fuentes import PUNTOS_PREDICTORES, VARIABLES_HORARIAS, VARIABLES_POR_PUNTO
+
+    cache = destino / "predictores_cache"
+    if puntos is None:
+        puntos = [(n, la, lo, VARIABLES_POR_PUNTO.get(n, VARIABLES_HORARIAS)) for n, la, lo in PUNTOS_PREDICTORES]
+    hoy = time.strftime("%Y-%m-%d")
+    fin = min(datetime.now(UTC), ultima_hora_disponible()).replace(minute=0, second=0, microsecond=0)
+    escritos = []
+    for nombre, lat, lon, variables in puntos:
+        if solo_faltantes and (cache / f"{nombre}_1983.json").exists() and (cache / f"{nombre}_2000.json").exists():
+            continue
+        z = elevacion_dem(lat, lon)
+        df = serie_punto(variables.split(","), lat, lon, z, datetime(1983, 1, 1, 5, tzinfo=UTC), fin, hilos=hilos)
+        escritos += [str(r.relative_to(destino.parent)) for r in escribir_cache(df, nombre, z, cache, hoy)]
+    return escritos
