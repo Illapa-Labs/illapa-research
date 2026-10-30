@@ -1,0 +1,35 @@
+[project]
+name = "illapa-research"
+version = "0.1.0"
+description = "Kit de investigación de Illapa Labs: descarga de datos, notebooks y modelos para el clima y los peligros naturales en el Perú."
+readme = "README.md"
+license = "AGPL-3.0-or-later"
+requires-python = ">=3.11"
+dependencies = [
+    "requests>=2.32",
+    "networkx>=3.3",
+    "shapely>=2.0",
+    "geopandas>=1.0",
+    "matplotlib>=3.9",
+]
+
+[project.optional-dependencies]
+notebooks = ["jupyterlab>=4", "nbformat>=5"]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+descargar-datos = "illapa_research.descargar:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/illapa_research"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
