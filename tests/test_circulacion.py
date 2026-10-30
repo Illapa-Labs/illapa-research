@@ -37,3 +37,18 @@ def test_con_circulacion_exige_desplazamiento_y_no_ve_el_futuro():
     assert out["x_circ"].iloc[3] == 2.0 and np.isnan(out["x_circ"].iloc[0])
     with pytest.raises(ValueError):
         c.con_circulacion(X, C, mask, desplazar=0)
+
+
+def test_construir_incluye_el_flujo_de_humedad_y_el_indicador_de_vaguada(tmp_path):
+    idx = pd.date_range("1991-01-01", "2021-12-31")
+    rng = np.random.default_rng(0)
+    d = tmp_path / "circulacion"
+    d.mkdir()
+    pd.DataFrame(
+        {n: rng.normal(size=len(idx)) + 5 for n in
+         ("u200_altiplano", "olr_amazonia", "u850_selva", "v850_selva", "q850_selva", "z500_chile_peru")},
+        index=pd.Index(idx, name="fecha"),
+    ).to_csv(d / "ncep_olr_diario.csv")
+    f = c.construir(tmp_path, idx)
+    assert {"flujo_q_u850_anom", "flujo_q_u850_anom_3d", "z500_vaguada"} <= set(f.columns)
+    assert 0.0 < f["z500_vaguada"].mean() < 0.3

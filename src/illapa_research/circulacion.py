@@ -7,6 +7,9 @@ The boxes and the lags were fixed before any analysis (docs/08-circulacion.md):
 * ``olr_amazonia``: NOAA interpolated OLR, 15S-5S, 70W-55W (low OLR = deep convection).
 * ``u850_selva``, ``v850_selva``, ``q850_selva``: wind and specific humidity at 850 hPa over the
   central jungle, 14S-8S, 72W-66W.
+* ``z500_chile_peru``: NCEP/NCAR R1 geopotential height at 500 hPa, 30S-15S, 85W-72W (trough or
+  cut-off low off Chile-Peru), and ``z500_vaguada``: anomaly below the 10th percentile of the
+  December-April climatology of 1991-2020.
 * MJO: RMM (Australian Bureau of Meteorology) and OMI (NOAA PSL).
 * SOI: monthly, Climate Prediction Center, always the previous month.
 
@@ -23,7 +26,7 @@ import pandas as pd
 
 from . import predictores as P
 
-SERIES = ("u200_altiplano", "olr_amazonia", "u850_selva", "v850_selva", "q850_selva")
+SERIES = ("u200_altiplano", "olr_amazonia", "u850_selva", "v850_selva", "q850_selva", "z500_chile_peru")
 
 
 def cargar_ncep_olr(ruta: Path) -> pd.DataFrame:
@@ -94,6 +97,9 @@ def construir(datos: Path, idx: pd.DatetimeIndex) -> pd.DataFrame:
         f[f"{c}_anom_7d"] = a.rolling(7, min_periods=4).mean()
         if c == "olr_amazonia":
             f[f"{c}_anom_15d"] = a.rolling(15, min_periods=8).mean()
+        if c == "z500_chile_peru":
+            ref = a[(a.index.year >= 1991) & (a.index.year <= 2020) & ((a.index.month >= 12) | (a.index.month <= 4))]
+            f["z500_vaguada"] = (a <= ref.quantile(0.10)).astype(float).where(a.notna())
     if {"q850_selva", "u850_selva"} <= set(base):
         flujo = base["q850_selva"] * base["u850_selva"]  # zonal moisture flux (g/kg m/s)
         f["flujo_q_u850_anom"] = P.anomalia(flujo)
@@ -122,3 +128,58 @@ def con_circulacion(X: pd.DataFrame, C: pd.DataFrame, mask: np.ndarray, desplaza
     nuevas = C.shift(desplazar).add_suffix("_circ")[mask]
     nuevas.index = X.index
     return pd.concat([X, nuevas], axis=1)
+
+
+# ------------------------------------------------------------------ does it add to the daily model?
+def ganancia_ap(
+    D, C: pd.DataFrame, folds_tipo: str = "temporada", n_jobs: int = 4, etiquetas: pd.Series | None = None,
+    solo: list[str] | None = None,
+) -> dict[str, float]:
+    """Out-of-fold average precision of `lluvia+antecedentes` with and without the circulation.
+
+    `D` comes from `modelo_diario.cargar_datos`; `C` from `construir`. `etiquetas` replaces the real
+    labels (used for the shifted-label null). `solo` keeps a subset of the circulation columns.
+    The circulation enters shifted by one day or more (`con_circulacion`).
+    """
+    from sklearn.metrics import average_precision_score
+
+    from . import evaluacion_diaria as E
+    from . import modelo_diario as md
+    from . import nino as N
+
+    X, y, ts, _ = md.matrices(D)
+    if etiquetas is not None:
+        y = etiquetas
+    base = X["lluvia+antecedentes"]
+    cols = C if solo is None else C[solo]
+    mas = con_circulacion(base, cols, D.inventario["mask"])
+    eps = N.episodios(D.temporadas) if folds_tipo == "episodio" else None
+    folds = [f for f in E.pliegues(ts, folds_tipo, eps) if len(f)]
+    p0 = md.validar_anidado(base, y, ts, folds, n_jobs=n_jobs).p
+    p1 = md.validar_anidado(mas, y, ts, folds, n_jobs=n_jobs).p
+    ok = ~np.isnan(p0) & ~np.isnan(p1)
+    yv = y.to_numpy()
+    ap0 = float(average_precision_score(yv[ok], p0[ok]))
+    ap1 = float(average_precision_score(yv[ok], p1[ok]))
+    return {"ap_sin": ap0, "ap_con": ap1, "ganancia": ap1 - ap0, "columnas": int(mas.shape[1] - base.shape[1])}
+
+
+def ganancia_nula(
+    D, C: pd.DataFrame, n: int = 12, folds_tipo: str = "temporada", n_jobs: int = 4, semilla: int = 0,
+    solo: list[str] | None = None,
+) -> np.ndarray:
+    """Gain in average precision when the huaico labels are shifted inside each season.
+
+    The shift keeps the number of events and their clustering in every season but breaks their
+    link with the weather, so it shows how much AP the extra columns "earn" by chance.
+    """
+    from . import modelo_diario as md
+    from . import senales as S
+
+    _, y, ts, _ = md.matrices(D)
+    rng = np.random.default_rng(semilla)
+    out = []
+    for _ in range(n):
+        ys = pd.Series(S._desplazar_etiquetas(y.to_numpy(), ts, rng, "local"), index=y.index)
+        out.append(ganancia_ap(D, C, folds_tipo, n_jobs, ys, solo)["ganancia"])
+    return np.array(out)
