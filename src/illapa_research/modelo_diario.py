@@ -74,7 +74,8 @@ def _cargar_predictores(datos: Path) -> tuple[dict[str, pd.DataFrame], str]:
 def _cargar_sst(datos: Path) -> tuple[pd.DataFrame, str]:
     final = datos / "enso" / "oisst_diario.csv"
     if final.exists():
-        return P.cargar_sst(final), "consolidado"
+        sst = P.cargar_sst(final)
+        return sst[~sst.index.duplicated(keep="last")], "consolidado"
     return P.cargar_sst_cache(datos / "enso" / "oisst_cache"), "cache parcial"
 
 
