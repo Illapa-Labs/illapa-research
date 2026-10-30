@@ -47,8 +47,11 @@ def cargar_cuencas(ruta: Path = CATALOGO / "cuencas.geojson") -> dict:
     return json.loads(Path(ruta).read_text(encoding="utf-8"))
 
 
-def cargar_todos(solo_dia_exacto: bool = False) -> list[Evento]:
-    """Events from the earlier project plus the IGP chronicle, ordered by date."""
+def cargar_todos(solo_dia_exacto: bool = False, sin_baja_confianza: bool = False) -> list[Evento]:
+    """Events from the earlier project plus every `eventos_*.csv` source, ordered by date."""
     todos = cargar_eventos(solo_dia_exacto=solo_dia_exacto)
-    todos += cargar_eventos(CATALOGO / "eventos_igp.csv", solo_dia_exacto=solo_dia_exacto)
+    for ruta in sorted(CATALOGO.glob("eventos_*.csv")):
+        todos += cargar_eventos(ruta, solo_dia_exacto=solo_dia_exacto)
+    if sin_baja_confianza:
+        todos = [e for e in todos if e.confianza != "baja"]
     return sorted(todos, key=lambda e: e.fecha)

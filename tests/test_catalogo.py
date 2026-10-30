@@ -26,3 +26,10 @@ def test_cronica_igp_trae_1998_con_dia_exacto():
     assert {e.fecha.isoformat() for e in igp} >= {"1998-01-29", "1998-02-15", "1998-02-24"}
     chaclacayo = [e for e in igp if "Los Cóndores" in e.quebradas]
     assert chaclacayo and chaclacayo[0].distrito == "Chaclacayo"
+
+
+def test_catalogo_completo_tiene_decadas_de_cobertura():
+    fechas = {e.fecha for e in cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True)}
+    assert len(fechas) > 60
+    assert {f.year for f in fechas} >= {1983, 1998, 2009, 2015, 2017, 2020, 2023, 2026}
+    assert not any(e.confianza == "baja" for e in cargar_todos(sin_baja_confianza=True))

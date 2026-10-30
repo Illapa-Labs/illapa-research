@@ -11,6 +11,7 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 
 | Eventos y cuencas del piloto (`catalogo/`) | Proyecto previo `huaico`; hechos de INDECI, CENEPRED, PREDES y prensa | Hechos citados con su fuente; sin verificar fila por fila | Cada fila conserva su `fuente` |
 | Cronología de huaicos 1983–2017 (`catalogo/eventos_igp.csv`) | IGP (2023), *Análisis y evaluación histórica de precipitaciones en Chaclacayo, Chosica y áreas aledañas*, que cita a El Comercio, La República y PREDES | Informe público; se copian solo fechas, lugares y datos básicos con su cita | Citar el informe del IGP y el diario de cada fila |
+| Fechas de huaicos (otros `eventos_*.csv`) | Tesis UNFV (2018), informes COEN-INDECI, INDECI 1998, prensa peruana | Hechos citados con su fuente; no se copia texto de los artículos | Cada fila cita su fuente |
 | Polígonos de cuenca | Derivados de [Copernicus DEM GLO-30](https://dataspace.copernicus.eu/explore-data/data-collections/copernicus-contributing-missions/collections-description/COP-DEM) | Uso libre con atribución | © Unión Europea / ESA |
 
 ## Fuera por ahora
