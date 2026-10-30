@@ -27,6 +27,9 @@ dev = ["pytest>=8", "ruff>=0.6"]
 hf = [
     "huggingface-hub>=0.25",
 ]
+gpu = [
+    "torch>=2.4",
+]
 
 [project.scripts]
 descargar-datos = "illapa_research.descargar:main"
