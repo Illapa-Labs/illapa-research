@@ -31,6 +31,8 @@ ARCHIVOS = {
     "predictores_cache/selva-tarma_1983.json": "era5-aws",
     "open_meteo_caudal_glofas.json": "open-meteo-caudal",
     "nasa_power_diario.json": "nasa-power",
+    "lluvia_sat/cpc_diario.csv": "cpc-lluvia",
+    "lluvia_sat/persiann_cdr_diario.csv": "persiann-cdr",
     "open_meteo_horario_estudio.json": "open-meteo-horario",
     "open_meteo_lluvia_diaria.json": "open-meteo",
     "osm_aguas_chosica.json": "osm-aguas",
@@ -60,6 +62,8 @@ ATRIBUCIONES = {
     "osm-aguas": "© OpenStreetMap contributors, ODbL 1.0. A database derived from these files must stay under ODbL.",
     "osm-edificios": "© OpenStreetMap contributors, ODbL 1.0. A database derived from these files must stay under ODbL.",
     "era5-aws": "Weather data by Open-Meteo.com (CC BY 4.0); contains modified Copernicus Climate Change Service information (ERA5, ERA5-Land).",
+    "cpc-lluvia": "NOAA PSL, CPC Global Unified Gauge-Based Analysis of Daily Precipitation (public domain).",
+    "persiann-cdr": "Ashouri et al. (2015), BAMS, doi:10.1175/BAMS-D-13-00068.1; NOAA NCEI CDR PERSIANN (public domain).",
     "nasa-power": "NASA Prediction Of Worldwide Energy Resources (POWER) Project, MERRA-2.",
     "noaa-oisst": "NOAA OISST v2.1 (Huang et al., 2021), public domain.",
 }

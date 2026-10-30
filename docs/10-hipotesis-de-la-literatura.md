@@ -110,16 +110,32 @@ En el modelo diario, E y C del mes previo (y su cambio) no suman: ΔAP −0,002 
 
 **Conclusión T25: no se confirma.** E y C no explican mejor que el ICEN: el ICEN gana en ambas medidas. Lo que se ve es consistente con que el efecto es **costero** (E, ICEN) y no del Pacífico central (C, ONI): C y ONI solos no se distinguen de la media. Lo único que mejora a ICEN es sumarle el ONI en los días con huaico (137,5 contra 156,3), una señal que habría que repetir con más temporadas antes de interpretarla. **Contexto del 2026:** E llega a 4,26 en septiembre de 2026 y el ICEN supera 3,9, valores de El Niño extraordinario; los archivos del IGP terminan en septiembre. Esto no es una predicción de huaicos: es la razón por la cual el contraste por temporada seguirá actualizándose.
 
-## 7. T28 · Lluvia satelital (CHIRPS v3): **no probada en esta corrida**
+## 7. T28 · Lluvia independiente de ERA5 (PERSIANN-CDR y CPC; CHIRPS no se pudo)
 
-**Qué se hizo.**
-- Se encontró la fuente: CHIRPS v3 diario (`sat`, tiempo de NASA IMERG, desde 1998) en el Climate Hazards Center, sin clave y con licencia de dominio público y CC BY 4.0. El readme del producto es explícito en que CHIRPS diario **reparte los totales de cada pentada entre los días con el tiempo de IMERG o de ERA5**; la versión `sat` usa IMERG, así que su reparto entre días es independiente de ERA5 (el total de la pentada no es una medida diaria).
-- Se probó la lectura por ventanas de un GeoTIFF de 11 MB (rasterio sobre HTTP: ~1,5 s por día y por las 5 cajas, unos kilobytes transferidos) y se escribió `descargar-datos --solo chirps-v3`, que guarda la media de cajas de 4 × 4 celdas (0,2°) para noviembre a abril, de 1998 a hoy, con caché por temporada. Las cajas se fijaron antes de mirar cualquier resultado: Chosica (−76,80 a −76,60; −12,03 a −11,83), Santa Eulalia alta (−76,50 a −76,30; −11,80 a −11,60), Matucana (−76,48 a −76,28; −11,94 a −11,74), Ticlio (−76,30 a −76,10; −11,70 a −11,50) y selva de Tarma (−75,79 a −75,59; −11,52 a −11,32).
-- Se escribieron las pruebas de complemento y sustitución (`evaluar_chirps`: ERA5, ERA5 + CHIRPS y CHIRPS en vez de ERA5 en las temporadas 1998 en adelante, con los mismos pliegues) y la comparación diaria con ERA5 (correlación y sesgo en el 5 % de días más lluviosos).
+**Qué se hizo.** CHIRPS v3 no se pudo bajar: `data.chc.ucsb.edu` dejó de responder (una sola petición de comprobación más, también agotó el tiempo) y el IRI Data Library pide login (redirige a `/auth/login`, no se usó). Se probaron entonces dos series públicas de NOAA, independientes de ERA5 (`src/illapa_research/lluvia_satelital.py`, `descargar-datos --solo persiann-cdr cpc-lluvia`; ambas no se bajan por defecto):
 
-**Qué falló.** El 30 de octubre de 2026, desde las ~12:00 hora de Lima, `data.chc.ucsb.edu` dejó de responder a esta máquina (las conexiones agotan el tiempo; `www.chc.ucsb.edu` sí responde). Pasó después de un primer intento con 12 hilos en paralelo; no sé si fue un límite por IP o una caída del servidor. La alternativa del Data Library del IRI (CHIRPS v2) sí responde, pero tarda de 1 a 4 minutos por unos pocos días y 1998-2026 sería inviable. Se dejó un proceso que prueba el servidor cada 5 minutos (hasta unas 7 horas) y, cuando responda, descarga con 4 hilos. **Cuando exista `datos/chirps_v3_sat_diario.csv` basta re-ejecutar el notebook**; las celdas de T28 ya están escritas y se activan solas.
+- **PERSIANN-CDR** (NCEI, 0,25°, doi:10.7289/V51V5BWQ): lluvia satelital infrarroja ajustada a totales mensuales de pluviómetros (GPCP). Archivos diarios globales de 1,3 MB; se leyeron 181 días (noviembre a abril) por temporada, 1984 a 2026, con 3 conexiones y pausas (unos 30 minutos desde la PC remota).
+- **CPC Global Unified Gauge-Based Analysis** (PSL, 0,5°): solo pluviómetros interpolados; archivos anuales de 63 MB. Con pocos pluviómetros en la sierra de Lima, casi siempre da 0 mm.
 
-**Expectativa honesta.** Como el reparto diario de CHIRPS es el de IMERG y el total es el de la pentada, la comparación con ERA5 mide sobre todo cuánto de la mala lluvia de ERA5 en terreno complejo (capítulo 09: correlaciones de ~0,1 con MERRA-2) se corrige. Si no aparece mejora, el techo no estaría en la fuente de la lluvia.
+La celda de cada serie que contiene el centro de cada punto se fijó antes de mirar (los centros de las cajas de CHIRPS: Chosica, Santa Eulalia alta, Matucana y Ticlio; la selva de Tarma se descargó pero no se comparó porque ERA5 no tiene allí lluvia diaria equivalente).
+
+**Datos de esta corrida (30 de octubre de 2026, ~15:30 hora de Lima).** Modelo base: ERA5 en Matucana, Santa Eulalia alta y Ticlio; MERRA-2 de NASA POWER en Chosica, costa de Lima y selva de Tarma; lluvia horaria ERA5 de Chosica y cuenca alta. 6 473 días de temporada (118 con huaico) para CPC y 6 372 (110) para PERSIANN-CDR (empieza en la temporada 1984). Cuando llegue ERA5 completo hay que repetir.
+
+**Resultados** (tablas en `catalogo/t28_*.csv`):
+
+| | PERSIANN-CDR | CPC |
+|---|---|---|
+| Correlación diaria con ERA5 (Spearman, 4 puntos) | 0,26 a 0,36 | 0,15 a 0,20 |
+| Media del 5 % de días más lluviosos de ERA5 (mm) | 4,4 a 5,1 contra 11,9 a 20,8 de ERA5 | 0,15 a 0,21 contra 12,2 a 21,2 |
+| AUC de la lluvia de 3 días para separar días con huaico, Chosica | 0,72 [0,67; 0,76] contra 0,83 [0,77; 0,89] de ERA5 | 0,59 [0,52; 0,66] |
+| Lo mismo, tres puntos de la cuenca alta | 0,68 a 0,70 contra 0,67 a 0,77 de ERA5 | 0,59 (todos los puntos casi iguales) |
+| Añadir las columnas al modelo `lluvia+antecedentes` (ΔAP, IC 90 % por bootstrap de temporadas) | −0,007 [−0,016; 0,007] | −0,011 [−0,027; −0,001] |
+| Sustituir la lluvia ERA5 de la cuenca alta | −0,019 [−0,052; 0,013] | −0,023 [−0,056; 0,002] |
+| Nula en GPU con regularización fija (500 mundos, bloque desplazado dentro de cada temporada): ΔAP real; p95 nula; p | −0,006; +0,009; 0,38 | −0,011; +0,010; 0,82 |
+
+**Conclusión T28: no se confirma.** Ninguna de las dos series independientes mejora ni sustituye la lluvia de ERA5. En Chosica, ERA5 separa claramente mejor los días con huaico (AUC 0,83 contra 0,72); en la cuenca alta los AUC se parecen. La versión de GPU con 500 mundos nulos coincide con la anidada: añadir cualquiera de las dos no se distingue de ruido. PERSIANN-CDR da entre un cuarto y un tercio de la lluvia de ERA5 en los días más lluviosos; es consistente con que el infrarrojo y el ajuste mensual subestiman la lluvia convectiva corta, pero no dice qué serie se acerca más a la lluvia real (el capítulo 11 encuentra que ERA5 da hasta el doble de lluvia que los pluviómetros en extremos).
+
+**Qué no se probó.** CHIRPS v3 (mezcla estaciones y satélite con tiempo de IMERG y 0,05°) y IMERG (piden servidores o cuentas que no se usaron). Los pluviómetros reales del SENAMHI sí ayudaron antes de 2014 (capítulo 11); la limitación parece ser la resolución de las series gruesas en una cuenca de relieve fuerte, no la falta de una segunda fuente.
 
 ## 8. Qué se concluye
 
@@ -128,7 +144,7 @@ En el modelo diario, E y C del mes previo (y su cambio) no suman: ΔAP −0,002 
 | T23 | tarde, corta e intensa | **No.** Hora del pico sin diferencia; los días con huaico tienen más horas húmedas y rachas más largas, y la lluvia menos concentrada. Mejora del modelo pequeña y con intervalo que incluye el cero |
 | T24 | TSM absoluta con umbral | **No como umbral.** El nivel separa (AUC por mes 0,71–0,74) pero ya está en el modelo vía la anomalía; ΔAP ≈ 0 |
 | T25 | E y C mejor que ICEN | **No.** El ICEN gana; el efecto es costero (E ≈ ICEN) y C/ONI no distinguen de la media |
-| T28 | CHIRPS | **Sin probar** (servidor del CHC inaccesible); código, fuente y cajas listos |
+| T28 | Lluvia independiente de ERA5 | **No.** CHIRPS no se pudo bajar; PERSIANN-CDR y CPC no mejoran ni sustituyen ERA5 (ΔAP −0,007 a −0,023); ERA5 separa mejor en Chosica |
 
 ## 9. Límites
 
@@ -141,5 +157,6 @@ En el modelo diario, E y C del mes previo (y su cambio) no suman: ΔAP −0,002 
 
 ```bash
 uv run descargar-datos --solo noaa-oisst igp-icen igp-ec noaa-enso nasa-power   # ERA5 y CHIRPS aparte
+uv run descargar-datos --solo cpc-lluvia persiann-cdr                            # T28 (PERSIANN ~30 min)
 uv run jupyter lab notebooks/10-hipotesis-de-la-literatura.ipynb                  # ~15 minutos
 ```
