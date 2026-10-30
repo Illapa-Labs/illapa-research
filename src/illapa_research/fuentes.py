@@ -125,6 +125,45 @@ def _open_meteo(destino: Path) -> list[str]:
     return [str(archivo.relative_to(destino.parent))]
 
 
+# Rain-study points: the town of Chosica and the upper basin (Santa Eulalia and San Mateo side).
+PUNTOS_ESTUDIO = (("chosica", -11.93, -76.70), ("cuenca-alta", -11.85, -76.50))
+
+
+def _open_meteo_horario(destino: Path) -> list[str]:
+    """Hourly rain and soil moisture since 1983, in two chunks (the API limits large requests)."""
+    hoy = time.strftime("%Y-%m-%d")
+    salida = {}
+    for nombre, lat, lon in PUNTOS_ESTUDIO:
+        horas: dict[str, list] = {}
+        for ini, fin in (("1983-01-01", "2004-12-31"), ("2005-01-01", hoy)):
+            for intento in range(5):
+                resp = requests.get(
+                    "https://archive-api.open-meteo.com/v1/archive",
+                    params={
+                        "latitude": lat,
+                        "longitude": lon,
+                        "start_date": ini,
+                        "end_date": fin,
+                        "hourly": "precipitation,soil_moisture_0_to_7cm",
+                        "timezone": "America/Lima",
+                    },
+                    headers={"User-Agent": USER_AGENT},
+                    timeout=300,
+                )
+                if resp.ok and "hourly" in resp.json():
+                    break
+                time.sleep(65)  # Minutely request limit: wait a full minute.
+            else:
+                raise RuntimeError(f"Open-Meteo no respondió para {nombre} {ini}")
+            for k, v in resp.json()["hourly"].items():
+                horas.setdefault(k, []).extend(v)
+            time.sleep(10)
+        salida[nombre] = horas
+    archivo = destino / "open_meteo_horario_estudio.json"
+    archivo.write_text(json.dumps(salida), encoding="utf-8")
+    return [str(archivo.relative_to(destino.parent))]
+
+
 FUENTES: dict[str, Fuente] = {
     f.id: f
     for f in (
@@ -151,6 +190,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="CC BY 4.0 (API gratuita solo para uso no comercial)",
             atribucion="Weather data by Open-Meteo.com",
             descargar=_open_meteo,
+        ),
+        Fuente(
+            id="open-meteo-horario",
+            nombre="Open-Meteo: lluvia horaria y humedad del suelo desde 1983 (2 puntos)",
+            url="https://open-meteo.com",
+            licencia="CC BY 4.0 (API gratuita solo para uso no comercial)",
+            atribucion="Weather data by Open-Meteo.com",
+            descargar=_open_meteo_horario,
         ),
     )
 }

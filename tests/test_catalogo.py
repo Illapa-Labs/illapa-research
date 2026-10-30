@@ -1,6 +1,6 @@
 from shapely.geometry import shape
 
-from illapa_research.catalogo import cargar_cuencas, cargar_eventos
+from illapa_research.catalogo import cargar_cuencas, cargar_eventos, cargar_todos
 
 
 def test_eventos_tienen_precision_valida():
@@ -19,3 +19,10 @@ def test_cuencas_son_poligonos_con_area_razonable():
     for ft in cargar_cuencas()["features"]:
         assert shape(ft["geometry"]).is_valid
         assert 5 < ft["properties"]["area_km2"] < 15
+
+
+def test_cronica_igp_trae_1998_con_dia_exacto():
+    igp = [e for e in cargar_todos(solo_dia_exacto=True) if e.fecha.year == 1998]
+    assert {e.fecha.isoformat() for e in igp} >= {"1998-01-29", "1998-02-15", "1998-02-24"}
+    chaclacayo = [e for e in igp if "Los Cóndores" in e.quebradas]
+    assert chaclacayo and chaclacayo[0].distrito == "Chaclacayo"

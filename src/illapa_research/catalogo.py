@@ -45,3 +45,10 @@ def cargar_eventos(ruta: Path = CATALOGO / "eventos.csv", solo_dia_exacto: bool 
 
 def cargar_cuencas(ruta: Path = CATALOGO / "cuencas.geojson") -> dict:
     return json.loads(Path(ruta).read_text(encoding="utf-8"))
+
+
+def cargar_todos(solo_dia_exacto: bool = False) -> list[Evento]:
+    """Events from the earlier project plus the IGP chronicle, ordered by date."""
+    todos = cargar_eventos(solo_dia_exacto=solo_dia_exacto)
+    todos += cargar_eventos(CATALOGO / "eventos_igp.csv", solo_dia_exacto=solo_dia_exacto)
+    return sorted(todos, key=lambda e: e.fecha)

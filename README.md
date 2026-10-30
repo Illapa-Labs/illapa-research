@@ -19,8 +19,9 @@ El kit de investigación de [Illapa Labs](https://github.com/Illapa-Labs): un sc
 |---|---|
 | `src/illapa_research/fuentes.py` | Las fuentes de datos, cada una con su licencia y su atribución |
 | `src/illapa_research/descargar.py` | El script `descargar-datos` |
+| `src/illapa_research/estudio_eventos.py` | Percentiles de lluvia en los días de huaico y aciertos contra alarmas por año |
 | `src/illapa_research/grafo.py` | La red de ríos y quebradas como grafo dirigido, y la propagación del riesgo aguas abajo |
-| `notebooks/` | `01-red-de-quebradas`: de Chaclacayo a Chosica |
+| `notebooks/` | `01-red-de-quebradas` (de Chaclacayo a Chosica) y `02-estudio-de-eventos` (qué tan extrema fue la lluvia en cada huaico) |
 | `catalogo/` | Eventos de huaico y polígonos de cuenca del piloto (Chosica y Chaclacayo) |
 | `tests/` | Pruebas del código |
 
