@@ -1,8 +1,9 @@
 """Open data sources with a clear licence.
 
 Every source carries its own licence and attribution, because the AGPL of this
-repository covers the code, not the data. SENAMHI and INEI are left out on
-purpose until they authorise reuse in writing (see DATOS.md).
+repository covers the code, not the data. SENAMHI's data are used under its terms of use
+(attribution legend, no commercial use, never presented as official; see DATOS.md). The INEI
+census is left out until its conditions are checked.
 """
 
 from __future__ import annotations

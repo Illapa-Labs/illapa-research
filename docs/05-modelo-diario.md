@@ -223,6 +223,6 @@ Lo que se confirma: el orden T2 < T3 < T4, la habilidad frente a la nula, el pes
 ## 9. Qué falta
 
 - Un registro de huaicos con hora (INDECI/COEN) para separar eventos de noche y de día; sin él el rezago de un día es ambiguo.
-- Pluviómetros o radar en las cabeceras (SENAMHI, sujeto a autorización por escrito).
+- Pluviómetros o radar en las cabeceras (SENAMHI: ver el capítulo 11).
 - Una sugerencia para `predictores.construir`: incluir el ICEN causal (hoy lo agrega `modelo_diario.cargar_datos`) para que todos los capítulos usen la misma tabla, y reemplazar `DatetimeIndex.dayofyear` por `day_of_year` (aviso de pandas).
 - El `PerformanceWarning` de pandas que sale al construir la tabla (por añadir cientos de columnas una a una en `predictores.construir`) se evita aquí defragmentando el marco con `.copy()`; la corrección de fondo sería construir las columnas en un diccionario y concatenar una vez.
