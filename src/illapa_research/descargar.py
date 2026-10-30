@@ -9,7 +9,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .fuentes import FUENTES, NO_POR_DEFECTO
-from .fuentes_restringidas import FUENTES_OPT_IN
+from .fuentes_opt_in import FUENTES_OPT_IN
 
 TODAS = {**FUENTES, **FUENTES_OPT_IN}
 
@@ -44,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         description="Descarga las fuentes abiertas y deja un MANIFIESTO.json con la licencia de cada una.",
     )
     ap.add_argument("--destino", type=Path, default=Path("datos"), help="carpeta local (datos/)")
-    ap.add_argument("--solo", nargs="+", choices=sorted(TODAS), help="descargar solo estas fuentes (las de uso restringido, como senamhi, solo se bajan si se nombran)")
+    ap.add_argument("--solo", nargs="+", choices=sorted(TODAS), help="descargar solo estas fuentes (las opt-in, como senamhi, solo se bajan si se nombran)")
     ap.add_argument("--listar", action="store_true", help="mostrar las fuentes y salir")
     ap.add_argument("--desde-hf", metavar="USUARIO/REPO", help="bajar el espejo en Hugging Face en vez de las fuentes originales")
     ap.add_argument("--subir-hf", metavar="USUARIO/REPO", help="subir datos/ a un dataset de Hugging Face (privado) y salir")

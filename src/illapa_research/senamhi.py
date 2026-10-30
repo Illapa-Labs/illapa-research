@@ -1,19 +1,18 @@
 """Respectful client for the public data endpoints of the SENAMHI research portal.
 
 What it does: reads the public station catalogue and the series that the portal's own
-"Datos hidrometeorológicos" page shows to any visitor, one station and one month at a time,
-with a pause between calls and a local cache in ``datos/senamhi/``.
+"Datos hidrometeorológicos" page shows to any visitor, one station and one month at a time, with a
+pause between calls and a local cache in ``datos/senamhi/``; and the public WMS/WFS services of the
+SENAMHI GeoServer (IDESEP), which the portal offers "sin registrarte".
 
-What it never does: log in, use a key, create an account, or touch the documented REST API that
-asks for a registered key. If an endpoint answers 401 or 403 the client stops and says so.
+What it never does: log in, use a key, create an account, or touch the documented REST API that asks
+for a registered key. If an endpoint answers 401 or 403 the client stops and says so.
 
-Terms (https://www.senamhi.gob.pe/?p=terminos-condiciones, read on 30 October 2026): the
-information is "de uso público", but publication, reproduction, distribution and transformation
-belong to SENAMHI, and using the site is not a licence for other purposes. Therefore the data
-stay in ``datos/senamhi/`` (ignored by git, not in the Hugging Face mirror) and only aggregated
-results and station metadata leave this machine, always credited as "Información recopilada y
-trabajada por el Servicio Nacional de Meteorología e Hidrología del Perú (SENAMHI)". The data come
-without quality control; the portal says their use is the user's entire responsibility.
+Terms of use (https://www.senamhi.gob.pe/?p=terminos-condiciones, read on 30 October 2026): the
+information is public and free; it may be used with or without profit if the SENAMHI is recognised
+as its owner with the legend below, in every medium; it may not be sold or presented as official; the
+user answers for any modification of the series. The portal adds that the data have no quality
+control. This client credits the legend (``LEYENDA``) and the repository's outputs repeat it.
 """
 
 from __future__ import annotations
@@ -30,14 +29,15 @@ import requests
 API = "https://servicios.senamhi.gob.pe/api"
 USER_AGENT = "illapa-research/0.1 (+https://github.com/Illapa-Labs/illapa-research; research, low rate)"
 PAUSA_S = 2.0
-CITA = (
-    "Información recopilada y trabajada por el Servicio Nacional de Meteorología e Hidrología del Perú "
-    "(SENAMHI). Observatorio Nacional del Tiempo, Agua y Clima del Perú, https://observatorio.senamhi.gob.pe"
+LEYENDA = (
+    "Información recopilada y trabajada por el Servicio Nacional de Meteorología e Hidrología del Perú. "
+    "El uso que se le da a esta información es de mi (nuestra) entera responsabilidad"
 )
+CITA = f"{LEYENDA}. Fuente: SENAMHI, Observatorio Nacional del Tiempo, Agua y Clima del Perú, https://observatorio.senamhi.gob.pe"
 
 
-class AccesoRestringido(RuntimeError):
-    """The endpoint asks for credentials: the client stops there."""
+class PideCredenciales(RuntimeError):
+    """The endpoint asks for credentials (an account or a key): the client stops there and never uses them."""
 
 
 class Cliente:
@@ -66,7 +66,7 @@ class Cliente:
             resp = requests.get(f"{API}/{ruta.strip('/')}", params=params, headers={"User-Agent": USER_AGENT}, timeout=120)
             self._ultimo = time.monotonic()
             if resp.status_code in (401, 403):
-                raise AccesoRestringido(f"{ruta}: {resp.status_code}; este endpoint pide credenciales y no se usa")
+                raise PideCredenciales(f"{ruta}: {resp.status_code}; este endpoint pide credenciales y no se usa")
             if resp.status_code < 500 and resp.status_code != 429:
                 break
             time.sleep(10 * (intento + 1))
@@ -300,4 +300,203 @@ def experimento_pluviometros(
         p[k] = md.validar_anidado(Xk, ys, tss, folds, n_jobs=n_jobs).p
     tabla = pd.DataFrame({k: md.metricas_completas(ys.to_numpy(), v, pref) for k, v in p.items()}).T
     return {"tabla": tabla, "p": p, "y": ys.to_numpy(), "ts": tss, "ref": pref, "n_dias": len(ys),
-            "n_eventos": int(ys.sum()), "n_temporadas": len(np.unique(tss)), "G": G}
+            "n_eventos": int(ys.sum()), "n_temporadas": len(np.unique(tss)), "G": G,
+            "fechas": idx[mask][sel]}
+
+
+# --- IDESEP GeoServer (public OGC services, "sin registrarte"); read-only, cached, one thread
+IDESEP = "https://idesep.senamhi.gob.pe/geoserver"
+
+
+def wfs(c: Cliente, workspace: str, capa: str, bbox: tuple[float, float, float, float] | None = None,
+        cql: str | None = None, count: int | None = None, propiedades: list[str] | None = None,
+        refrescar: bool = False) -> dict:
+    """GeoJSON of a WFS layer (`bbox` in lon/lat: west, south, east, north), cached under `datos/senamhi/ogc/`."""
+    params = {"service": "WFS", "version": "2.0.0", "request": "GetFeature", "typeNames": f"{workspace}:{capa}",
+              "outputFormat": "application/json"}
+    if bbox:
+        params["bbox"] = f"{bbox[0]},{bbox[1]},{bbox[2]},{bbox[3]},urn:ogc:def:crs:OGC:1.3:CRS84"
+    if cql:
+        params["CQL_FILTER"] = cql
+    if count:
+        params["count"] = count
+    if propiedades:
+        params["propertyName"] = ",".join(propiedades)
+    carpeta = c.carpeta / "ogc"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    clave = "_".join(f"{k}-{v}" for k, v in sorted(params.items()) if k not in ("service", "version", "request", "outputFormat"))
+    nombre = "".join(ch if ch.isalnum() or ch in "-_.," else "~" for ch in clave)[:180]
+    archivo = carpeta / f"{nombre}.json"
+    if archivo.exists() and not refrescar:
+        return json.loads(archivo.read_text(encoding="utf-8"))
+    espera = c.pausa - (time.monotonic() - c._ultimo)
+    if espera > 0:
+        time.sleep(espera)
+    resp = requests.get(f"{IDESEP}/{workspace}/ows", params=params, headers={"User-Agent": USER_AGENT}, timeout=180)
+    c._ultimo = time.monotonic()
+    if resp.status_code in (401, 403):
+        raise PideCredenciales(f"{workspace}:{capa}: {resp.status_code}")
+    resp.raise_for_status()
+    datos = resp.json()
+    archivo.write_text(json.dumps(datos, ensure_ascii=False), encoding="utf-8")
+    return datos
+
+
+# --- products built on the OGC layers ----------------------------------------------------------------
+PUNTOS_ESTUDIO = {"Chosica": (-76.70, -11.93), "Santa Eulalia": (-76.667, -11.92),
+                  "Matucana": (-76.378, -11.84), "Ticlio": (-76.20, -11.60)}
+BBOX_ESTUDIO = (-76.95, -12.06, -76.45, -11.78)
+CAPAS_NINOS = {  # (workspace, layer): (event year, trimester); IDESEP precipitation anomaly of the Niño events
+    ("g_02_01", "02_01_001_03_001_512_1983_00_00"): (1983, "DEF"), ("g_02_01", "02_01_002_03_001_512_1983_00_00"): (1983, "EFM"),
+    ("g_02_01", "02_01_003_03_001_512_1983_00_00"): (1983, "FMA"), ("g_02_02", "02_02_001_03_001_512_1998_00_00"): (1998, "DEF"),
+    ("g_02_02", "02_02_002_03_001_512_1998_00_00"): (1998, "EFM"), ("g_02_02", "02_02_003_03_001_512_1998_00_00"): (1998, "FMA"),
+    ("g_02_04", "02_04_001_03_001_512_2017_00_00"): (2017, "DEF"), ("g_02_04", "02_04_002_03_001_512_2017_00_00"): (2017, "EFM"),
+    ("g_02_04", "02_04_003_03_001_512_2017_00_00"): (2017, "FMA"), ("g_02_05", "02_05_002_03_001_512_2023_00_00"): (2023, "EFM"),
+    ("g_02_05", "02_05_003_03_001_512_2023_00_00"): (2023, "FMA"), ("g_02_06", "02_06_001_03_001_512_2024_00_00"): (2024, "DEF"),
+    ("g_02_06", "02_06_002_03_001_512_2024_00_00"): (2024, "EFM"),
+}
+_MESES_TRIM = {"DEF": [(-1, 12), (0, 1), (0, 2)], "EFM": [(0, 1), (0, 2), (0, 3)], "FMA": [(0, 2), (0, 3), (0, 4)]}
+
+
+def umbrales(c: Cliente) -> pd.DataFrame:
+    """Official rain thresholds of the SENAMHI stations (layer `g_umbrales:umbrales_precipitacion`).
+
+    `umbral` is the daily rain (mm) and `umb_acum` the accumulated rain (mm) that raise the alert; the
+    snapshot is the day it was read (columns `pp`, `pp_acum`, `fecha` are that day's observation).
+    """
+    j = wfs(c, "g_umbrales", "umbrales_precipitacion")
+    filas = []
+    for f in j["features"]:
+        x, y = f["geometry"]["coordinates"][:2]
+        filas.append({**f["properties"], "lon": x, "lat": y})
+    return pd.DataFrame(filas)
+
+
+def anomalias_ninos(c: Cliente) -> pd.DataFrame:
+    """Rain-anomaly class (IDESEP layers of the Niño events) at the study points, by event and trimester."""
+    from shapely.geometry import Point, shape
+
+    filas = []
+    for (ws, capa), (anio, trim) in CAPAS_NINOS.items():
+        for punto, (x, y) in PUNTOS_ESTUDIO.items():
+            j = wfs(c, ws, capa, bbox=(x - 0.05, y - 0.05, x + 0.05, y + 0.05))
+            p = Point(x, y)
+            rangos = {f["properties"].get("rango") for f in j["features"] if shape(f["geometry"]).buffer(0).contains(p)}
+            filas.append({"evento": anio, "trimestre": trim, "punto": punto, "rango": "; ".join(sorted(map(str, rangos))) or None})
+    d = pd.DataFrame(filas)
+    d["anomalia_centro"] = d["rango"].map(_centro_rango)
+    return d
+
+
+def _centro_rango(r) -> float:
+    import re
+
+    m = re.match(r"(-?\d+) - (-?\d+)", r) if isinstance(r, str) else None
+    return (int(m.group(1)) + int(m.group(2))) / 2 if m else float("nan")
+
+
+def dias_huaico_por_trimestre(fechas: list, anio: int, trim: str) -> int:
+    """Catalogued huaico days in the three months of a DEF / EFM / FMA window of an event year."""
+    return sum(1 for f in set(fechas) if any(f.year == anio + off and f.month == m for off, m in _MESES_TRIM[trim]))
+
+
+def avisos_2020(ruta: Path) -> pd.DataFrame:
+    """Meteorological warnings of 2020 that touch the study area (from the cached extraction)."""
+    d = pd.DataFrame(json.loads(Path(ruta).read_text(encoding="utf-8")))
+    for col in ("f_emi", "fech_ini", "fech_fin"):
+        d[col] = pd.to_datetime(d[col], format="%d_%m_%Y", errors="coerce")
+    d["nivel_n"] = d["nivel"].str.extract(r"(\d)").astype(float)
+    return d.dropna(subset=["fech_ini", "fech_fin"])
+
+
+def serie_diaria_avisos(av: pd.DataFrame, idx: pd.DatetimeIndex, solo_lluvia: bool = True) -> pd.DataFrame:
+    """Highest warning level per day (0 = none) from the 2020 warnings (rain phenomena by default)."""
+    if solo_lluvia:  # rain phenomena of the sierra or the coast (rain in the jungle alone does not reach the study area)
+        f = av["fenomeno"].fillna("")
+        lluvia = f.str.contains("PP|PRECIP|LLUVIA", case=False)
+        solo_selva = f.str.contains("SELVA", case=False) & ~f.str.contains("SIERRA|COSTA", case=False)
+        av = av[lluvia & ~solo_selva]
+    nivel = pd.Series(0.0, index=idx)
+    for r in av.itertuples():
+        rango = pd.date_range(r.fech_ini, r.fech_fin, freq="D")
+        rango = rango.intersection(idx)
+        nivel.loc[rango] = np.maximum(nivel.loc[rango], r.nivel_n)
+    return pd.DataFrame({"nivel_max": nivel, "aviso": nivel > 0})
+
+
+def consolidar(c: Cliente, avisos_json: Path | None = None) -> list[Path]:
+    """Write the compact tables that the Hugging Face mirror carries (`datos/senamhi/tablas/`).
+
+    One CSV per station series (daily conventional; hourly automatic, gzip), the station catalogue,
+    the thresholds, the Niño-event anomaly classes and, if present, the 2020 warnings and the two
+    ODC-By datasets of datosabiertos.gob.pe. Raw API caches are not mirrored.
+    """
+    tablas = c.carpeta / "tablas"
+    tablas.mkdir(parents=True, exist_ok=True)
+    salida = []
+    est = c.estaciones()
+    est.to_csv(tablas / "estaciones.csv", index=False)
+    salida.append(tablas / "estaciones.csv")
+    for k, n in HISTORICAS_NOMBRES.items():
+        f = tablas / f"diaria_historica_{n}.csv"
+        c.diaria_historica(k).to_csv(f)
+        salida.append(f)
+    for k, n in AUTOMATICAS_NOMBRES.items():
+        s = c.serie(k)
+        if len(s):
+            f = tablas / f"horaria_{n}.csv.gz"
+            s.to_csv(f)
+            salida.append(f)
+    umbrales(c).to_csv(tablas / "umbrales_precipitacion_2026-10-30.csv", index=False)
+    anomalias_ninos(c).to_csv(tablas / "anomalias_ninos_puntos.csv", index=False)
+    salida += [tablas / "umbrales_precipitacion_2026-10-30.csv", tablas / "anomalias_ninos_puntos.csv"]
+    if avisos_json and Path(avisos_json).exists():
+        av = avisos_2020(avisos_json)
+        av.to_csv(tablas / "avisos_meteorologicos_2020_zona.csv", index=False)
+        salida.append(tablas / "avisos_meteorologicos_2020_zona.csv")
+    da = c.carpeta / "datosabiertos"
+    if (da / "marcapomacocha.csv").exists():
+        pd.read_csv(da / "marcapomacocha.csv").to_csv(tablas / "datosabiertos_marcapomacocha_ODC-By.csv", index=False)
+        salida.append(tablas / "datosabiertos_marcapomacocha_ODC-By.csv")
+    if (da / "intercambio.csv").exists():
+        i = pd.read_csv(da / "intercambio.csv", low_memory=False)
+        i[i["ESTACION"].isin(["MATUCANA", "CARANIA"])].to_csv(tablas / "datosabiertos_intercambio_matucana_carania_ODC-By.csv.gz", index=False)
+        salida.append(tablas / "datosabiertos_intercambio_matucana_carania_ODC-By.csv.gz")
+    return salida
+
+
+# station of our series -> station of the official threshold table (mm/day, mm accumulated in 3 days)
+UMBRAL_DE = {
+    "chosica": "CHOSICA", "chosica_auto": "CHOSICA", "nana": "ÑAÑA", "nana_auto": "ÑAÑA", "matucana": "MATUCANA",
+    "matucana_auto": "MATUCANA", "santa_eulalia": "SANTA EULALIA", "santa_eulalia_auto": "SANTA EULALIA",
+    "san_mateo_otao_auto": "SAN MATEO DE OTAO",
+}
+
+
+def alarma_por_umbral(lluvia: pd.Series, umbral: float, umb_acum: float, idx: pd.DatetimeIndex) -> pd.Series:
+    """Day with an official-style alarm: the day's rain reaches `umbral` or the last 3 days reach `umb_acum`.
+
+    The 3-day window is our reading of `umb_acum` (it is three times `umbral` at every station of the
+    study area); the SENAMHI does not state the window in the layer.
+    """
+    r = lluvia.reindex(idx)
+    return ((r >= umbral) | (r.rolling(3, min_periods=3).sum() >= umb_acum)).where(r.notna())
+
+
+def evalua_alarmas(alarma: pd.Series, y: pd.Series, mascara) -> dict[str, float]:
+    """POD, false-alarm ratio by days (tolerance +-1 day) and alarm days per 151-day season."""
+    a = alarma[mascara]
+    yy = y[mascara]
+    ok = a.notna()
+    a, yy = a[ok].astype(bool), yy[ok]
+    yt = (yy | yy.shift(1, fill_value=0) | yy.shift(-1, fill_value=0)).astype(int)
+    return {"dias": len(a), "eventos": int(yy.sum()), "dias_alarma_por_temporada": float(a.mean() * 151),
+            "POD": float(a[yy == 1].mean()), "FAR_dias": float((yt[a] == 0).mean()) if a.sum() else float("nan")}
+
+
+def probabilidad_con_presupuesto(p: np.ndarray, y: np.ndarray, fraccion: float) -> dict[str, float]:
+    """POD and false-alarm ratio (+-1 day) of a model that alarms on its top `fraccion` of days."""
+    corte = np.quantile(p, 1 - fraccion)
+    a = p >= corte
+    yt = (y | np.r_[0, y[:-1]] | np.r_[y[1:], 0]).astype(int)
+    return {"POD": float(y[a].sum() / y.sum()), "FAR_dias": float((yt[a] == 0).mean())}

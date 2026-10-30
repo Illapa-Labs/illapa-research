@@ -16,3 +16,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [09 · Literatura de mecanismos](09-literatura-mecanismos.md) | Qué ocurre antes de las lluvias que activan huaicos y qué falta probar | — |
 | [12 · Cómputo: CPU y GPU](12-computo-gpu.md) | Cómo se ejecutan los miles de modelos de las pruebas nulas y cuánto se gana | — |
 | [13 · ERA5 sin la API](13-era5-alterno.md) | Cómo se leen los archivos de Open-Meteo en AWS cuando la API agota su cuota, y equivalencia medida | — |
+| [11 · Datos del SENAMHI](11-senamhi.md) | Pluviómetros reales, umbrales oficiales, avisos de 2020 y anomalías de los Niños; términos de uso y leyenda | `11` |

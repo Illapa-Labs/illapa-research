@@ -1,10 +1,12 @@
-"""Sources that are opt-in: `descargar-datos` without arguments does not download them.
+"""Sources that `descargar-datos` does not download unless they are named (opt-in).
 
-SENAMHI: its terms (https://www.senamhi.gob.pe/?p=terminos-condiciones) make the information
-"de uso público" but reserve publication, reproduction, distribution and transformation, and the
-project still has no written authorisation. So the files stay in ``datos/senamhi/`` (ignored by
-git, left out of the Hugging Face mirror) and are fetched only when asked for by name:
-``uv run descargar-datos --solo senamhi``.
+SENAMHI: its terms of use (https://www.senamhi.gob.pe/?p=terminos-condiciones) make the information
+public and free to use, with or without profit, provided that the SENAMHI is credited with its exact
+legend in every medium, the data are not sold, and they are not presented as official. The source is
+opt-in only because of its size (about 1 000 requests, 2 s apart) and as a courtesy to the service:
+``uv run descargar-datos --solo senamhi``. The files stay in ``datos/senamhi/``, which git ignores;
+the Hugging Face mirror carries them with the legend, the "no quality control" warning and the
+conditions in its card (see ``espejo_hf.py``).
 """
 
 from __future__ import annotations
@@ -44,9 +46,9 @@ def _senamhi(destino: Path) -> list[str]:
 FUENTES_OPT_IN: dict[str, Fuente] = {
     "senamhi": Fuente(
         id="senamhi",
-        nombre="SENAMHI: catálogo de estaciones, series diarias históricas y horarias de 3 estaciones (solo uso local)",
+        nombre="SENAMHI: catálogo de estaciones, series diarias históricas y horarias de 6 estaciones automáticas",
         url="https://observatorio.senamhi.gob.pe/investigadores/",
-        licencia="Sin licencia explícita: «uso público» pero sin permiso de redistribuir; NO se sube a git ni al espejo",
+        licencia="Términos de uso del SENAMHI: acceso público y gratuito, con o sin fines de lucro, con la leyenda exacta; no se comercializa ni se presenta como oficial; sin control de calidad",
         atribucion="Información recopilada y trabajada por el Servicio Nacional de Meteorología e Hidrología del "
         "Perú (SENAMHI)",
         descargar=_senamhi,

@@ -41,6 +41,7 @@ ARCHIVOS = {
     "circulacion/omi.txt": "noaa-circulacion",
     "circulacion/soi_cpc.txt": "noaa-circulacion",
     "circulacion/rmm.txt": "bom-rmm",
+    "senamhi/tablas": "senamhi",
     "MANIFIESTO.json": "",
 }
 
@@ -66,6 +67,11 @@ ATRIBUCIONES = {
     "persiann-cdr": "Ashouri et al. (2015), BAMS, doi:10.1175/BAMS-D-13-00068.1; NOAA NCEI CDR PERSIANN (public domain).",
     "nasa-power": "NASA Prediction Of Worldwide Energy Resources (POWER) Project, MERRA-2.",
     "noaa-oisst": "NOAA OISST v2.1 (Huang et al., 2021), public domain.",
+    "senamhi": "Información recopilada y trabajada por el Servicio Nacional de Meteorología e Hidrología del Perú. "
+    "El uso que se le da a esta información es de mi (nuestra) entera responsabilidad. Fuente: SENAMHI, "
+    "Observatorio Nacional del Tiempo, Agua y Clima del Perú (https://observatorio.senamhi.gob.pe) y su GeoServer "
+    "IDESEP. Los conjuntos de datosabiertos.gob.pe que se incluyen (Marcapomacocha, estaciones de intercambio "
+    "internacional) llevan la licencia Open Data Commons Attribution (ODC-By).",
 }
 
 
@@ -95,6 +101,12 @@ def tarjeta(manifiesto: dict, publico: bool = False) -> str:
         "- OpenStreetMap (ODbL): una base derivada que se publique debe seguir bajo ODbL.\n"
         "- Open-Meteo: los datos se ofrecen bajo CC BY 4.0; su API gratuita es solo para uso no comercial, "
         "así que quien vuelva a pedirlos a la API debe respetar esa condición.\n"
+        + ("- **SENAMHI** (carpeta `senamhi/`): los términos de uso del SENAMHI permiten usar la información con o sin fines "
+           "de lucro si se reconoce al SENAMHI como propietario con la leyenda de arriba en todo soporte. **No se "
+           "pueden comercializar ni presentar como información oficial del SENAMHI, del MINAM o del Estado.** Los "
+           "datos **no tienen control de calidad**; quien los modifique (orden, series, métodos) responde de los "
+           "resultados. Términos: https://www.senamhi.gob.pe/?p=terminos-condiciones\n"
+           if "senamhi" in ids else "")
         + ("- Los datos del IGP (ICEN y lista de eventos El Niño costero) no se incluyen en la copia pública "
            "porque no traen licencia explícita: `uv run descargar-datos --solo igp-icen` los baja del IGP.\n"
            if publico else "")
