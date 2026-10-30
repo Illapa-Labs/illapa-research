@@ -23,7 +23,9 @@ El kit de investigación de [Illapa Labs](https://github.com/Illapa-Labs): un sc
 | `src/illapa_research/grafo.py` | La red de ríos y quebradas como grafo dirigido, y la propagación del riesgo aguas abajo |
 | `src/illapa_research/quebradas.py` | Delimita con el DEM las cuencas que drenan al Rímac y a Santa Eulalia y calcula sus atributos físicos |
 | `src/illapa_research/nino.py`, `filtro.py`, `modelo.py` | Temporadas con El Niño (NOAA) y ranking de quebradas por evidencia física e historial |
-| `notebooks/` | `01-red-de-quebradas` (de Chaclacayo a Chosica), `02-estudio-de-eventos` (qué tan extrema fue la lluvia en cada huaico) y `03-filtro-quebradas-nino` (qué quebradas tienen más probabilidad de activarse en un Niño) |
+| `src/illapa_research/predictores.py`, `evaluacion_diaria.py`, `senales.py`, `modelo_diario.py`, `integracion.py` | Señales diarias (mar, calor aguas arriba, humedad de la selva, caudal, suelo), análisis de rezagos, modelo de «día con huaico» validado fuera de muestra, y su unión con las quebradas |
+| `notebooks/` | `01-red-de-quebradas`, `02-estudio-de-eventos`, `03-filtro-quebradas-nino`, `04-senales-y-rezagos`, `05-modelo-diario` y `06-dia-y-quebrada` |
+| `docs/` | Capítulos de investigación (plan, cuencas, modelo por quebrada, señales, modelo diario) con sus datos, métodos, cifras y límites |
 | `catalogo/` | Eventos de huaico y polígonos de cuenca del piloto (Chosica y Chaclacayo) |
 | `tests/` | Pruebas del código |
 
@@ -46,14 +48,18 @@ uv run jupyter lab notebooks/
 uv run descargar-datos --solo copernicus-dem osm-aguas osm-edificios noaa-enso
 uv run delimitar-quebradas   # escribe catalogo/cuencas.geojson (124 cuencas)
 uv run filtro-quebradas      # escribe catalogo/ranking_quebradas_nino.csv y la validación
-uv run modelo-quebradas      # modelo Gamma-Poisson: rangos posteriores y razón de tasas del Niño
+uv run modelo-quebradas      # modelo Gamma-Poisson por quebrada: rangos posteriores y razón de tasas del Niño
 ```
 
-El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy 22 cuencas tienen nombre ubicado (Quirio, Pedregal, Los Laureles, Chacrasana, La Ronda, Barba Blanca, California, Corrales, Huáscarán, Santa Inés, Cobián, Yanacoto, Vallecito, Cusipata, Santo Domingo, La Cantuta, Cupiche, Carossio, La Libertad, Mariscal Castilla y, dudosa, Río Seco) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta.
+El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy 22 cuencas tienen nombre ubicado (Quirio, Pedregal, Los Laureles, Chacrasana, La Ronda, Barba Blanca, California, Corrales, Huáscarán, Santa Inés, Cobián, Yanacoto, Vallecito, Cusipata, Santo Domingo, La Cantuta, Cupiche, Carossio, La Libertad, Mariscal Castilla y, dudosa, Río Seco) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta. Los capítulos en [docs/](docs/README.md) explican cada paso y qué falló.
 
 ## Datos
 
 La licencia AGPL cubre el **código**, no los datos. Cada fuente tiene su propia licencia; mira [DATOS.md](DATOS.md). Por ahora no se incluyen datos del SENAMHI ni del INEI: falta su autorización por escrito.
+
+## Datos en Hugging Face
+
+Las APIs gratuitas limitan las llamadas por hora, así que `datos/` se puede copiar a un dataset de Hugging Face (privado por defecto) y bajar desde ahí: `uv run --extra hf descargar-datos --subir-hf USUARIO/REPO` y `--desde-hf USUARIO/REPO`. Detalles y licencias en [DATOS.md](DATOS.md).
 
 ## Colaborar
 
