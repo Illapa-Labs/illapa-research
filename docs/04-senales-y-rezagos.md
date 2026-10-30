@@ -36,16 +36,31 @@ La lluvia del día separa los días de huaico del resto (AUC 0,82 en el notebook
 
 Anomalías respecto de una climatología suavizada por día del año de 1991-2020. La isoterma de 0 °C se estima con la temperatura a 2 m y un gradiente estándar de 6,5 K/km (no se usó una variable de nivel de congelamiento: la API histórica no la entrega).
 
-### Con qué datos se corrió (corrida del 30 de octubre de 2026, mar completo)
+### Con qué datos se corrió
 
-- ERA5: **3 de 6 puntos** (Matucana, Santa Eulalia alta y Ticlio). **Faltan Chosica, la costa de Lima y la selva de Tarma**: la API gratuita limita las llamadas por hora y la descarga sigue en curso. Por eso **H3 (selva y gradiente de presión) no se pudo probar todavía** y no se dice nada sobre ella.
-- Mar: las tres cajas (**Niño 1+2, costa de Perú y costa de Lima**) completas, 1982 a octubre de 2026.
-- Caudal GloFAS: 3 puntos, 1984-2026 (los dos puntos «Rímac Chosica» y «Santa Eulalia» caen casi en la misma celda y se comportan igual).
-- Lluvia horaria y suelo de Chosica y de la cuenca alta de la primera fase.
+**Corrida actual (30 de octubre de 2026, PC remota con GPU, 10 000 réplicas de la nula por prueba):**
+
+- ERA5 en **los 6 puntos**. Tres vienen de la API de Open-Meteo (Matucana, Santa Eulalia alta, Ticlio) y tres de los archivos de Open-Meteo en AWS, con corrección de altura (Chosica, costa de Lima, selva de Tarma; ver [`13-era5-alterno.md`](13-era5-alterno.md)). Los de AWS coinciden bien con la API en punto de rocío, presión, nubosidad y suelo (correlación diaria 0,85-0,90), peor en lluvia y temperatura media; por eso H3 usa solo punto de rocío, presión y nubosidad, y la lluvia sale de la serie horaria del primer estudio. Último día con datos: 24 de octubre de 2026.
+- Mar: las tres cajas (Niño 1+2, costa de Perú y costa de Lima), 1982 a octubre de 2026.
+- Caudal GloFAS, 3 puntos, 1984-2026 (los de «Rímac Chosica» y «Santa Eulalia» caen en casi la misma celda y se comportan igual). Lluvia horaria y suelo de Chosica y la cuenca alta de la primera fase.
+
+**Corrida anterior (30 de octubre, portátil, 3 de 6 puntos de ERA5, 1 000 réplicas):** sin Chosica, costa de Lima ni selva de Tarma, así que H3 no se pudo probar. Las cifras de esa corrida se conservan en el historial de git (`23ae47a`, `424583e`).
+
+**Qué cambió al pasar a los 6 puntos y 10 000 réplicas**
+
+| | 3 puntos, 1 000 réplicas | 6 puntos, 10 000 réplicas |
+|---|---|---|
+| Pruebas (variable × rezago 0-14) | 735 | 825 |
+| Pasan Benjamini-Hochberg (crudo / sin la media de la temporada) | 121 / 121 | 153 / 132 |
+| p < 0,05 (crudo) contra el azar | 165 contra 37 | 182 contra 41 |
+| Robustas (rezago ≥ 1) | 56 de 686 | 68 de 770 |
+| Por hipótesis (robustas) | H1 14, H2 21, H3 sin datos, H4 21 | H1 16, H2 22, H3 7, H4 23 |
+
+Todo lo que ya estaba (suelo, caudal, alza del mar en 14 días, frío del día anterior) **se mantiene con las mismas cifras redondeadas**. Lo nuevo es H3 y que la anomalía de la costa de Lima se suma a la lista de robustas de H1. Los cambios de H2 son un rezago más (Matucana 5 días) y no alteran la lectura.
 
 ## 3. Método
 
-1. **Rezagos.** Para cada variable `x` y cada rezago `k` de 0 a 14 días se calcula el AUC de `x(t-k)` para separar los días con huaico de los demás, en días de temporada de lluvias (diciembre a abril) desde 1984. Se calcula con rangos (rápido) y se compara con 1 000 repeticiones de la nula.
+1. **Rezagos.** Para cada variable `x` y cada rezago `k` de 0 a 14 días se calcula el AUC de `x(t-k)` para separar los días con huaico de los demás, en días de temporada de lluvias (diciembre a abril) desde 1984. Se calcula con rangos y se compara con las réplicas de la nula (10 000 en la PC con GPU, `ILLAPA_N_NULL` y `ILLAPA_GPU=1`; el AUC de todas las réplicas es un solo producto de matrices).
 2. **Sin la media de cada temporada.** Se resta a cada variable la media de su temporada: queda solo el momento dentro de la temporada.
 3. **Entre temporadas.** Correlación de Spearman entre la media de cada variable en la temporada y el número de días con huaico de esa temporada (un punto por temporada, p por permutación de los conteos).
 4. **Composites.** Promedio del puntaje z de la variable de 14 días antes a 3 después del inicio de cada episodio (días con huaico a 3 días o menos cuentan como uno: 2017 cuenta una vez), contra una nula que mueve cada episodio a un día cualquiera de la misma temporada.
@@ -57,20 +72,21 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 
 ### Visión general
 
-- **735 pruebas** (variable × rezago 0 a 14) en el período completo: 121 pasan Benjamini-Hochberg; 165 tienen p < 0,05 contra 37 esperadas por azar. Sin la media de cada temporada: 121 y 162. Es decir, **hay estructura de verdad**, pero buena parte es persistencia: variables muy autocorrelacionadas (suelo, caudal) dan el mismo hallazgo en rezagos vecinos, que no son pruebas independientes.
-- **56 de 686** combinaciones con rezago ≥ 1 son robustas. Por hipótesis: H4, 21 de 182; H2, 21 de 294; H1, 14 de 210.
+- **825 pruebas** (variable × rezago 0 a 14) en el período completo: 153 pasan Benjamini-Hochberg; 182 tienen p < 0,05 contra 41 esperadas por azar. Sin la media de cada temporada: 132 y 185. Es decir, **hay estructura de verdad**, pero buena parte es persistencia: variables muy autocorrelacionadas (suelo, caudal) dan el mismo hallazgo en rezagos vecinos, que no son pruebas independientes.
+- **68 de 770** combinaciones con rezago ≥ 1 son robustas. Por hipótesis: H4, 23 de 182; H2, 22 de 294; H1, 16 de 210; H3, 7 de 84.
 
 ### H4 · Suelo y caudal: la señal más fuerte, y lo más obvio
 
 - **Humedad del suelo en Chosica**, AUC **0,75** un día antes, **0,73** a tres días (0,79 desde 2009) y robusta en rezagos 1 a 3. Es la lluvia acumulada de los días anteriores, no un fenómeno aparte.
 - **Alza del caudal en 3 días** (GloFAS): AUC 0,64-0,65 con 5 a 7 días de antelación, robusta; más fuerte en temporadas sin Niño (AUC 0,82) que en temporadas Niño (0,62), aunque con pocos eventos.
 - Suelo de ERA5 en Matucana y Santa Eulalia alta: AUC 0,59-0,62 con 1 a 4 días.
+- Con 10 000 réplicas el alza del caudal en Chosica añade el rezago de 4 días (AUC 0,63) a los de 5 a 7.
 
 ### H1 · El mar: sí en régimen y también una señal diaria débil (H5)
 
 - Anomalía del mar en Niño 1+2 y costa de Perú, un día antes: **AUC 0,71** (0,66 a 14 días). Es sobre todo **entre temporadas**: al quitar la media de cada temporada baja a **0,59-0,60**, y la anomalía de 30 días a 0,51-0,53.
 - Correlación entre temporadas (43): alza del mar de la costa de Perú en 14 días **ρ = 0,41** (p = 0,007), anomalía Niño 1+2 **0,39** (p = 0,008), anomalía de 7 días 0,38 (p = 0,013). Pasan la corrección 8 de 25 variables probadas (cinco del mar, el suelo de Chosica y dos de caudal; esperadas por azar a p < 0,05: 1,2).
-- **Lo que queda dentro de la temporada** es el **alza del mar en 14 días**: AUC centrado **0,66** (costa de Lima) y **0,64** (costa de Perú) con 1 a 3 días de antelación; robusta en las dos cajas (0,66 y 0,65 desde 2009; 0,64-0,66 en temporadas Niño y 0,59-0,66 en las que no). La anomalía de la costa de Lima el día anterior también (0,64 centrada). En el composite, de los 14 días previos al inicio del episodio, 7 (costa de Perú) y 4 (costa de Lima) quedan por encima de la banda nula; ninguno por debajo. El alza de 7 días en Niño 1+2 pasa solo con rezago de 1 día (0,59).
+- **Lo que queda dentro de la temporada** es el **alza del mar en 14 días**: AUC centrado **0,66** (costa de Lima) y **0,64** (costa de Perú) con 1 a 3 días de antelación; robusta en las dos cajas (0,66 y 0,65 desde 2009; 0,64-0,66 en temporadas Niño y 0,59-0,66 en las que no). La anomalía de la costa de Lima el día anterior también (0,64 centrada, robusta en rezagos 1 y 2). En el composite, de los 14 días previos al inicio del episodio, 7 (costa de Perú) y 4 (costa de Lima) quedan por encima de la banda nula; ninguno por debajo. El alza de 7 días en Niño 1+2 pasa solo con rezago de 1 día (0,59).
 - Lectura: H5 se confirma en lo grueso (el mar marca el régimen; la anomalía de largo plazo pierde toda la señal al centrar), pero hay una señal diaria débil de **calentamiento rápido de la costa en las dos semanas previas**, consistente en tres cajas y en las ventanas de cobertura. No se sabe si es causa, es consecuencia de un patrón de circulación común (menos viento costero y más nubosidad antes de un evento) o es coincidencia con pocos episodios; con 64 episodios y muchas pruebas, se trata como hipótesis para probar con datos nuevos, no como mecanismo.
 
 ### H2 · Calor aguas arriba: no hay precursor de calor; hay frío y nubes el día anterior
@@ -80,9 +96,15 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 - Nieve acumulada: sin señal robusta.
 - Conclusión para H2: **no se sostiene** la idea de que el calor en las cabeceras en los días inmediatos suba el río o dispare el huaico. La temperatura aporta solo como firma de la propia tormenta.
 
-### H3 · Selva y gradiente de presión
+### H3 · Selva y gradiente de presión: la humedad de la selva **no** precede; la de la costa sí, poco
 
-No probada: faltan los puntos de ERA5 de Tarma, Lima y Chosica (ver arriba).
+Con ERA5 de los 6 puntos (6 variables, 84 pruebas con rezago ≥ 1; 13 pasan BH, 7 son robustas):
+
+- **Punto de rocío de la selva (Tarma)**: AUC 0,50 el día antes (crudo) y **0,45 centrado**, sin señal en ningún rezago. Si algo, la selva está un poco más seca de lo normal el día antes. **H3 no se sostiene en su parte de humedad de la selva**: el aire húmedo amazónico no se ve días antes en este punto.
+- **Nubes de la selva**: AUC 0,64 (crudo) y 0,60 (centrado) con 1 a 2 días de antelación; es cubierta nubosa en los días inmediatos, no humedad acumulada, y no es robusta.
+- **Costa de Lima**: anomalía del punto de rocío de los 3 días previos, **AUC 0,74 (crudo) y 0,63 (centrado)** el día antes, robusta solo en el rezago 1 (0,62 desde 2009; 0,61 en temporadas Niño y 0,71 en las que no); nubes de la costa 0,63-0,66 (crudo), robustas en los rezagos 1, 3 y 6 (0,62-0,63 desde 2009). Va junto con el mar cálido de la costa de Lima (H1): son la misma señal costera (más humedad y nubosidad cuando el mar está más cálido), no dos independientes.
+- **Gradiente de presión Chosica menos Tarma**: AUC centrado 0,62 el día antes y 0,64 el mismo día, y señales sueltas con signo cambiante en rezagos 8 a 13 (0,36 a 0,62): no se interpreta; en el composite 6 de los 14 días previos quedan por debajo de la banda.
+- Lectura: lo que acompaña al huaico por el lado de la humedad es **costero** (nubosidad y punto de rocío de la costa de Lima, con el mar cálido), no un pulso de humedad de la selva. Es un indicio, no un mecanismo.
 
 ## 5. Lo concurrente frente a lo antecedente
 
@@ -98,8 +120,10 @@ Los valores a rezago 0 son más extremos que a rezago 1 en las variables de temp
 
 ## 7. Qué falta y qué se pide a otros módulos
 
-- Reejecutar el notebook cuando lleguen `open_meteo_predictores_diarios.json` (Chosica, costa de Lima, selva de Tarma); probar H3 y repetir H2 con más puntos.
+- Repetir H2 con más puntos de altura (solo hay tres: Ticlio, Santa Eulalia alta y Matucana). La anomalía cálida de Matucana a 8-11 días sigue siendo un hallazgo de un solo punto.
+- Probar H3 con otra variable de la selva (viento a 700 hPa u OLR; hay un archivo de OLR en `datos/circulacion/`): el punto de rocío a 2 m de un solo punto de la selva es una medida pobre de la humedad que entra.
 - Repetir la prueba con **lluvia como control** (efecto de la variable una vez descontada la lluvia del día y de los días previos), en un modelo multivariable validado dejando temporadas fuera; esto lo cubre el notebook 05, no este.
 - Cambios sugeridos en otros archivos (no hechos aquí, por ser de otro dueño):
-  - `predictores.construir`: añadir el flag `rezago_minimo` por familia, para que el modelo diario solo use información de ≥ 1 día antes, y guardar el nivel de congelamiento si alguna fuente lo entrega.
+  - `predictores.construir`: añadir el flag `rezago_minimo` por familia, para que el modelo diario solo use información de ≥ 1 día antes.
+  - `datos/enso/oisst_diario.csv` trae fechas duplicadas en los límites de año; `senales.cargar_matriz` las quita, pero conviene corregir el consolidado en `fuentes.py`.
   - `evaluacion_diaria.rezagos` (bootstrap por temporadas) se usó solo como comprobación; el notebook 04 usa los rangos y la nula de `senales.py`, mucho más rápidos.
