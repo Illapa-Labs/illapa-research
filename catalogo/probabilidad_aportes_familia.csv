@@ -1,0 +1,9 @@
+familia,texto,aporte_dias_huaico,aporte_otros_dias,diferencia,estabilidad
+lluvia_mismo_dia,lluvia del día,1.7575,-0.0329,1.7904,1.0
+mar,temperatura del mar,0.5638,-0.0106,0.5743,1.0
+lluvia_previa,lluvia de los días previos,0.4163,-0.0078,0.4241,0.996
+humedad_y_circulacion,humedad y nubes,0.3542,-0.0066,0.3609,0.998
+caudal,caudal de los ríos,0.2974,-0.0056,0.303,0.978
+calor_altura,temperatura en altura,0.2357,-0.0044,0.2401,0.994
+suelo,humedad del suelo,0.2209,-0.0041,0.2251,0.996
+nino_icen,régimen El Niño (ICEN),0.1357,-0.0025,0.1382,0.932

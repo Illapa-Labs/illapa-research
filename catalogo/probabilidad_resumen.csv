@@ -1,0 +1,25 @@
+,valor
+global_brier,0.015395648040877213
+global_logloss,0.06457971308701448
+global_ap,0.27827000844036576
+global_auc,0.9000179864202527
+global_base,0.018384056851537153
+global_obs_sobre_pred,1.009345185916895
+global_brier_skill,0.14049521345848648
+sin_racimos_brier,0.011801682617401665
+sin_racimos_logloss,0.05365305140664883
+sin_racimos_ap,0.15479656026451277
+sin_racimos_auc,0.8730832375636184
+sin_racimos_base,0.012963863231242911
+sin_racimos_obs_sobre_pred,0.997592919716257
+primario,completo
+usa_regimen,False
+mejora_regimen,-0.002722700021725366
+razon_plano_Niño,1.2166462806541707
+razon_plano_no Niño,0.6704463663937312
+"razon_plano_régimen causal (ICEN>=0,4)",1.0542561924510605
+"razon_plano_régimen causal (ICEN<0,4)",0.9838581169099047
+razon_regimen_Niño,1.2078556710100472
+razon_regimen_no Niño,0.6823865463673866
+"razon_regimen_régimen causal (ICEN>=0,4)",1.0198752183536497
+"razon_regimen_régimen causal (ICEN<0,4)",1.0064657596831212

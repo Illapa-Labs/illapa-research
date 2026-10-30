@@ -1,0 +1,4 @@
+modelo,ap,ap_base,auc,logloss
+dia_y_quebrada,0.02943,0.00076,0.92323,0.00542
+solo_dia,0.01948,0.00076,0.92033,0.00553
+solo_quebrada,0.00125,0.00076,0.65016,0.00674

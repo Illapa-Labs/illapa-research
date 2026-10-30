@@ -642,4 +642,43 @@ def correr(raiz=".", n_boot: int = 500, dispositivo: str | None = None, verboso:
             "intervalo": (lo, hi), "global": glob, "por_grupo": por_grupo, "sin_racimos_reentrenado": sin_racimos,
             "bandas": bandas, "fiabilidad": curva_fiabilidad(y, p_oof), "aportes": aportes_por_familia(modelo, Z, y),
             "pi": pi, "pares": pares, "ranking": ranking, "ubicadas": ubic, "nino_temporada": nino_s, "regimen_causal": reg,
-            "p_clim": p_clim, "calibrador": cal, "est": est}
+            "p_clim": p_clim, "calibrador": cal, "est": est, "logit_oof": r.logit}
+
+
+# ------------------------------------------------------------------ retrospective views
+def retrospectiva(R: dict, posiciones: np.ndarray, top: int = 3) -> pd.DataFrame:
+    """Past days with their out-of-fold probability, out-of-bag interval and main favourable conditions."""
+    modelo, X, y = R["modelo"], R["X"], R["y"]
+    lo, hi = R["intervalo"]
+    filas = []
+    for i in posiciones:
+        fa = _factores(modelo, R["Z"][i], X.iloc[i], top)
+        filas.append({"fecha": X.index[i].date(), "huaico": int(y[i]), "probabilidad": float(R["p_oof"][i]),
+                      "ic80_bajo": float(lo[i]), "ic80_alto": float(hi[i]),
+                      "condiciones": " | ".join(f["texto"] for f in fa)})
+    return pd.DataFrame(filas)
+
+
+def temporada_tipo(R: dict, temporada: int) -> dict:
+    """Day-by-day expected probability of one season: expected days, observed days and days per band."""
+    m = R["ts"] == temporada
+    p, y = R["p_oof"][m], R["y"][m]
+    bandas = tabla_bandas(y, p)
+    return {"temporada": temporada, "dias": int(m.sum()), "dias_con_huaico": int(y.sum()), "dias_esperados": float(p.sum()),
+            "p_maxima": float(p.max()), "p_mediana": float(np.median(p)), "dias_por_banda": bandas[["banda", "dias", "con_huaico"]]}
+
+
+def calibracion_desde(R: dict, anio_desde: int = 2009) -> dict:
+    """Exploratory (NOT pre-registered): calibrate only with the recent, better-reported seasons.
+
+    The catalogue is much more complete from 2009 on, and the calibration ratios by era differ
+    (observed/predicted below 1 before 2009, above 1 after). A calibrator fitted on seasons
+    `anio_desde` or later (leave-one-season-out inside them) is compared with the plain one on those seasons.
+    """
+    ts, y, lg = R["ts"], R["y"], R["logit_oof"]
+    m = ts >= anio_desde
+    p_nuevo = calibrar_loso(lg[m], y[m], ts[m])
+    p_viejo = R["p_oof"][m]
+    return {"desde": anio_desde, "dias": int(m.sum()), "con_huaico": int(y[m].sum()),
+            "plano": metricas(y[m], p_viejo), "calibrado_reciente": metricas(y[m], p_nuevo),
+            "bandas": tabla_bandas(y[m], p_nuevo)}
