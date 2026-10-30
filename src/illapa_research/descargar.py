@@ -9,6 +9,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from .fuentes import FUENTES
+from .fuentes_restringidas import FUENTES_OPT_IN
+
+TODAS = {**FUENTES, **FUENTES_OPT_IN}
 
 
 def descargar(destino: Path, ids: list[str]) -> dict:
@@ -18,7 +21,7 @@ def descargar(destino: Path, ids: list[str]) -> dict:
         json.loads(manifiesto_ruta.read_text(encoding="utf-8")) if manifiesto_ruta.exists() else {}
     )
     for id_ in ids:
-        fuente = FUENTES[id_]
+        fuente = TODAS[id_]
         print(f"→ {fuente.nombre}", flush=True)
         archivos = fuente.descargar(destino)
         manifiesto[id_] = {
@@ -41,7 +44,7 @@ def main(argv: list[str] | None = None) -> int:
         description="Descarga las fuentes abiertas y deja un MANIFIESTO.json con la licencia de cada una.",
     )
     ap.add_argument("--destino", type=Path, default=Path("datos"), help="carpeta local (datos/)")
-    ap.add_argument("--solo", nargs="+", choices=sorted(FUENTES), help="descargar solo estas fuentes")
+    ap.add_argument("--solo", nargs="+", choices=sorted(TODAS), help="descargar solo estas fuentes (las de uso restringido, como senamhi, solo se bajan si se nombran)")
     ap.add_argument("--listar", action="store_true", help="mostrar las fuentes y salir")
     ap.add_argument("--desde-hf", metavar="USUARIO/REPO", help="bajar el espejo en Hugging Face en vez de las fuentes originales")
     ap.add_argument("--subir-hf", metavar="USUARIO/REPO", help="subir datos/ a un dataset de Hugging Face (privado) y salir")
@@ -49,8 +52,9 @@ def main(argv: list[str] | None = None) -> int:
     args = ap.parse_args(argv)
 
     if args.listar:
-        for f in FUENTES.values():
-            print(f"{f.id:14} {f.licencia:55} {f.nombre}")
+        for f in TODAS.values():
+            marca = " (opt-in)" if f.id in FUENTES_OPT_IN else ""
+            print(f"{f.id:14} {f.licencia:55} {f.nombre}{marca}")
         return 0
 
     if args.desde_hf:
@@ -64,7 +68,7 @@ def main(argv: list[str] | None = None) -> int:
         print("Subido:", ", ".join(subir(args.subir_hf, args.destino, args.publico)),
               "(repositorio público)" if args.publico else "(repositorio privado)")
         return 0
-    descargar(args.destino, args.solo or list(FUENTES))
+    descargar(args.destino, args.solo or list(FUENTES))  # opt-in sources never run by default
     print(f"Listo. Licencias y atribuciones en {args.destino / 'MANIFIESTO.json'}")
     return 0
 

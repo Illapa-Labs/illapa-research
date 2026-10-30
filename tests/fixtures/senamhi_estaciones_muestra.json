@@ -1,0 +1,7 @@
+{"status": true, "data": [
+ {"stationId": "111060", "legacyStationId": "151209", "typeId": "M", "name": "CHOSICA", "categoryAbbreviation": "PLU", "conditionId": "F", "longitude": "-76.6897", "latitude": "-11.9298", "altitude": 867},
+ {"stationId": "47278214", "legacyStationId": "4721D2A6", "typeId": "H", "name": "CHOSICA", "categoryAbbreviation": "EHMA", "conditionId": "F", "longitude": "-76.6896", "latitude": "-11.9298", "altitude": 867},
+ {"stationId": "111027", "legacyStationId": "000548", "typeId": "M", "name": "MATUCANA", "categoryAbbreviation": "CO", "conditionId": "F", "longitude": "-76.3779", "latitude": "-11.8391", "altitude": 2417},
+ {"stationId": "111105", "legacyStationId": "111105", "typeId": "M", "name": "TICLIO", "categoryAbbreviation": "PLU", "conditionId": "C", "longitude": "-76.2002", "latitude": "-11.6002", "altitude": 4756},
+ {"stationId": "999999", "legacyStationId": "999999", "typeId": "M", "name": "LEJOS", "categoryAbbreviation": "PLU", "conditionId": "F", "longitude": "-70.0", "latitude": "-15.0", "altitude": 3000}
+]}
