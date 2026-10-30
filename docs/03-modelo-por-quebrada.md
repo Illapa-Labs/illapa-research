@@ -6,7 +6,7 @@ Entre las quebradas con nombre ubicado, ¿cuáles se activan más en temporadas 
 
 ## Datos y definiciones
 
-- Catálogo de huaicos: 147 fechas con día exacto y confianza no baja (`catalogo/eventos*.csv`); 47 se ubican en una cuenca, 18 nombran una quebrada sin cuenca y 82 no dicen cuál. Las fechas por quebrada se asignan con `catalogo/quebradas_referencias.csv` (capítulo 01).
+- Catálogo de huaicos: 148 fechas con día exacto y confianza no baja (`catalogo/eventos*.csv`); 48 se ubican en una cuenca, 18 nombran una quebrada sin cuenca y 82 no dicen cuál. Las fechas por quebrada se asignan con `catalogo/quebradas_referencias.csv` (capítulo 01).
 - Temporada = diciembre a abril, con el año de enero. **Niño** = Niño global (ONI de NOAA ≥ +0,5 °C en DJF-JFM-FMA) o Niño costero oficial (ICEN del IGP/ENFEN: evento de la lista que cubre al menos dos de febrero-abril, o ICEN medio de enero a abril ≥ +0,4 °C después de la lista). 22 temporadas de 45. Los umbrales se fijaron antes de mirar los huaicos; el proxy anterior (Niño 1+2 ≥ +1,0 °C, 15 temporadas) queda como sensibilidad.
 - Atributos físicos y de exposición: capítulo 01.
 

@@ -35,6 +35,7 @@ Cada archivo `eventos_*.csv` trae una fuente distinta y `cargar_todos()` los jun
 | `eventos_nuevos_1981_1998.csv` | INDECI (emergencias de 1998), INGEMMET y la tesis de la UNFV | 1981 a 1998 |
 | `eventos_nuevos_2013_2020.csv` | Prensa (El Comercio, América TV, Panamericana), INDECI | 2014 a 2020 |
 | `eventos_observatorio_enso.csv` | Catálogo «Memoria de desastres» de [PillB/observatorio-enso-peru](https://github.com/PillB/observatorio-enso-peru) (DesInventar, SINPAD, prensa): solo las fechas de tipo Huayco/Alud en Lurigancho-Chosica, Chaclacayo, Santa Eulalia y Ricardo Palma que no estaban en las otras fuentes | 1981 a 2026; 66 fechas, 20 con quebrada identificada |
+| `eventos_hemeroteca_2026.csv` | INDECI-COEN, Informe de Emergencia N° 599 (19 de marzo de 2023), leído completo: el 12 de marzo de 2023 a las 17:44 se activaron Huaycoloro 1 y 2 y Río Seco 2, con afectación en Chaclacayo y Lurigancho-Chosica | 12 de marzo de 2023 (1 fecha verificada al revisar los mayores falsos positivos del modelo diario; ver `docs/07`) |
 | `eventos_nuevos_2021_2026.csv` | Prensa (Andina, La República, Infobae, Trome, El Peruano) | 2023 a 2026 |
 
 Solo se registró una fecha cuando alguien leyó una fuente que da el día. Lo que no se pudo confirmar quedó fuera: los detalles están en las notas de investigación, que no forman parte de este repositorio. Los años 1990 a 1997, 1999 a 2008, 2010 a 2011 y 2021 a 2022 siguen sin eventos documentados, lo que no prueba que no los hubo.
@@ -71,7 +72,7 @@ Carossio (0,55 km²), La Libertad (0,60), Mariscal Castilla (0,88) y La Cantuta 
 
 **Niveles** (regla fija, sin ajustar con los eventos): 1 activada en 2 o más temporadas Niño; 2 en una; 3, 4 y 5 sin historial ubicado según el tercio (alto, medio, bajo) de la susceptibilidad física; 6 menos de 2 km², no evaluable. La susceptibilidad física es el promedio de los percentiles de Melton, pendiente del cauce (10 a 85 %) y pendiente media entre las cuencas de 2 a 50 km², sin pesos. Dentro de un nivel se ordena por la tasa y luego por la física. Hoy 18 cuencas están en los niveles 1 y 2.
 
-**Historial.** De 147 fechas de huaico con día exacto y confianza no baja, 47 se ubican en una cuenca, 18 nombran una quebrada que no se pudo ubicar y 82 no dicen cuál. «Sin historial ubicado» no es «nunca se activó».
+**Historial.** De 148 fechas de huaico con día exacto y confianza no baja, 48 se ubican en una cuenca, 18 nombran una quebrada que no se pudo ubicar y 82 no dicen cuál. «Sin historial ubicado» no es «nunca se activó».
 
 **Qué dicen los datos.**
 - Con cualquier quebrada, 17 de 22 temporadas Niño tienen alguna fecha catalogada contra 10 de 23 sin Niño; la mediana de días por temporada es 2,5 contra 0 (Fisher p = 0,033; Mann-Whitney p = 0,010). Con el proxy anterior (15 temporadas) el contraste era mucho más débil (p = 0,33 y 0,08): la definición oficial del ICEN separa mejor, pero esa definición se eligió porque es la oficial, no por el resultado.
