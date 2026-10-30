@@ -75,9 +75,14 @@ ATRIBUCIONES = {
 }
 
 
-def tarjeta(manifiesto: dict, publico: bool = False) -> str:
-    """Dataset card with licence and attribution of every mirrored source."""
-    ids = {i for i in ARCHIVOS.values() if i}
+def tarjeta(manifiesto: dict, publico: bool = False, fuentes: set[str] | None = None) -> str:
+    """Dataset card with licence and attribution of every mirrored source.
+
+    `fuentes` are the source ids whose files were actually uploaded (so a source that is not in the
+    manifest, like SENAMHI's, still gets its legend); without it, the sources of the manifest are used.
+    """
+    presentes = set(fuentes) if fuentes is not None else set(manifiesto)
+    ids = {i for i in ARCHIVOS.values() if i} & presentes
     filas = [
         f"| `{k}` | {v['nombre']} | {v['licencia']} | {v['atribucion']} | {v['descargado'][:10]} |"
         for k, v in sorted(manifiesto.items())
@@ -135,7 +140,7 @@ def subir(repo: str, datos: Path = Path("datos"), publico: bool = False) -> list
     if publico:  # MANIFIESTO.json lists every source: publish only the mirrored ones
         manifiesto = {k: v for k, v in manifiesto.items() if k not in EXCLUIDAS_EN_PUBLICO}
         api.upload_file(repo_id=repo, repo_type="dataset", path_or_fileobj=json.dumps(manifiesto, ensure_ascii=False, indent=2).encode("utf-8"), path_in_repo="MANIFIESTO.json")
-    api.upload_file(repo_id=repo, repo_type="dataset", path_or_fileobj=tarjeta(manifiesto, publico).encode("utf-8"),
+    api.upload_file(repo_id=repo, repo_type="dataset", path_or_fileobj=tarjeta(manifiesto, publico, {ARCHIVOS[r] for r in subidos if ARCHIVOS[r]}).encode("utf-8"),
                     path_in_repo="README.md")
     return subidos
 

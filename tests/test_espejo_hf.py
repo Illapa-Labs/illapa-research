@@ -13,5 +13,5 @@ def test_el_espejo_incluye_el_manifiesto():
 
 
 def test_la_tarjeta_pone_la_leyenda_del_senamhi_aunque_no_este_en_el_manifiesto():
-    t = tarjeta({}, publico=True)
+    t = tarjeta({}, publico=True, fuentes={"senamhi"})
     assert "Información recopilada y trabajada por el Servicio Nacional de Meteorología e Hidrología" in t
