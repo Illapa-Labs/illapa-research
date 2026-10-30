@@ -157,7 +157,7 @@ def _sumidero(nxt: np.ndarray) -> np.ndarray:
 
 
 def _lonlat(tr: rasterio.Affine, r: int, c: int) -> tuple[float, float]:
-    x, y = tr * (c + 0.5, r + 0.5)
+    x, y = tr @ (c + 0.5, r + 0.5)
     return _A_LL.transform(x, y)
 
 

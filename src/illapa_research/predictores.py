@@ -173,7 +173,7 @@ def construir(
             f[f"caudal_{c}_alza_3d"] = lq.shift(1) - lq.shift(4)
             f[f"caudal_{c}_max_7d"] = lq.shift(1).rolling(7).max()
 
-    return f
+    return f.copy()  # defragment the many single-column inserts
 
 
 def familia(c: str) -> str:

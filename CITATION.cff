@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "Si usas este kit de investigación, cítalo así. Los datos conservan la licencia de su fuente (ver DATOS.md)."
+title: "Illapa Research: kit de investigación sobre lluvia y huaicos en Lurigancho-Chosica, Chaclacayo y Santa Eulalia"
+type: software
+license: AGPL-3.0-or-later
+repository-code: "https://github.com/Illapa-Labs/illapa-research"
+authors:
+  - name: "Illapa Labs"
+abstract: "Catálogo de fechas de huaico, cuencas delimitadas con Copernicus GLO-30, ranking de quebradas para temporadas El Niño y modelos de día con huaico. Investigación; no es un sistema de alerta."
+keywords: [huaico, debris flow, Peru, El Niño, Rímac]

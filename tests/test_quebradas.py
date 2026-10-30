@@ -60,3 +60,27 @@ def test_cauce_principal_recorre_la_celda_mas_lejana():
     ruta, dist = cauce_principal(t, np.ones((1, 6), dtype=bool), (0, 5))
     assert ruta[0] == (0, 0) and ruta[-1] == (0, 5)
     assert dist[0] == pytest.approx(5 * RESOLUCION_M)
+
+
+def test_delimitar_separa_afluentes_de_un_valle_sintetico(monkeypatch):
+    from rasterio import Affine
+
+    from illapa_research import quebradas as qb
+
+    h, w = 70, 90
+    filas, cols = np.mgrid[0:h, 0:w]
+    # Valley floor along row 60 falling to the east; two side valleys (columns 20 and 60) feed it
+    # from the north. The floor is the "river"; the side valleys are the quebradas.
+    z = 1000.0 + 8.0 * np.abs(filas - 60) - 1.0 * cols
+    for c0 in (20, 60):
+        z -= 12.0 * np.exp(-((cols - c0) ** 2) / 8.0) * (filas < 60)
+    tr = Affine(30.0, 0.0, 300000.0, 0.0, -30.0, 8680000.0)
+    monkeypatch.setattr(qb, "AREA_RIO_KM2", 0.5)
+    monkeypatch.setattr(qb, "AREA_MIN_KM2", 0.05)
+    t = qb.acondicionar(z.astype("float32"), tr, [])
+    etiqueta, salidas = qb.delimitar(t, ventana=(-180, -90, 180, 90))
+    assert len(salidas) >= 2
+    assert etiqueta.max() == len(salidas) and (etiqueta > 0).sum() > 0
+    a = qb.atributos(t, etiqueta, salidas[0], 1)
+    assert a["area_km2"] > 0.04 and a["longitud_cauce_km"] > 0 and np.isfinite(a["melton"])
+    assert a["relieve_m"] == pytest.approx(a["z_max_m"] - a["z_min_m"], abs=0.1)
