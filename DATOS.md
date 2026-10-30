@@ -29,6 +29,10 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 - **Modelos de elevación para hidrología**: solo se usa Copernicus GLO-30; revisar la licencia de cualquier otro antes de usarlo.
 - **Coordenadas de las quebradas que faltan** (Carossio, La Cantuta, Santo Domingo, Cashahuacra...): salen de las resoluciones de faja marginal de la ANA en SIGRID y de informes del INGEMMET; se agregan a mano en `quebradas_referencias.csv`.
 
+## Espejo en Hugging Face
+
+Las APIs gratuitas (sobre todo Open-Meteo) limitan las llamadas por hora: reconstruir `datos/` desde las fuentes originales puede tardar horas. Para no repetirlo, `datos/` se puede copiar a un dataset de Hugging Face (`espejo_hf.py`): `uv run --extra hf descargar-datos --subir-hf USUARIO/REPO` lo sube (**privado**, con una tarjeta que lista la licencia y la atribución de cada fuente) y `uv run --extra hf descargar-datos --desde-hf USUARIO/REPO` lo baja. Hace falta `hf auth login` una vez; el código nunca lee ni guarda el token. Hacerlo público exige revisar antes cada fuente (OpenStreetMap debe seguir bajo ODbL; los datos del IGP no traen licencia explícita; Open-Meteo gratuito es solo no comercial).
+
 ## Publicar datos derivados
 
 Antes de subir un conjunto a Hugging Face u otro sitio, confirma que cada fuente que lo compone permite redistribuirlo, y publícalo con su licencia y atribución.

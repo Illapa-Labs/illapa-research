@@ -43,6 +43,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--destino", type=Path, default=Path("datos"), help="carpeta local (datos/)")
     ap.add_argument("--solo", nargs="+", choices=sorted(FUENTES), help="descargar solo estas fuentes")
     ap.add_argument("--listar", action="store_true", help="mostrar las fuentes y salir")
+    ap.add_argument("--desde-hf", metavar="USUARIO/REPO", help="bajar el espejo en Hugging Face en vez de las fuentes originales")
+    ap.add_argument("--subir-hf", metavar="USUARIO/REPO", help="subir datos/ a un dataset privado de Hugging Face y salir")
     args = ap.parse_args(argv)
 
     if args.listar:
@@ -50,6 +52,16 @@ def main(argv: list[str] | None = None) -> int:
             print(f"{f.id:14} {f.licencia:55} {f.nombre}")
         return 0
 
+    if args.desde_hf:
+        from .espejo_hf import bajar
+
+        print(f"Espejo bajado en {bajar(args.desde_hf, args.destino)}")
+        return 0
+    if args.subir_hf:
+        from .espejo_hf import subir
+
+        print("Subido:", ", ".join(subir(args.subir_hf, args.destino)), "(repositorio privado)")
+        return 0
     descargar(args.destino, args.solo or list(FUENTES))
     print(f"Listo. Licencias y atribuciones en {args.destino / 'MANIFIESTO.json'}")
     return 0

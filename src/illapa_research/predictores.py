@@ -112,6 +112,8 @@ def construir(
         if p not in pred:
             continue
         d = pred[p].reindex(idx)
+        if "soil_moisture_0_to_7cm" not in d:
+            continue
         f[f"{nombre}_suelo_era5"] = d["soil_moisture_0_to_7cm"].shift(1)
 
     # --- heat and 0 °C height upstream: warm spells melt snow and raise the rain-snow line
@@ -195,25 +197,11 @@ def temporada_mask(idx: pd.DatetimeIndex) -> np.ndarray:
 
 
 def _resumen_diario(js: dict) -> pd.DataFrame:
+    from .fuentes import _agregar_diario
+
     df = pd.DataFrame(js["hourly"])
     df["time"] = pd.to_datetime(df["time"])
-    d = df.set_index("time").resample("D").agg(
-        {
-            "temperature_2m": ["mean", "max", "min"],
-            "relative_humidity_2m": "mean",
-            "dew_point_2m": "mean",
-            "pressure_msl": "mean",
-            "cloud_cover": "mean",
-            "precipitation": ["sum", "max"],
-            "snowfall": "sum",
-            "wind_speed_10m": "mean",
-            "soil_moisture_0_to_7cm": "mean",
-            "vapour_pressure_deficit": "mean",
-            "shortwave_radiation": "sum",
-        }
-    )
-    d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
-    return d
+    return _agregar_diario(df)
 
 
 def cargar_predictores_cache(cache: Path) -> dict[str, pd.DataFrame]:

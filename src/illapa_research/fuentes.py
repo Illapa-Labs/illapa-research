@@ -254,12 +254,39 @@ VARIABLES_HORARIAS = (
     "temperature_2m,relative_humidity_2m,dew_point_2m,pressure_msl,cloud_cover,precipitation,"
     "snowfall,wind_speed_10m,soil_moisture_0_to_7cm,vapour_pressure_deficit,shortwave_radiation"
 )
+# The free API counts a call by variables x days, so the points added later ask only for what
+# the features use. Points missing here use all of `VARIABLES_HORARIAS`.
+VARIABLES_POR_PUNTO = {
+    "chosica": "temperature_2m,relative_humidity_2m,pressure_msl,cloud_cover,precipitation,vapour_pressure_deficit",
+    "costa-lima": "dew_point_2m,cloud_cover,pressure_msl",
+    "selva-tarma": "dew_point_2m,pressure_msl,cloud_cover,precipitation",
+}
 # Boxes (south, north, west, east, stride) for the daily sea surface temperature of OISST.
 CAJAS_SST = {
     "nino12": (-10.0, 0.0, -90.0, -80.0, 4),
     "costa_peru": (-14.0, -8.0, -82.0, -77.0, 4),
     "costa_lima": (-13.5, -11.5, -78.5, -76.5, 1),
 }
+
+
+def _agregar_diario(df):
+    """Daily means, sums and extremes of the hourly columns that are present."""
+    reglas = {
+        "temperature_2m": ["mean", "max", "min"],
+        "relative_humidity_2m": "mean",
+        "dew_point_2m": "mean",
+        "pressure_msl": "mean",
+        "cloud_cover": "mean",
+        "precipitation": ["sum", "max"],
+        "snowfall": "sum",
+        "wind_speed_10m": "mean",
+        "soil_moisture_0_to_7cm": "mean",
+        "vapour_pressure_deficit": "mean",
+        "shortwave_radiation": "sum",
+    }
+    d = df.set_index("time").resample("D").agg({k: v for k, v in reglas.items() if k in df.columns})
+    d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
+    return d
 
 
 def _open_meteo_predictores(destino: Path) -> list[str]:
@@ -288,7 +315,8 @@ def _open_meteo_predictores(destino: Path) -> list[str]:
                         resp = requests.get(
                             "https://archive-api.open-meteo.com/v1/archive",
                             params={"latitude": lat, "longitude": lon, "start_date": ini, "end_date": fin,
-                                    "hourly": VARIABLES_HORARIAS, "timezone": "America/Lima"},
+                                    "hourly": VARIABLES_POR_PUNTO.get(nombre, VARIABLES_HORARIAS),
+                                    "timezone": "America/Lima"},
                             headers={"User-Agent": USER_AGENT},
                             timeout=300,
                         )
@@ -304,22 +332,7 @@ def _open_meteo_predictores(destino: Path) -> list[str]:
                     time.sleep(20)
             df = pd.DataFrame(js["hourly"])
             df["time"] = pd.to_datetime(df["time"])
-            d = df.set_index("time").resample("D").agg(
-                {
-                    "temperature_2m": ["mean", "max", "min"],
-                    "relative_humidity_2m": "mean",
-                    "dew_point_2m": "mean",
-                    "pressure_msl": "mean",
-                    "cloud_cover": "mean",
-                    "precipitation": ["sum", "max"],
-                    "snowfall": "sum",
-                    "wind_speed_10m": "mean",
-                    "soil_moisture_0_to_7cm": "mean",
-                    "vapour_pressure_deficit": "mean",
-                    "shortwave_radiation": "sum",
-                }
-            )
-            d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
+            d = _agregar_diario(df)
             partes.append(d)
             salida.setdefault(nombre, {})["elevation"] = js.get("elevation")
         total = pd.concat(partes)
