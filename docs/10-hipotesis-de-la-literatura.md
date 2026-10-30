@@ -119,7 +119,7 @@ En el modelo diario, E y C del mes previo (y su cambio) no suman: ΔAP −0,002 
 
 La celda de cada serie que contiene el centro de cada punto se fijó antes de mirar (los centros de las cajas de CHIRPS: Chosica, Santa Eulalia alta, Matucana y Ticlio; la selva de Tarma se descargó pero no se comparó porque ERA5 no tiene allí lluvia diaria equivalente).
 
-**Datos de esta corrida (30 de octubre de 2026, ~15:30 hora de Lima).** Modelo base: ERA5 en Matucana, Santa Eulalia alta y Ticlio; MERRA-2 de NASA POWER en Chosica, costa de Lima y selva de Tarma; lluvia horaria ERA5 de Chosica y cuenca alta. 6 473 días de temporada (118 con huaico) para CPC y 6 372 (110) para PERSIANN-CDR (empieza en la temporada 1984). Cuando llegue ERA5 completo hay que repetir.
+**Datos de esta corrida (30 de octubre de 2026, tarde).** Modelo base con **ERA5 completo en los 6 puntos** (caché de `descargar-datos` más la lectura de los archivos de Open-Meteo en AWS, capítulo 13), lluvia horaria ERA5 de Chosica y cuenca alta, mar NOAA, caudal GloFAS e ICEN. 6 473 días de temporada (119 con huaico) para CPC y 6 372 (111) para PERSIANN-CDR (empieza en la temporada 1984). Nulas: 2 000 mundos en GPU (RTX 4080 SUPER).
 
 **Resultados** (tablas en `catalogo/t28_*.csv`):
 
@@ -127,13 +127,15 @@ La celda de cada serie que contiene el centro de cada punto se fijó antes de mi
 |---|---|---|
 | Correlación diaria con ERA5 (Spearman, 4 puntos) | 0,26 a 0,36 | 0,15 a 0,20 |
 | Media del 5 % de días más lluviosos de ERA5 (mm) | 4,4 a 5,1 contra 11,9 a 20,8 de ERA5 | 0,15 a 0,21 contra 12,2 a 21,2 |
-| AUC de la lluvia de 3 días para separar días con huaico, Chosica | 0,72 [0,67; 0,76] contra 0,83 [0,77; 0,89] de ERA5 | 0,59 [0,52; 0,66] |
+| AUC de la lluvia de 3 días para separar días con huaico, Chosica | 0,72 [0,67; 0,76] contra 0,83 [0,78; 0,89] de ERA5 | 0,59 [0,52; 0,66] |
 | Lo mismo, tres puntos de la cuenca alta | 0,68 a 0,70 contra 0,67 a 0,77 de ERA5 | 0,59 (todos los puntos casi iguales) |
-| Añadir las columnas al modelo `lluvia+antecedentes` (ΔAP, IC 90 % por bootstrap de temporadas) | −0,007 [−0,016; 0,007] | −0,011 [−0,027; −0,001] |
-| Sustituir la lluvia ERA5 de la cuenca alta | −0,019 [−0,052; 0,013] | −0,023 [−0,056; 0,002] |
-| Nula en GPU con regularización fija (500 mundos, bloque desplazado dentro de cada temporada): ΔAP real; p95 nula; p | −0,006; +0,009; 0,38 | −0,011; +0,010; 0,82 |
+| Añadir las columnas al modelo `lluvia+antecedentes` (ΔAP, IC 90 % por bootstrap de temporadas) | −0,009 [−0,019; 0,005] | −0,006 [−0,023; 0,004] |
+| Sustituir la lluvia ERA5 de la cuenca alta | −0,023 [−0,056; 0,011] | −0,021 [−0,057; 0,002] |
+| Nula en GPU con regularización fija (2 000 mundos, bloque desplazado dentro de cada temporada): ΔAP real; p95 nula; p | −0,008; +0,006; 0,43 | −0,004; +0,016; 0,68 |
 
-**Conclusión T28: no se confirma.** Ninguna de las dos series independientes mejora ni sustituye la lluvia de ERA5. En Chosica, ERA5 separa claramente mejor los días con huaico (AUC 0,83 contra 0,72); en la cuenca alta los AUC se parecen. La versión de GPU con 500 mundos nulos coincide con la anidada: añadir cualquiera de las dos no se distingue de ruido. PERSIANN-CDR da entre un cuarto y un tercio de la lluvia de ERA5 en los días más lluviosos; es consistente con que el infrarrojo y el ajuste mensual subestiman la lluvia convectiva corta, pero no dice qué serie se acerca más a la lluvia real (el capítulo 11 encuentra que ERA5 da hasta el doble de lluvia que los pluviómetros en extremos).
+**Conclusión T28: no se confirma.** Ninguna de las dos series independientes mejora ni sustituye la lluvia de ERA5. En Chosica, ERA5 separa claramente mejor los días con huaico (AUC 0,83 contra 0,72); en la cuenca alta los AUC se parecen. La versión de GPU con 2 000 mundos nulos coincide con la anidada: añadir cualquiera de las dos no se distingue de ruido. PERSIANN-CDR da entre un cuarto y un tercio de la lluvia de ERA5 en los días más lluviosos; es consistente con que el infrarrojo y el ajuste mensual subestiman la lluvia convectiva corta, pero no dice qué serie se acerca más a la lluvia real (el capítulo 11 encuentra que ERA5 da hasta el doble de lluvia que los pluviómetros en extremos).
+
+**Qué cambió frente a la primera corrida (modelo base con MERRA-2 en Chosica, costa de Lima y selva de Tarma, 500 nulas).** La conclusión no cambia. Las tablas de acuerdo con ERA5 y de lluvia en días con huaico no cambian (usan la lluvia ERA5 de los cuatro puntos, que ya era ERA5 antes). Con el modelo base más completo, la precisión media del modelo de referencia sube de 0,249 a 0,260 (PERSIANN-CDR) y de 0,275 a 0,281 (CPC), y el número de días con huaico en la muestra pasa de 110 a 111 y de 118 a 119. Los ΔAP de añadir las series se mueven en la tercera cifra (PERSIANN-CDR −0,007 a −0,009; CPC −0,011 a −0,006) y sus intervalos pasan de excluir el cero (CPC al añadir: [−0,027; −0,001]) a incluirlo ([−0,023; 0,004]); con 2 000 mundos nulos los p son 0,43 y 0,68 (antes 0,38 y 0,82). En ningún caso hay mejora.
 
 **Qué no se probó.** CHIRPS v3 (mezcla estaciones y satélite con tiempo de IMERG y 0,05°) y IMERG (piden servidores o cuentas que no se usaron). Los pluviómetros reales del SENAMHI sí ayudaron antes de 2014 (capítulo 11); la limitación parece ser la resolución de las series gruesas en una cuenca de relieve fuerte, no la falta de una segunda fuente.
 
@@ -144,7 +146,7 @@ La celda de cada serie que contiene el centro de cada punto se fijó antes de mi
 | T23 | tarde, corta e intensa | **No.** Hora del pico sin diferencia; los días con huaico tienen más horas húmedas y rachas más largas, y la lluvia menos concentrada. Mejora del modelo pequeña y con intervalo que incluye el cero |
 | T24 | TSM absoluta con umbral | **No como umbral.** El nivel separa (AUC por mes 0,71–0,74) pero ya está en el modelo vía la anomalía; ΔAP ≈ 0 |
 | T25 | E y C mejor que ICEN | **No.** El ICEN gana; el efecto es costero (E ≈ ICEN) y C/ONI no distinguen de la media |
-| T28 | Lluvia independiente de ERA5 | **No.** CHIRPS no se pudo bajar; PERSIANN-CDR y CPC no mejoran ni sustituyen ERA5 (ΔAP −0,007 a −0,023); ERA5 separa mejor en Chosica |
+| T28 | Lluvia independiente de ERA5 | **No.** CHIRPS no se pudo bajar; PERSIANN-CDR y CPC no mejoran ni sustituyen ERA5 (ΔAP −0,006 a −0,023); ERA5 separa mejor en Chosica |
 
 ## 9. Límites
 
