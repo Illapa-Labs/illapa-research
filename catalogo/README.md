@@ -1,6 +1,6 @@
 # Catálogo de eventos y cuencas (piloto Chosica y Chaclacayo)
 
-Punto de partida para cruzar lluvia y huaicos. Viene de un proyecto previo (`huaico`, octubre de 2026) y se importó tal cual, sin agregar datos nuevos. **No está verificado fuente por fuente.**
+Punto de partida para cruzar lluvia y huaicos y, más abajo, el ranking de quebradas para El Niño. Viene de un proyecto previo (`huaico`, octubre de 2026) y se importó tal cual, sin agregar datos nuevos. **No está verificado fuente por fuente.**
 
 ## `eventos.csv`
 
@@ -45,7 +45,30 @@ Dudas conocidas: el evento de Chosica de febrero de 2015 fue el lunes 9 según l
 
 ## `cuencas.geojson`
 
-Polígonos de Quirio, Pedregal y Los Laureles (8,9 a 9,6 km²), delimitados con el modelo de elevación Copernicus GLO-30 a 30 m, con altitud mínima, máxima y mediana y el punto de salida. Faltan las demás quebradas.
+66 cuencas de 1 km² o más que drenan al Rímac y a Santa Eulalia entre Huachipa y Ricardo Palma (lon -76,90 a -76,52). Se generan con `uv run delimitar-quebradas` desde Copernicus GLO-30 (30 m, reproyectado a UTM 18S) con pysheds: el cauce del Rímac y de Santa Eulalia (OSM) se hunde 30 m para que el flujo siga el río real, se rellenan depresiones, y cada afluente que llega al río es una cuenca, hasta la confluencia. Campos: `slug`, `nombre` (vacío si no se pudo ubicar), `ubicacion` (`referencia` o `sin_nombre`), `area_km2`, `z_min_m`, `z_max_m`, `z_media_m`, `relieve_m`, `pendiente_media_pct`, `longitud_cauce_km` (cauce más largo), `pendiente_cauce_pct`, `pendiente_cauce_1085_pct` (Taylor-Schwarz), `melton` (relieve / raíz del área), `indice_forma` (A/L²), `compacidad` (Gravelius), `edificios_1km` (edificaciones OSM a ≤1 km de la desembocadura y fuera de toda cuenca: proxy de exposición en el cono, no un censo; OSM no cubre todo por igual) y el punto de salida.
+
+**Validación contra valores publicados** (la cuenca llega al río, unos 0,5 km² más que hasta el ápice del cono): Quirio 10,0 km² (9 a 10 de referencia), Pedregal 9,8 (9,6 a 10), Los Laureles 9,05 (9), Río Seco 194 (IGP 2020: 167; +16 %). Hay cuencas de 4,85 (Chacrasana 4,7), 8,3 (La Ronda 8,9) y 3,7 km² (Barba Blanca 3,5) en el valle que podrían ser ellas, pero **no se les puso nombre**: sin coordenadas hay varias cuencas de tamaño parecido. Las cuencas de menos de 2 km² están en el límite de lo que resuelve el DEM.
+
+## `quebradas_referencias.csv`
+
+Nombre, alias y, cuando se conoce, un punto dentro de la cuenca. Una cuenca solo toma nombre si el punto cae dentro (o a menos de 150 m). Hoy hay cuatro ubicadas: Quirio, Pedregal, Los Laureles (puntos del proyecto previo, de INGEMMET) y Río Seco (la desembocadura que marca OSM). Carossio tiene un punto, pero queda entre dos cuencas (275 y 350 m) y no se decidió. **Para mejorar el filtro, lo más útil es completar las coordenadas de este archivo** (las filas `sin_ubicar`): el ranking se recalcula solo.
+
+## Ranking de quebradas para El Niño
+
+`uv run filtro-quebradas` escribe tres archivos:
+
+- `ranking_quebradas_nino.csv`: las 63 cuencas de hasta 50 km². Columnas físicas, `fisica` (0 a 100), activaciones por temporada Niño y no Niño, tasa de temporadas Niño con activación con intervalo de 80 % (Jeffreys) y `nivel`.
+- `temporadas_nino.csv`: las 45 temporadas 1982 a 2026 con ONI, Niño 1+2 y las marcas. Temporada = diciembre a abril con el año de enero (noviembre y diciembre cuentan para la siguiente). Niño global: ONI medio de DJF, JFM y FMA ≥ +0,5 °C; costero: Niño 1+2 medio de enero a abril ≥ +1,0 °C (aproximación al ICEN, que no se descarga aún). Son 15 temporadas Niño: 1983, 1987, 1992, 1995, 1998, 2003, 2005, 2010, 2015, 2016, 2017 (costero), 2019, 2020, 2023 (costero) y 2024. La de 2009 **no** cuenta: fue La Niña (ONI -0,8) hasta que el Niño se formó a mitad de año.
+- `validacion_dejar_un_nino_fuera.csv`: ver abajo.
+
+**Niveles** (regla fija, sin ajustar con los eventos): 1 activada en 2 o más temporadas Niño; 2 en una; 3, 4 y 5 sin historial ubicado según el tercio (alto, medio, bajo) de la susceptibilidad física; 6 menos de 2 km², no evaluable. La susceptibilidad física es el promedio de los percentiles de Melton, pendiente del cauce (10 a 85 %) y pendiente media entre las cuencas de 2 a 50 km², sin pesos. Dentro de un nivel se ordena por la tasa y luego por la física.
+
+**Historial.** De 147 fechas de huaico con día exacto y confianza no baja, 25 se ubican en una cuenca, 40 nombran una quebrada que no se pudo ubicar (Santa Ana, La Ronda, Los Cóndores, Chacrasana, La Cantuta, etc.; la lista sale de `asignar_historial`) y 82 no dicen cuál. «Sin historial ubicado» no es «nunca se activó».
+
+**Qué dicen los datos.**
+- Con cualquier quebrada, 11 de 15 temporadas Niño tienen alguna fecha catalogada contra 16 de 30 sin Niño; la mediana de días por temporada es 2 contra 1 (Fisher p = 0,33; Mann-Whitney p = 0,08). Indicio débil, no prueba: el catálogo tiene huecos y más cobertura en años de desastre.
+- Pedregal y Quirio se activaron en 6 de 15 temporadas Niño y en 3 y 2 de 30 sin Niño; Los Laureles en 4 y en 0. Con tan pocas temporadas los intervalos de 80 % son amplios (Quirio y Pedregal 25 % a 56 %).
+- **Dejando un Niño fuera**, las tres siguen en el nivel 1 en todas las temporadas, pero eso solo confirma que se repiten. La susceptibilidad física sola las deja en el tramo medio (percentil 47 a 67 contando desde la más susceptible; 50 sería azar): no discrimina bien a las que sabemos que se activan. No se reajustaron pesos para corregirlo. Con cuatro cuencas ubicadas, y todas muy conocidas, esta validación no mide acierto en quebradas que nadie registró.
 
 ## Licencia y atribución
 
