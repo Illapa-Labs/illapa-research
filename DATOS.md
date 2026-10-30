@@ -34,7 +34,20 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 
 ## Espejo en Hugging Face
 
-Las APIs gratuitas (sobre todo Open-Meteo) limitan las llamadas por hora: reconstruir `datos/` desde las fuentes originales puede tardar horas. Para no repetirlo, `datos/` se puede copiar a un dataset de Hugging Face (`espejo_hf.py`): `uv run --extra hf descargar-datos --subir-hf USUARIO/REPO` lo sube (**privado**, con una tarjeta que lista la licencia y la atribución de cada fuente) y `uv run --extra hf descargar-datos --desde-hf USUARIO/REPO` lo baja. Hace falta `hf auth login` una vez; el código nunca lee ni guarda el token. Hacerlo público exige revisar antes cada fuente (OpenStreetMap debe seguir bajo ODbL; los datos del IGP no traen licencia explícita; Open-Meteo gratuito es solo no comercial).
+Las APIs gratuitas (sobre todo Open-Meteo) limitan las llamadas por hora y por día: reconstruir `datos/` desde las fuentes originales puede tardar horas. Para no repetirlo hay una copia pública en [renzoedu25/illapa-research-datos](https://huggingface.co/datasets/renzoedu25/illapa-research-datos). `uv run --extra hf descargar-datos --desde-hf renzoedu25/illapa-research-datos` la baja; `--subir-hf USUARIO/REPO [--publico]` sube la propia (privada por defecto). Hace falta `hf auth login` una vez; el código nunca lee ni guarda el token.
+
+Revisión de licencias del 30 de octubre de 2026, fuente por fuente:
+
+| Fuente | ¿Se puede redistribuir? | Condición que va en la tarjeta |
+|---|---|---|
+| Copernicus DEM GLO-30 | Sí, uso libre | Texto de atribución de Copernicus (DLR / Airbus / UE / ESA) |
+| NOAA (ONI, Niño 1+2, OISST) | Sí, dominio público | Citar a NOAA |
+| NASA POWER | Sí, datos abiertos | Citar POWER / MERRA-2 |
+| Open-Meteo (ERA5, ERA5-Land, GloFAS) | Sí: sus datos son CC BY 4.0 y permiten copiar y redistribuir con atribución | «Weather data by Open-Meteo.com»; Copernicus C3S y GloFAS. La API gratuita es solo no comercial: quien vuelva a pedirla debe respetarlo |
+| OpenStreetMap (ríos, edificios) | Sí, bajo ODbL | © colaboradores de OpenStreetMap; una base derivada debe seguir bajo ODbL |
+| IGP (ICEN y lista de eventos costeros) | **No se incluye**: no traen licencia explícita | Se bajan del IGP con `descargar-datos --solo igp-icen` |
+
+La licencia AGPL cubre el código; cada archivo conserva la licencia de su fuente.
 
 ## Publicar datos derivados
 

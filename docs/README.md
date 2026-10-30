@@ -11,3 +11,6 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [03 · Ranking de quebradas y modelo jerárquico](03-modelo-por-quebrada.md) | Susceptibilidad física, historial, Niño, exposición | `03` |
 | [04 · Señales y rezagos](04-senales-y-rezagos.md) | ¿Qué cambia días antes? (mar, calor aguas arriba, humedad de la selva, caudal) | `04` |
 | [05 · Modelo diario](05-modelo-diario.md) | Probabilidad de un día con huaico, validada por temporada y episodio Niño | `05` |
+| [07 · Calidad de las etiquetas](07-calidad-de-etiquetas.md) | Etiquetas alternativas, sesgo por era, falsos positivos | `07` |
+| [08 · Circulación de gran escala](08-circulacion.md) | Viento en altura, convección, MJO | `08` |
+| [09 · Literatura de mecanismos](09-literatura-mecanismos.md) | Qué ocurre antes de las lluvias que activan huaicos y qué falta probar | — |

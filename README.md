@@ -59,7 +59,7 @@ La licencia AGPL cubre el **código**, no los datos. Cada fuente tiene su propia
 
 ## Datos en Hugging Face
 
-Las APIs gratuitas limitan las llamadas por hora, así que `datos/` se puede copiar a un dataset de Hugging Face (privado por defecto) y bajar desde ahí: `uv run --extra hf descargar-datos --subir-hf USUARIO/REPO` y `--desde-hf USUARIO/REPO`. Detalles y licencias en [DATOS.md](DATOS.md).
+Las APIs gratuitas limitan las llamadas, así que hay una copia pública de `datos/` en [renzoedu25/illapa-research-datos](https://huggingface.co/datasets/renzoedu25/illapa-research-datos): `uv run --extra hf descargar-datos --desde-hf renzoedu25/illapa-research-datos`. Cada archivo conserva la licencia de su fuente (revisión en [DATOS.md](DATOS.md)); los datos del IGP no se incluyen por no traer licencia explícita.
 
 ## Colaborar
 
