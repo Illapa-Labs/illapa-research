@@ -472,6 +472,101 @@ def _nasa_power(destino: Path) -> list[str]:
     return [str(archivo.relative_to(destino.parent))]
 
 
+# Boxes (south, north, west, east; longitudes in 0-360) fixed before any analysis, see docs/08-circulacion.md.
+CAJAS_CIRCULACION = {
+    "u200_altiplano": ("uwnd", 200, (-20.0, -12.0, 285.0, 295.0)),
+    "u850_selva": ("uwnd", 850, (-14.0, -8.0, 288.0, 294.0)),
+    "v850_selva": ("vwnd", 850, (-14.0, -8.0, 288.0, 294.0)),
+    "q850_selva": ("shum", 850, (-14.0, -8.0, 288.0, 294.0)),
+}
+CAJA_OLR = (-15.0, -5.0, 290.0, 305.0)
+PSL_NCSS = "https://psl.noaa.gov/thredds/ncss/grid/Datasets"
+
+
+def _ncss_media(ruta: str, variable: str, caja: tuple, ini: str, fin: str, nivel: int | None, destino: Path):
+    """Daily area mean of one variable from a PSL THREDDS subset (NetCDF), weighted by cos(lat)."""
+    import numpy as np
+    import xarray as xr
+
+    s, n, w, e = caja
+    params = {"var": variable, "north": n, "south": s, "west": w, "east": e,
+              "time_start": f"{ini}T00:00:00Z", "time_end": f"{fin}T00:00:00Z", "accept": "netcdf"}
+    if nivel is not None:
+        params["vertCoord"] = nivel
+    for intento in range(8):
+        resp = requests.get(f"{PSL_NCSS}/{ruta}", params=params, headers={"User-Agent": USER_AGENT}, timeout=300)
+        if resp.ok and resp.content[:3] == b"CDF":
+            break
+        time.sleep(30 * (intento + 1))
+    else:
+        raise RuntimeError(f"PSL no respondió para {ruta} {variable} {ini}")
+    tmp = destino / "_tmp_ncss.nc"
+    tmp.write_bytes(resp.content)
+    with xr.open_dataset(tmp) as ds:
+        da = ds[variable]
+        pesos = np.cos(np.deg2rad(da["lat"]))
+        serie = da.squeeze().weighted(pesos).mean(dim=[d for d in da.squeeze().dims if d != "time"]).to_series()
+    tmp.unlink()
+    serie.index = serie.index.normalize()
+    return serie
+
+
+def _noaa_circulacion(destino: Path) -> list[str]:
+    """Daily NCEP/NCAR R1 winds and humidity and NOAA OLR over fixed boxes, plus the OMI and the SOI.
+
+    Each variable and year is cached in `circulacion/cache/`. NCEP/NCAR Reanalysis 1 and the
+    interpolated OLR are NOAA PSL products; the OMI index and the SOI are NOAA PSL / CPC.
+    """
+    import pandas as pd
+
+    carpeta = destino / "circulacion"
+    cache = carpeta / "cache"
+    cache.mkdir(parents=True, exist_ok=True)
+    anio_final = int(time.strftime("%Y"))
+    columnas = {}
+    for nombre, (variable, nivel, caja) in CAJAS_CIRCULACION.items():
+        partes = []
+        for anio in range(1983, anio_final + 1):
+            ruta = cache / f"{nombre}_{anio}.csv"
+            if not ruta.exists() or anio == anio_final:
+                serie = _ncss_media(
+                    f"ncep.reanalysis.dailyavgs/pressure/{variable}.{anio}.nc", variable, caja,
+                    f"{anio}-01-01", f"{anio}-12-31", nivel, carpeta,
+                )
+                serie.rename(nombre).to_csv(ruta)
+                time.sleep(1)
+            partes.append(pd.read_csv(ruta, index_col=0, parse_dates=True).iloc[:, 0])
+        columnas[nombre] = pd.concat(partes)
+    ruta = cache / "olr_amazonia.csv"
+    serie = _ncss_media("interp_OLR/olr.day.mean.nc", "olr", CAJA_OLR, "1983-01-01", time.strftime("%Y-%m-%d"), None, carpeta)
+    serie.rename("olr_amazonia").to_csv(ruta)
+    columnas["olr_amazonia"] = serie
+    out = pd.DataFrame(columnas)
+    out = out[~out.index.duplicated(keep="last")]
+    out.index.name = "fecha"
+    archivo = carpeta / "ncep_olr_diario.csv"
+    out.round(3).to_csv(archivo)
+    escritos = [str(archivo.relative_to(destino.parent))]
+    for nombre, url in (("omi.txt", "https://psl.noaa.gov/mjo/mjoindex/omi.1x.txt"),
+                        ("soi_cpc.txt", "https://www.cpc.ncep.noaa.gov/data/indices/soi")):
+        f = carpeta / nombre
+        f.write_text(_get(url).text, encoding="utf-8")
+        escritos.append(str(f.relative_to(destino.parent)))
+    return escritos
+
+
+def _bom_rmm(destino: Path) -> list[str]:
+    """Wheeler-Hendon RMM index (Australian Bureau of Meteorology), daily since 1974."""
+    carpeta = destino / "circulacion"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    f = carpeta / "rmm.txt"
+    resp = requests.get("http://www.bom.gov.au/climate/mjo/graphics/rmm.74toRealtime.txt",
+                        headers={"User-Agent": "Mozilla/5.0 (illapa-research)"}, timeout=120)
+    resp.raise_for_status()
+    f.write_text(resp.text, encoding="utf-8")
+    return [str(f.relative_to(destino.parent))]
+
+
 FUENTES: dict[str, Fuente] = {
     f.id: f
     for f in (
@@ -570,6 +665,22 @@ FUENTES: dict[str, Fuente] = {
             licencia="Datos abiertos de la NASA; cítese POWER",
             atribucion="NASA Prediction Of Worldwide Energy Resources (POWER) Project, MERRA-2",
             descargar=_nasa_power,
+        ),
+        Fuente(
+            id="noaa-circulacion",
+            nombre="NOAA PSL: viento y humedad NCEP/NCAR R1 y OLR sobre cajas fijas, OMI y SOI",
+            url="https://psl.noaa.gov/data/gridded/data.ncep.reanalysis.html",
+            licencia="Dominio público (gobierno de EE. UU.)",
+            atribucion="NOAA PSL: NCEP/NCAR Reanalysis 1 (Kalnay et al. 1996), Interpolated OLR, OMI; CPC: SOI",
+            descargar=_noaa_circulacion,
+        ),
+        Fuente(
+            id="bom-rmm",
+            nombre="BoM: índice MJO RMM diario",
+            url="http://www.bom.gov.au/climate/mjo/",
+            licencia="Datos públicos de la Oficina de Meteorología de Australia; se citan",
+            atribucion="Wheeler & Hendon (2004), Australian Bureau of Meteorology (RMM)",
+            descargar=_bom_rmm,
         ),
     )
 }
