@@ -14,6 +14,7 @@ fixed before looking at any result (they are the centres of the CHIRPS boxes of 
 from __future__ import annotations
 
 import re
+import threading
 import time
 from pathlib import Path
 
@@ -30,6 +31,7 @@ CENTROS = {
     "selva-tarma": (-75.69, -11.42),
 }
 PERSIANN_RAIZ = "https://www.ncei.noaa.gov/data/precipitation-persiann/access"
+_HDF5 = threading.Lock()  # the HDF5 library is not thread-safe: download in parallel, parse one at a time
 CPC_URL = "https://psl.noaa.gov/thredds/dodsC/Datasets/cpc_global_precip/precip.{a}.nc"
 USER_AGENT = "illapa-research/0.1 (+https://github.com/Illapa-Labs/illapa-research)"
 
@@ -98,7 +100,14 @@ def descargar_cpc(destino: Path, desde: int = 1983) -> Path:
     carpeta.mkdir(parents=True, exist_ok=True)
     partes = []
     for a in range(desde, pd.Timestamp.today().year + 1):
-        partes.append(serie_cpc(a))
+        for intento in range(5):
+            try:
+                partes.append(serie_cpc(a))
+                break
+            except OSError:
+                time.sleep(10 * (intento + 1))
+        else:
+            raise RuntimeError(f"PSL no respondió para {a}")
         time.sleep(1)
     out = pd.concat(partes)
     out.index.name = "fecha"
@@ -132,7 +141,8 @@ def descargar_persiann(destino: Path, desde_temporada: int = 1984, hilos: int = 
                 r = sesion.get(f"{PERSIANN_RAIZ}/{a}/{nombre}", headers={"User-Agent": USER_AGENT}, timeout=120)
                 r.raise_for_status()
                 time.sleep(pausa)
-                return {"fecha": fecha, **extraer_persiann(r.content)}
+                with _HDF5:
+                    return {"fecha": fecha, **extraer_persiann(r.content)}
             except (requests.RequestException, OSError):
                 time.sleep(10)
         raise RuntimeError(f"PERSIANN-CDR no respondió para {fecha}")
@@ -173,3 +183,43 @@ def variables(lluvia: pd.DataFrame, idx: pd.DatetimeIndex, prefijo: str) -> pd.D
         out[f"{p}_3d"] = r.rolling(3, min_periods=2).sum()
         out[f"{p}_7d_previa"] = r.shift(1).rolling(7, min_periods=4).sum()
     return pd.DataFrame(out, index=idx)
+
+
+def delta_ap_gpu(
+    X_base: np.ndarray, extra: np.ndarray, y: np.ndarray, ts: np.ndarray, C: float = 0.03,
+    n_nulas: int = 200, semilla: int = 0, dispositivo: str | None = None,
+) -> dict[str, float]:
+    """Change in out-of-fold average precision from adding `extra` columns, with a shifted-block null.
+
+    Same fixed-C ridge-logistic fit and season-out folds for the base, the real block and
+    `n_nulas` worlds in which the block is shifted cyclically inside every season (keeping its
+    values and autocorrelation, losing its link with the day). Runs on the GPU when there is one.
+    """
+    from . import gpu as G
+
+    temporadas = np.unique(ts)
+    n = len(y)
+    por_temp = {s: np.flatnonzero(ts == s) for s in temporadas}
+    Mk = np.stack([~np.isin(np.arange(n), por_temp[s]) for s in temporadas])
+    Y = np.tile(y.astype(float), (len(temporadas), 1))
+
+    def ap_de(X: np.ndarray) -> float:
+        Pl = G.ajustar_logit_lote(G.estandarizar(X), Y, Mk, C=C, dispositivo_=dispositivo)
+        P = np.empty(n)
+        for s, fila in zip(temporadas, Pl, strict=True):
+            P[por_temp[s]] = fila[por_temp[s]]
+        return float(G.auc_ap_lote(y[None, :].astype(float), P[None, :], dispositivo_=dispositivo)[1][0])
+
+    ap_base = ap_de(X_base)
+    ap_real = ap_de(np.hstack([X_base, extra]))
+    rng = np.random.default_rng(semilla)
+    nulas = []
+    for _ in range(n_nulas):
+        ex = extra.copy()
+        for i in por_temp.values():
+            ex[i] = np.roll(extra[i], int(rng.integers(5, max(6, len(i) - 5))), axis=0)
+        nulas.append(ap_de(np.hstack([X_base, ex])) - ap_base)
+    nulas = np.array(nulas)
+    d = ap_real - ap_base
+    return {"ap_base": ap_base, "ap_con_bloque": ap_real, "delta_ap": d, "nula_media": float(nulas.mean()),
+            "nula_p95": float(np.percentile(nulas, 95)), "p": float((1 + (nulas >= d).sum()) / (1 + len(nulas)))}
