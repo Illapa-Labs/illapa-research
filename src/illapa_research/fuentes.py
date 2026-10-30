@@ -285,7 +285,10 @@ def _agregar_diario(df):
         "shortwave_radiation": "sum",
     }
     d = df.set_index("time").resample("D").agg({k: v for k, v in reglas.items() if k in df.columns})
-    d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
+    if d.columns.nlevels == 1:  # every rule is a single function: pandas returns flat columns
+        d.columns = [k if reglas[k] == "mean" else f"{k}_{reglas[k]}" for k in d.columns]
+    else:
+        d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
     return d
 
 
