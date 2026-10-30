@@ -192,3 +192,58 @@ def familia(c: str) -> str:
 def temporada_mask(idx: pd.DatetimeIndex) -> np.ndarray:
     """Rainy-season days (December to April)."""
     return np.asarray((idx.month >= 12) | (idx.month <= 4))
+
+
+def _resumen_diario(js: dict) -> pd.DataFrame:
+    df = pd.DataFrame(js["hourly"])
+    df["time"] = pd.to_datetime(df["time"])
+    d = df.set_index("time").resample("D").agg(
+        {
+            "temperature_2m": ["mean", "max", "min"],
+            "relative_humidity_2m": "mean",
+            "dew_point_2m": "mean",
+            "pressure_msl": "mean",
+            "cloud_cover": "mean",
+            "precipitation": ["sum", "max"],
+            "snowfall": "sum",
+            "wind_speed_10m": "mean",
+            "soil_moisture_0_to_7cm": "mean",
+            "vapour_pressure_deficit": "mean",
+            "shortwave_radiation": "sum",
+        }
+    )
+    d.columns = ["_".join(c) if c[1] not in ("", "mean") else c[0] for c in d.columns]
+    return d
+
+
+def cargar_predictores_cache(cache: Path) -> dict[str, pd.DataFrame]:
+    """Points already downloaded in `predictores_cache/` (both periods present), so analyses can
+    start before `descargar-datos` has finished every point."""
+    cache = Path(cache)
+    out = {}
+    for p1 in sorted(cache.glob("*_1983.json")):
+        nombre = p1.stem[: -len("_1983")]
+        p2 = cache / f"{nombre}_2000.json"
+        if not p2.exists():
+            continue
+        js1, js2 = (json.loads(p.read_text(encoding="utf-8")) for p in (p1, p2))
+        df = pd.concat([_resumen_diario(js1), _resumen_diario(js2)])
+        df = df[~df.index.duplicated(keep="last")]
+        df.attrs["elevation"] = js1["elevation"]
+        out[nombre] = df
+    return out
+
+
+def cargar_sst_cache(cache: Path) -> pd.DataFrame:
+    """Daily SST of the boxes whose yearly files are all in `oisst_cache/`."""
+    cache = Path(cache)
+    cajas = sorted({p.stem.rsplit("_", 1)[0] for p in cache.glob("*.csv")})
+    anio = pd.Timestamp.today().year
+    series = {}
+    for caja in cajas:
+        archivos = [cache / f"{caja}_{a}.csv" for a in range(1982, anio + 1)]
+        if all(a.exists() for a in archivos):
+            series[caja] = pd.concat([pd.read_csv(a, index_col=0, parse_dates=True)["sst"] for a in archivos])
+    out = pd.DataFrame({k: v[~v.index.duplicated(keep="last")] for k, v in series.items()})
+    out.index.name = "fecha"
+    return out

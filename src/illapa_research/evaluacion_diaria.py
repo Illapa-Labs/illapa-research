@@ -165,3 +165,40 @@ def prueba_nula(
         p = validar(F, pd.Series(ys, index=y.index), columnas, folds)
         res.append(average_precision_score(ys[~np.isnan(p)], p[~np.isnan(p)]))
     return np.array(res)
+
+
+def rezagos(
+    F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, lags: range = range(0, 15),
+    mask: np.ndarray | None = None, n_boot: int = 200, semilla: int = 0,
+) -> pd.DataFrame:
+    """AUC of each feature as it was `lag` days before the day, with a season bootstrap interval.
+
+    `F` must cover consecutive days (the shift is done before the rainy-season mask is applied).
+    A lag of 0 uses the value of the day itself, so only lags of 1 or more are usable before the
+    event; lag 0 shows what the day looks like once it is happening.
+    """
+    mask = np.ones(len(F), dtype=bool) if mask is None else mask
+    rng = np.random.default_rng(semilla)
+    yv = y.to_numpy()[mask]
+    ts = temporada[mask]
+    seasons = np.unique(ts)
+    por_temp = {s: np.flatnonzero(ts == s) for s in seasons}
+    boots = [np.concatenate([por_temp[s] for s in rng.choice(seasons, len(seasons))]) for _ in range(n_boot)]
+    filas = []
+    for c in columnas:
+        for lag in lags:
+            x = F[c].shift(lag).to_numpy(dtype=float)[mask]
+            a = auc_rangos(x, yv)
+            bs = np.array([auc_rangos(x[b], yv[b]) for b in boots])
+            lo, hi = np.nanpercentile(bs, [5, 95]) if np.isfinite(bs).any() else (np.nan, np.nan)
+            filas.append({"variable": c, "lag": lag, "auc": a, "auc_p5": lo, "auc_p95": hi,
+                          "separa": bool(lo > 0.5 or hi < 0.5)})
+    return pd.DataFrame(filas)
+
+
+def centrar_por_temporada(F: pd.DataFrame, temporada: np.ndarray) -> pd.DataFrame:
+    """Remove each season's mean: what is left is the day-to-day timing inside a season."""
+    G = F.copy()
+    for c in G.columns:
+        G[c] = G[c] - G.groupby(temporada)[c].transform("mean")
+    return G
