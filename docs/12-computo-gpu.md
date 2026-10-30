@@ -27,7 +27,7 @@ PC remota (WSL2 Ubuntu, 24 hilos, RTX 4080 SUPER 16 GB), datos de `lluvia+antece
 | 1 000 mundos nulos | GPU | 6,6 s |
 | 2 000 mundos nulos + mundo real, 4 teorías | GPU | 6 a 14 s cada una |
 
-La versión de scikit-learn tardaba unos 4 s por mundo con un solo pliegue ajustado en serie; 1 000 mundos habrían sido horas.
+La versión de scikit-learn en serie (`evaluacion_diaria.prueba_nula`, medida en un Mac) tarda unos 1,2 s por mundo; 2 000 mundos serían unos 40 minutos por teoría, contra 6 a 14 s en la GPU (unas 100 a 200 veces menos).
 
 ## Resultado científico que esto permitió
 
