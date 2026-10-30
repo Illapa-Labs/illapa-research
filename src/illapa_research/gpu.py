@@ -138,3 +138,32 @@ def nulas_desplazadas(
     _, ap = auc_ap_lote(mundos, P, dispositivo_=dispositivo_)
     aps = ap
     return aps
+
+
+def ap_real_y_nulas(
+    X: np.ndarray, y: np.ndarray, temporada: np.ndarray, C: float = 0.05, n_nulas: int = 1000,
+    semilla: int = 0, dispositivo_: str | None = None,
+) -> dict[str, float]:
+    """Out-of-fold average precision of the real labels and of `n_nulas` shifted-label worlds.
+
+    Both use the same fixed-C ridge-logistic fit and the same leave-one-season-out folds, so they
+    are comparable. `p` is the share of null worlds that reach the real AP (plus one).
+    """
+    temporadas = np.unique(temporada)
+    n = len(y)
+    Z = estandarizar(X)
+    Y = np.tile(y.astype(float), (len(temporadas), 1))
+    Mk = np.stack([~np.isin(np.arange(n), np.flatnonzero(temporada == s)) for s in temporadas])
+    Pl = ajustar_logit_lote(Z, Y, Mk, C=C, dispositivo_=dispositivo_)
+    P = np.empty(n)
+    for s, fila in zip(temporadas, Pl, strict=True):
+        i = np.flatnonzero(temporada == s)
+        P[i] = fila[i]
+    auc, ap = auc_ap_lote(y[None, :].astype(float), P[None, :], dispositivo_=dispositivo_)
+    nulas = nulas_desplazadas(X, y, temporada, C=C, n_nulas=n_nulas, semilla=semilla, dispositivo_=dispositivo_)
+    return {
+        "ap_real": float(ap[0]), "auc_real": float(auc[0]), "ap_base": float(y.mean()),
+        "ap_nula_media": float(nulas.mean()), "ap_nula_p95": float(np.percentile(nulas, 95)),
+        "ap_nula_max": float(nulas.max()), "p": float((1 + (nulas >= ap[0]).sum()) / (1 + len(nulas))),
+        "n_nulas": int(len(nulas)),
+    }

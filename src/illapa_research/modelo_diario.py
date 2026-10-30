@@ -211,7 +211,7 @@ class Resultado:
 
 
 def validar_anidado(X: pd.DataFrame, y: pd.Series, ts: np.ndarray, folds: list[np.ndarray],
-                    arbol: bool = False, n_jobs: int = 8) -> Resultado:
+                    arbol: bool = False, n_jobs: int = -1) -> Resultado:
     """Out-of-fold probabilities, the configuration chosen in each fold and (linear) coefficients."""
     yv = y.to_numpy()
     folds = [f for f in folds if len(f)]  # an episode outside the data window leaves an empty fold
@@ -229,7 +229,7 @@ def validar_anidado(X: pd.DataFrame, y: pd.Series, ts: np.ndarray, folds: list[n
 
 
 def dos_etapas(Xa: pd.DataFrame, lluvia: pd.Series, y: pd.Series, ts: np.ndarray, folds: list[np.ndarray],
-               cuantil: float = 0.90, n_jobs: int = 8) -> Resultado:
+               cuantil: float = 0.90, n_jobs: int = -1) -> Resultado:
     """T7. Strong-rain day = 3-day Chosica rain above the training `cuantil`.
 
     P(event) = P(strong | antecedents) * P(event | strong) + (1 - P(strong | antecedents)) * P(event | not strong),
@@ -336,7 +336,7 @@ def sobreajuste(X: pd.DataFrame, y: pd.Series, ts: np.ndarray, res: Resultado) -
             "variables": int(X.shape[1]), "positivos": int(yv.sum())}
 
 
-def correr_teorias(D: Datos, folds_tipo: str = "temporada", n_jobs: int = 8,
+def correr_teorias(D: Datos, folds_tipo: str = "temporada", n_jobs: int = -1,
                    teorias: tuple[str, ...] = TEORIAS, con_oraculo: bool = True) -> dict[str, Resultado]:
     """Out-of-fold predictions for every theory on the same folds."""
     X, y, ts, mes = matrices(D)
@@ -392,7 +392,7 @@ def familia_de(columna: str) -> str:
     return P.familia(_base(columna))
 
 
-def ablacion(D: Datos, quitar: str, folds_tipo: str = "temporada", n_jobs: int = 8) -> Resultado:
+def ablacion(D: Datos, quitar: str, folds_tipo: str = "temporada", n_jobs: int = -1) -> Resultado:
     """The full '+nino' model without one family of columns."""
     X, y, ts, _ = matrices(D)
     cols = [c for c in X["+nino"].columns if familia_de(c) != quitar]
@@ -415,7 +415,7 @@ def por_regimen(y: pd.Series, res: Resultado, ts: np.ndarray, temporadas: pd.Dat
 
 
 def robustez(raiz: Path, teorias: tuple[str, ...] = ("lluvia_dia", "antecedentes", "lluvia+antecedentes", "+nino"),
-             n_jobs: int = 8) -> pd.DataFrame:
+             n_jobs: int = -1) -> pd.DataFrame:
     """Re-run the main theories under different labels, windows and exclusions."""
     escenarios = {
         "base (1984+, día exacto)": {},
