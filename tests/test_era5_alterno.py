@@ -54,3 +54,12 @@ def test_escribir_cache_tiene_el_formato_de_open_meteo(tmp_path):
     b = json.loads(rutas[1].read_text())
     assert a["elevation"] == 1234.0 and a["hourly"]["time"][-1] == "1999-12-31T23:00"
     assert b["hourly"]["time"][0] == "2000-01-01T00:00" and set(b["hourly"]) == {"time", "temperature_2m", "dew_point_2m"}
+
+
+def test_el_corte_entre_year_y_chunk_puede_variar_por_variable():
+    # cloud cover has year files up to 2023: January 2023 is still a year file there
+    assert ea.archivo_de(datetime(2023, 1, 1, tzinfo=UTC), 2023)[0] == "year_2023.om"
+    assert ea.archivo_de(datetime(2023, 1, 1, tzinfo=UTC), 2021)[0].startswith("chunk_")
+    segs = ea.segmentos(datetime(2023, 12, 20, tzinfo=UTC), datetime(2024, 1, 10, tzinfo=UTC), 2023)
+    assert segs[0][0] == "year_2023.om" and segs[-1][0].startswith("chunk_")
+    assert sum(b - a for _, a, b, _ in segs) == 22 * 24 + 1

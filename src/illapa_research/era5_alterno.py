@@ -83,11 +83,15 @@ def horas_utc(inicio: datetime, fin: datetime) -> pd.DatetimeIndex:
     return pd.date_range(inicio, fin, freq="h")
 
 
-def archivo_de(hora: datetime) -> tuple[str, int, int]:
-    """File that holds a UTC hour, with its first hour index and the index of the hour inside it."""
+def archivo_de(hora: datetime, ultimo_anio: int = ULTIMO_ANIO_ARCHIVO) -> tuple[str, int, int]:
+    """File that holds a UTC hour, with its first hour index and the index of the hour inside it.
+
+    Years up to `ultimo_anio` are in `year_YYYY.om`; later hours are in 504-hour `chunk_N.om`.
+    The split differs by variable (cloud cover has year files up to 2023).
+    """
     ref = datetime(1970, 1, 1, tzinfo=UTC)
     h = hora.replace(tzinfo=UTC) if hora.tzinfo is None else hora
-    if h.year <= ULTIMO_ANIO_ARCHIVO:
+    if h.year <= ultimo_anio:
         ini = datetime(h.year, 1, 1, tzinfo=UTC)
         return f"year_{h.year}.om", 0, int((h - ini).total_seconds() // 3600)
     n = int((h - ref).total_seconds() // 3600)
@@ -95,12 +99,12 @@ def archivo_de(hora: datetime) -> tuple[str, int, int]:
     return f"chunk_{chunk}.om", chunk * HORAS_POR_CHUNK, n - chunk * HORAS_POR_CHUNK
 
 
-def segmentos(inicio: datetime, fin: datetime) -> list[tuple[str, int, int, datetime]]:
+def segmentos(inicio: datetime, fin: datetime, ultimo_anio: int = ULTIMO_ANIO_ARCHIVO) -> list[tuple[str, int, int, datetime]]:
     """Files and hour ranges needed for [inicio, fin] (UTC, inclusive): (file, from, to, first hour)."""
     out = []
     h = inicio
     while h <= fin:
-        nombre, _, k = archivo_de(h)
+        nombre, _, k = archivo_de(h, ultimo_anio)
         if nombre.startswith("year_"):
             ini_arch = datetime(h.year, 1, 1, tzinfo=UTC)
             fin_arch = datetime(h.year, 12, 31, 23, tzinfo=UTC)
@@ -160,12 +164,19 @@ def _leer_segmento(fs, modelo: str, variable: str, nombre: str, i: int, j: int, 
         r.close()
 
 
+def ultimo_anio_archivo(fs, modelo: str, variable: str) -> int:
+    """Last year stored as `year_YYYY.om` for a variable (from the bucket listing)."""
+    nombres = [k.rsplit("/", 1)[-1] for k in fs.ls(f"{MODELOS[modelo]['carpeta']}/{variable}")]
+    anios = [int(n[len("year_") : -len(".om")]) for n in nombres if n.startswith("year_")]
+    return max(anios) if anios else ULTIMO_ANIO_ARCHIVO
+
+
 def serie_cruda(variable: str, lat: float, lon: float, inicio: datetime, fin: datetime,
                 hilos: int = 4, modelo: str = "era5") -> pd.Series:
     """Hourly series (UTC index) of one bucket variable at the nearest cell, no corrections."""
     fs = _sistema_archivos()
     i, j = indice_celda(lat, lon, modelo)
-    segs = segmentos(inicio, fin)
+    segs = segmentos(inicio, fin, ultimo_anio_archivo(fs, modelo, variable))
 
     def uno(s):
         nombre, a, b, h0 = s
