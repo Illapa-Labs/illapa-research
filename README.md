@@ -21,6 +21,7 @@ El kit de investigación de [Illapa Labs](https://github.com/Illapa-Labs): un sc
 | `src/illapa_research/descargar.py` | El script `descargar-datos` |
 | `src/illapa_research/grafo.py` | La red de ríos y quebradas como grafo dirigido, y la propagación del riesgo aguas abajo |
 | `notebooks/` | `01-red-de-quebradas`: de Chaclacayo a Chosica |
+| `catalogo/` | Eventos de huaico y polígonos de cuenca del piloto (Chosica y Chaclacayo) |
 | `tests/` | Pruebas del código |
 
 ## Empezar

@@ -1,0 +1,14 @@
+fecha,precision_fecha,hora_local,distrito,quebradas,fuente,confianza,notas
+1983-01-01,anio,,Lurigancho-Chosica,Cashahuacra,CENEPRED Informe A7458,baja,
+1987-01-01,anio,,Lurigancho-Chosica,Pedregal;Corrales;Quirio;Carossio;Rayos de Sol;Cashahuacra,CENEPRED Informe A7458,media,Año seco de referencia
+1998-01-01,anio,,Lurigancho-Chosica,Quirio;Pedregal;Santo Domingo;La Cantuta,CENEPRED Informe A7458,media,Evento ENSO
+2009-02-01,mes,,Lurigancho-Chosica,Quirio,varias,media,Un fallecido
+2015-02-15,dia_por_confirmar,,Lurigancho-Chosica,Quirio;San Antonio,PREDES - Evaluación de emergencia Chosica,media,Año a confirmar: el documento es de 2017 y menciona 'el 15 de febrero'
+2015-03-01,mes,,Lurigancho-Chosica,Huampani;Chacrasana;Santa Maria;San Antonio;Mariscal Castilla;California,CENEPRED Informe A7458,media,Temporada 2015; fecha exacta por verificar
+2015-03-01,mes,,Ricardo Palma,La Ronda,CENEPRED Informe A7458,media,Temporada 2015
+2015-03-01,mes,,Chaclacayo,La Floresta,CENEPRED Informe A7458,media,Temporada 2015
+2015-03-23,dia,15:30,Lurigancho-Chosica,Pedregal;Quirio,INDECI Reporte de situacion 475,alta,Flujo de detritos. También se reportó Santa Eulalia. Hora aproximada.
+2017-03-01,mes,,Lurigancho-Chosica,Yanacoto,CENEPRED Informe A7458,alta,"Marzo 2017, Niño Costero. Día exacto por verificar"
+2023-03-14,dia,,Chaclacayo,Los Laureles,Infobae,alta,Ciclón Yaku
+2023-03-14,dia,,Chaclacayo,Huascata;Huascaran,Aldeas Infantiles SOS; Latina Noticias,media,Verificar si 'Huascarán' es quebrada o sector
+2023-03-14,dia,,Lima Este (21 quebradas),varias,Siscom TV,media,Cifra declarada por autoridades; listado por verificar
