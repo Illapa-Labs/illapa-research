@@ -286,6 +286,7 @@ def cargar_referencias(ruta: Path) -> list[dict]:
             r["alias"] = tuple(a.strip() for a in r["alias"].split(";") if a.strip())
             r["lon"] = float(r["lon"]) if r["lon"] else None
             r["lat"] = float(r["lat"]) if r["lat"] else None
+            r["area_ref_km2"] = float(r.get("area_ref_km2") or 0) or None
             filas.append(r)
     return filas
 
@@ -307,13 +308,17 @@ def nombrar(cuencas: list[dict], referencias: list[dict], tolerancia_m: float = 
             continue
         x, y = _A_UTM.transform(ref["lon"], ref["lat"])
         p = Point(x, y)
-        candidatas = [
-            c for c in cuencas
-            if c["_poligono_utm"].buffer(tolerancia_m).contains(p)
+        candidatas = [c for c in cuencas if c["_poligono_utm"].contains(p)] or [
+            c for c in cuencas if c["_poligono_utm"].buffer(tolerancia_m).contains(p)
         ]
-        # The smallest basin wins: a point on a river belongs to the quebrada, not to a big basin.
+        # With a published area, the candidate closest to it wins (IGP 2020 points sit on fans);
+        # otherwise a point strictly inside a basin wins over a near miss, and then the smallest.
         if candidatas:
-            elegida = min(candidatas, key=lambda c: c["area_km2"])
+            if ref.get("area_ref_km2"):
+                candidatas = [c for c in cuencas if c["_poligono_utm"].buffer(tolerancia_m).contains(p)]
+                elegida = min(candidatas, key=lambda c: abs(math.log(c["area_km2"] / ref["area_ref_km2"])))
+            else:
+                elegida = min(candidatas, key=lambda c: c["area_km2"])
             elegida.update(nombre=f"Quebrada {ref['nombre']}", ubicacion="referencia")
     for c in cuencas:
         c["slug"] = slug(c["nombre"][len("Quebrada "):]) if c["nombre"] else (

@@ -16,7 +16,7 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 | Polígonos de cuenca (`catalogo/cuencas.geojson`) | Derivados de [Copernicus DEM GLO-30](https://registry.opendata.aws/copernicus-dem/), teselas S12 y S13 W077, bajadas del bucket público de AWS (`descargar-datos --solo copernicus-dem`) | Uso libre con atribución | © Unión Europea / ESA |
 | Edificaciones (centros) para el proxy de exposición | [OpenStreetMap](https://www.openstreetmap.org/copyright), vía Overpass (`--solo osm-edificios`). La cobertura es desigual | ODbL 1.0 | "© colaboradores de OpenStreetMap". Una base derivada que se publique debe seguir bajo ODbL |
 | Índices de El Niño: ONI (Niño 3.4) y anomalía Niño 1+2, mensuales | [NOAA Climate Prediction Center](https://www.cpc.ncep.noaa.gov/data/indices/) (`--solo noaa-enso`) | Dominio público (gobierno de EE. UU.) | NOAA Climate Prediction Center |
-| Nombres y puntos de referencia de quebradas (`catalogo/quebradas_referencias.csv`) | Proyecto previo `huaico` (puntos de INGEMMET) y OpenStreetMap | Hechos citados con su fuente | Cada fila trae `fuente_referencia` |
+| Nombres y puntos de referencia de quebradas (`catalogo/quebradas_referencias.csv`) | Proyecto previo `huaico` (puntos de INGEMMET), informe del IGP 2020 (CENEPRED/SIGRID), Ordenanza N° 2542 de la Municipalidad de Lima (vértices de fajas marginales), resoluciones de la ANA y OpenStreetMap | Hechos citados con su fuente | Cada fila trae `fuente_referencia` |
 
 ## Fuera por ahora
 
@@ -24,7 +24,7 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 - **INEI** (Censo 2017): condiciones por verificar.
 - **Modelos de elevación para hidrología**: solo se usa Copernicus GLO-30; revisar la licencia de cualquier otro antes de usarlo.
 - **ICEN** (índice costero del ENFEN/IGP): no se descarga todavía; el Niño costero se aproxima con la anomalía Niño 1+2 de NOAA.
-- **Coordenadas de las quebradas** (Chacrasana, La Ronda, Barba Blanca, Los Cóndores, etc.): no hay una fuente abierta; los límites están en PDF del IGP 2020, CENEPRED e INGEMMET.
+- **Coordenadas de las quebradas que faltan** (Carossio, La Cantuta, Santo Domingo, Cashahuacra...): salen de las resoluciones de faja marginal de la ANA en SIGRID y de informes del INGEMMET; se agregan a mano en `quebradas_referencias.csv`.
 
 ## Publicar datos derivados
 

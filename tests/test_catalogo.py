@@ -20,7 +20,7 @@ def test_cuencas_son_poligonos_con_area_razonable():
     assert {f["properties"]["slug"] for f in nombradas} >= {"quirio", "pedregal", "los-laureles", "chacrasana", "la-ronda", "barba-blanca"}
     for ft in nombradas:
         assert shape(ft["geometry"]).is_valid
-        if ft["properties"]["slug"] != "rio-seco":
+        if ft["properties"]["slug"] in {"quirio", "pedregal", "los-laureles", "chacrasana", "la-ronda", "barba-blanca"}:
             assert 3 < ft["properties"]["area_km2"] < 15
 
 

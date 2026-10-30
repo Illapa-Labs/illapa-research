@@ -55,7 +55,7 @@ def preparar(
     ubicada = r["evidencia"].eq("fisica+historial").to_numpy()
     return Datos(
         slug=list(r["slug"]),
-        z=((r["fisica"] - 50) / 50).to_numpy(),
+        z=((r["fisica"] - 50) / 50).fillna(0.0).to_numpy(),  # unscored (<2 km²): neutral prior
         y0=y0 * ubicada,
         y1=y1 * ubicada,
         ubicada=ubicada,

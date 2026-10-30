@@ -223,6 +223,8 @@ def dejar_un_nino_fuera(
         evaluables = t[t["nivel"] < 6]
         for slug in sorted(real & set(t["slug"])):
             fila = t[t["slug"] == slug].iloc[0]
+            if pd.isna(fila["fisica"]):
+                continue  # under 2 km²: no physical score to compare
             filas.append(
                 {
                     "temporada": s,
