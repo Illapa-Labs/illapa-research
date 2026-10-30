@@ -21,6 +21,9 @@ def test_cuencas_coinciden_con_las_areas_publicadas(cuencas):
     assert 9.0 <= cuencas["quirio"]["properties"]["area_km2"] <= 10.5
     assert 9.0 <= cuencas["pedregal"]["properties"]["area_km2"] <= 10.5
     assert 8.5 <= cuencas["los-laureles"]["properties"]["area_km2"] <= 9.5
+    # IGP 2020 (Cuadro 01), placed with its UTM points: Chacrasana 4,7, La Ronda 8,9, Barba Blanca 3,5.
+    for nombre, ref in ("chacrasana", 4.7), ("la-ronda", 8.9), ("barba-blanca", 3.5):
+        assert abs(cuencas[nombre]["properties"]["area_km2"] / ref - 1) < 0.15
 
 
 def test_cuencas_tienen_atributos_fisicos_consistentes(cuencas):

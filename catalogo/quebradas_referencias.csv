@@ -4,9 +4,9 @@ Pedregal,Pedregal;San Antonio de Pedregal;Pedregal Alto,-76.701708,-11.931734,pu
 Carossio,Carossio;Carosio,,,sin_ubicar,"El punto del proyecto previo huaico (-76,683938; -11,924717) queda a 275 m de una cuenca de 8,8 km2 y a 350 m de otra de 1,2 km2: no se puede decidir"
 Los Laureles,Los Laureles;Laureles,-76.747999,-11.976535,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia de la quebrada Los Laureles
 Río Seco,Río Seco;Rio Seco;Qubebrada Río Seco,-76.883,-11.951,desembocadura_osm,OpenStreetMap: la quebrada Río Seco termina aquí en el Rímac
-Chacrasana,Chacrasana,,,sin_ubicar,"IGP 2020 da 4,7 km2 pero no hay coordenadas; con el DEM hay 3 cuencas de 4,6 a 5,0 km2 en el valle"
-La Ronda,La Ronda;La Ronda (río Seco),,,sin_ubicar,"IGP 2020 da 8,9 km2 pero no hay coordenadas"
-Barba Blanca,Barba Blanca,,,sin_ubicar,"IGP 2020 da 3,5 km2 pero no hay coordenadas"
+Chacrasana,Chacrasana,-76.74288,-11.96181,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 310218 E 8677071 N; área 4,7 km2"
+La Ronda,La Ronda;La Ronda (río Seco),-76.67727,-11.9323,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 317344 E 8680380 N (distrito de Ricardo Palma); área 8,9 km2"
+Barba Blanca,Barba Blanca,-76.62251,-11.84016,punto_utm_igp,"IGP 2020 (CENEPRED/SIGRID 13867), §6: UTM 18S 323250 E 8690608 N (distrito de Callahuanca); área 3,5 km2"
 Los Cóndores,Los Cóndores;Los Condores,,,sin_ubicar,Chaclacayo; sin coordenadas
 Corrales,Corrales,,,sin_ubicar,Sin coordenadas
 Cashahuacra,Cashahuacra;Cashahuasca,,,sin_ubicar,Sin coordenadas

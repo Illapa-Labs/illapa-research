@@ -44,12 +44,12 @@ uv run jupyter lab notebooks/
 
 ```bash
 uv run descargar-datos --solo copernicus-dem osm-aguas osm-edificios noaa-enso
-uv run delimitar-quebradas   # escribe catalogo/cuencas.geojson (66 cuencas)
+uv run delimitar-quebradas   # escribe catalogo/cuencas.geojson (75 cuencas)
 uv run filtro-quebradas      # escribe catalogo/ranking_quebradas_nino.csv y la validación
 uv run modelo-quebradas      # modelo Gamma-Poisson: rangos posteriores y razón de tasas del Niño
 ```
 
-El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy solo 4 cuencas tienen historial ubicado (Quirio, Pedregal, Los Laureles y Río Seco) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta.
+El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy solo 7 cuencas tienen nombre ubicado (Quirio, Pedregal, Los Laureles, Chacrasana, La Ronda, Barba Blanca y, dudosa, Río Seco) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta.
 
 ## Datos
 
