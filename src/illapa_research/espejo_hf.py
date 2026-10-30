@@ -26,6 +26,9 @@ ARCHIVOS = {
     "enso/igp_ec_ersstv5.txt": "igp-ec",
     "open_meteo_predictores_diarios.json": "open-meteo-predictores",
     "predictores_cache": "open-meteo-predictores",
+    "predictores_cache/chosica_1983.json": "era5-aws",
+    "predictores_cache/costa-lima_1983.json": "era5-aws",
+    "predictores_cache/selva-tarma_1983.json": "era5-aws",
     "open_meteo_caudal_glofas.json": "open-meteo-caudal",
     "nasa_power_diario.json": "nasa-power",
     "open_meteo_horario_estudio.json": "open-meteo-horario",
@@ -42,7 +45,7 @@ ARCHIVOS = {
 
 # Sources left out of a public mirror: no explicit licence (the IGP publishes the ICEN without one).
 # They are small and `descargar-datos --solo igp-icen` fetches them from the IGP.
-EXCLUIDAS_EN_PUBLICO = {"igp-icen", "bom-rmm"}  # bom-rmm: the BoM gives no explicit redistribution licence
+EXCLUIDAS_EN_PUBLICO = {"igp-icen", "igp-ec", "bom-rmm"}  # IGP and BoM give no explicit redistribution licence
 
 # Extra credit lines that the licences of some sources ask for in any redistribution.
 ATRIBUCIONES = {
@@ -56,6 +59,7 @@ ATRIBUCIONES = {
     "open-meteo-caudal": "Weather data by Open-Meteo.com (CC BY 4.0); GloFAS, Copernicus Emergency Management Service.",
     "osm-aguas": "© OpenStreetMap contributors, ODbL 1.0. A database derived from these files must stay under ODbL.",
     "osm-edificios": "© OpenStreetMap contributors, ODbL 1.0. A database derived from these files must stay under ODbL.",
+    "era5-aws": "Weather data by Open-Meteo.com (CC BY 4.0); contains modified Copernicus Climate Change Service information (ERA5, ERA5-Land).",
     "nasa-power": "NASA Prediction Of Worldwide Energy Resources (POWER) Project, MERRA-2.",
     "noaa-oisst": "NOAA OISST v2.1 (Huang et al., 2021), public domain.",
 }
