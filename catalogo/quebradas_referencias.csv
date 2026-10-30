@@ -1,0 +1,23 @@
+nombre,alias,lon,lat,tipo_referencia,fuente_referencia
+Quirio,Quiro;Quirio;San Antonio de Quirio,-76.716607,-11.936046,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia del huayco de Quirio
+Pedregal,Pedregal;San Antonio de Pedregal;Pedregal Alto,-76.701708,-11.931734,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia de la quebrada Pedregal
+Carossio,Carossio;Carosio,,,sin_ubicar,"El punto del proyecto previo huaico (-76,683938; -11,924717) queda a 275 m de una cuenca de 8,8 km2 y a 350 m de otra de 1,2 km2: no se puede decidir"
+Los Laureles,Los Laureles;Laureles,-76.747999,-11.976535,punto_en_cauce,Proyecto previo huaico (INGEMMET): punto de referencia de la quebrada Los Laureles
+Río Seco,Río Seco;Rio Seco;Qubebrada Río Seco,-76.883,-11.951,desembocadura_osm,OpenStreetMap: la quebrada Río Seco termina aquí en el Rímac
+Chacrasana,Chacrasana,,,sin_ubicar,"IGP 2020 da 4,7 km2 pero no hay coordenadas; con el DEM hay 3 cuencas de 4,6 a 5,0 km2 en el valle"
+La Ronda,La Ronda;La Ronda (río Seco),,,sin_ubicar,"IGP 2020 da 8,9 km2 pero no hay coordenadas"
+Barba Blanca,Barba Blanca,,,sin_ubicar,"IGP 2020 da 3,5 km2 pero no hay coordenadas"
+Los Cóndores,Los Cóndores;Los Condores,,,sin_ubicar,Chaclacayo; sin coordenadas
+Corrales,Corrales,,,sin_ubicar,Sin coordenadas
+Cashahuacra,Cashahuacra;Cashahuasca,,,sin_ubicar,Sin coordenadas
+Santo Domingo,Santo Domingo,,,sin_ubicar,Sin coordenadas
+Mariscal Castilla,Mariscal Castilla,,,sin_ubicar,Sin coordenadas
+California,California,,,sin_ubicar,Sin coordenadas
+La Cantuta,La Cantuta;La Canuta,,,sin_ubicar,Sin coordenadas de la quebrada
+Yanacoto,Yanacoto,,,sin_ubicar,Sin coordenadas de la quebrada
+Huampaní,Huampaní;Huampani,,,sin_ubicar,Sin coordenadas
+Rayos de Sol,Rayos de Sol;Rayos del Sol,,,sin_ubicar,Sin coordenadas de la quebrada
+La Libertad,La Libertad,,,sin_ubicar,Sin coordenadas
+Huaycoloro,Huaycoloro;Jicamarca (Huaycoloro),,,sin_ubicar,Sin coordenadas
+Huascata,Huascata,,,sin_ubicar,Sin coordenadas
+La Floresta,La Floresta,,,sin_ubicar,Sin coordenadas

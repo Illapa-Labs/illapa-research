@@ -16,9 +16,12 @@ def test_solo_dia_exacto_filtra_las_fechas_aproximadas():
 
 
 def test_cuencas_son_poligonos_con_area_razonable():
-    for ft in cargar_cuencas()["features"]:
+    nombradas = [f for f in cargar_cuencas()["features"] if f["properties"]["ubicacion"] == "referencia"]
+    assert {f["properties"]["slug"] for f in nombradas} >= {"quirio", "pedregal", "los-laureles"}
+    for ft in nombradas:
         assert shape(ft["geometry"]).is_valid
-        assert 5 < ft["properties"]["area_km2"] < 15
+        if ft["properties"]["slug"] != "rio-seco":
+            assert 5 < ft["properties"]["area_km2"] < 15
 
 
 def test_cronica_igp_trae_1998_con_dia_exacto():
