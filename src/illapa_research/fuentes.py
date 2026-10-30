@@ -164,6 +164,82 @@ def _open_meteo_horario(destino: Path) -> list[str]:
     return [str(archivo.relative_to(destino.parent))]
 
 
+DEM_TESELAS = ("S12_00_W077_00", "S13_00_W077_00")
+# Study window for buildings (south, west, north, east): the valley from Huachipa to Ricardo Palma.
+VENTANA_EDIFICIOS = (-12.03, -76.92, -11.85, -76.52)
+NOAA_INDICES = {
+    "oni": "https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt",
+    "nino12": "https://www.cpc.ncep.noaa.gov/data/indices/sstoi.indices",
+}
+
+
+def _copernicus_dem(destino: Path) -> list[str]:
+    """Copernicus GLO-30 tiles (30 m) from the public AWS open-data bucket."""
+    carpeta = destino / "dem"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    escritos = []
+    for tesela in DEM_TESELAS:
+        nombre = f"Copernicus_DSM_COG_10_{tesela}_DEM"
+        url = f"https://copernicus-dem-30m.s3.amazonaws.com/{nombre}/{nombre}.tif"
+        salida = carpeta / f"Copernicus_{tesela}.tif"
+        with requests.get(url, headers={"User-Agent": USER_AGENT}, stream=True, timeout=300) as r:
+            r.raise_for_status()
+            with open(salida, "wb") as f:
+                f.writelines(r.iter_content(1 << 20))
+        escritos.append(str(salida.relative_to(destino.parent)))
+    return escritos
+
+
+def _overpass(consulta: str) -> dict:
+    ultimo = None
+    for _ in range(2):
+        for espejo in OVERPASS_MIRRORS:
+            try:
+                resp = requests.post(
+                    espejo, data={"data": consulta}, headers={"User-Agent": USER_AGENT}, timeout=300
+                )
+                resp.raise_for_status()
+                return resp.json()
+            except (requests.RequestException, ValueError) as err:
+                ultimo = err
+                time.sleep(3)
+    raise RuntimeError(f"Overpass no respondió en ningún espejo: {ultimo}")
+
+
+def _osm_edificios(destino: Path) -> list[str]:
+    """Centres of the OSM building footprints, in four strips so Overpass does not time out."""
+    s, w, n, e = VENTANA_EDIFICIOS
+    cortes = [w + (e - w) * i / 4 for i in range(5)]
+    centros = []
+    for i in range(4):
+        consulta = (
+            "[out:json][timeout:240];"
+            f'way["building"]({s},{cortes[i]},{n},{cortes[i + 1]});out center qt;'
+        )
+        for el in _overpass(consulta)["elements"]:
+            c = el.get("center")
+            if c:
+                centros.append([round(c["lon"], 6), round(c["lat"], 6)])
+        time.sleep(2)
+    # A building on a strip border can come twice: drop exact duplicates.
+    centros = sorted({tuple(c) for c in centros})
+    salida = destino / "osm_edificios_centros.json"
+    salida.write_text(json.dumps({"bbox_swne": VENTANA_EDIFICIOS, "centros": centros}), encoding="utf-8")
+    return [str(salida.relative_to(destino.parent))]
+
+
+def _noaa_enso(destino: Path) -> list[str]:
+    """NOAA CPC monthly indices: ONI (Niño 3.4, global) and the Niño 1+2 SST anomaly (coastal)."""
+    carpeta = destino / "enso"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    escritos = []
+    for nombre, url in NOAA_INDICES.items():
+        salida = carpeta / f"noaa_{nombre}.txt"
+        salida.write_text(_get(url).text, encoding="utf-8")
+        escritos.append(str(salida.relative_to(destino.parent)))
+    return escritos
+
+
 FUENTES: dict[str, Fuente] = {
     f.id: f
     for f in (
@@ -198,6 +274,30 @@ FUENTES: dict[str, Fuente] = {
             licencia="CC BY 4.0 (API gratuita solo para uso no comercial)",
             atribucion="Weather data by Open-Meteo.com",
             descargar=_open_meteo_horario,
+        ),
+        Fuente(
+            id="copernicus-dem",
+            nombre="Copernicus DEM GLO-30: teselas S12 y S13, W077 (30 m)",
+            url="https://registry.opendata.aws/copernicus-dem/",
+            licencia="Uso libre con atribución (Copernicus)",
+            atribucion="© Unión Europea / ESA, Copernicus DEM GLO-30",
+            descargar=_copernicus_dem,
+        ),
+        Fuente(
+            id="osm-edificios",
+            nombre="OpenStreetMap: centros de edificaciones (Huachipa a Ricardo Palma)",
+            url="https://www.openstreetmap.org/copyright",
+            licencia="ODbL 1.0",
+            atribucion="© colaboradores de OpenStreetMap",
+            descargar=_osm_edificios,
+        ),
+        Fuente(
+            id="noaa-enso",
+            nombre="NOAA CPC: ONI (Niño 3.4) y anomalía de TSM Niño 1+2, mensuales",
+            url="https://www.cpc.ncep.noaa.gov/data/indices/",
+            licencia="Dominio público (gobierno de EE. UU.)",
+            atribucion="NOAA Climate Prediction Center",
+            descargar=_noaa_enso,
         ),
     )
 }
