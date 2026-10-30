@@ -231,3 +231,71 @@ def delta_ap_gpu(
     d = ap_real - ap_base
     return {"ap_base": ap_base, "ap_con_bloque": ap_real, "delta_ap": d, "nula_media": float(nulas.mean()),
             "nula_p95": float(np.percentile(nulas, 95)), "p": float((1 + (nulas >= d).sum()) / (1 + len(nulas)))}
+
+
+# ------------------------------------------------------------------------------ analysis of T28
+CORRESPONDENCIA_ERA5 = {
+    "chosica": "chosica_h_lluvia_1d",
+    "santa-eulalia-alta": "sea_lluvia_1d",
+    "matucana": "mat_lluvia_1d",
+    "ticlio": "tic_lluvia_1d",
+}
+
+
+def analizar(raiz: Path = Path("."), n_nulas: int = 500, desde_modelo: int = 1984) -> dict[str, pd.DataFrame]:
+    """Everything T28 needs, from the files in `datos/lluvia_sat/` that exist.
+
+    Returns tables: `acuerdo` (daily agreement with ERA5), `dias_huaico` (rain on huaico days and
+    single-feature AUC with a season bootstrap), `modelo` (add / substitute tests of the nested
+    daily model) and `nula_gpu` (the fixed-C GPU version with a shifted-block null).
+    """
+    from . import evaluacion_diaria as E
+    from . import hipotesis_literatura as H
+
+    raiz = Path(raiz)
+    carpeta = raiz / "datos" / "lluvia_sat"
+    fuentes = {n: cargar(carpeta / f"{f}_diario.csv") for n, f in (("psn", "persiann_cdr"), ("cpc", "cpc"))
+               if (carpeta / f"{f}_diario.csv").exists()}
+    D, X, y, ts, _mes, _folds = H.contexto_modelo(raiz)
+    F = D.F
+    out: dict[str, pd.DataFrame] = {}
+
+    out["acuerdo"] = pd.concat(
+        [H.comparar_con_era5(c, F, CORRESPONDENCIA_ERA5).assign(fuente=n) for n, c in fuentes.items()],
+        ignore_index=True,
+    )
+
+    # rain on huaico days, ERA5 against each source (point-wise single-feature AUC)
+    from .catalogo import cargar_todos
+
+    yd = E.etiquetas(cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True), F.index)
+    mask = D.inventario["mask"]
+    ts_todas = D.temporada
+    filas = []
+    for punto, col in CORRESPONDENCIA_ERA5.items():
+        for nombre, serie in [("era5", F[col])] + [(n, c[punto].reindex(F.index)) for n, c in fuentes.items()]:
+            x = serie.rolling(3, min_periods=2).sum()
+            dentro = mask & x.notna().to_numpy()
+            c = E.cribado(pd.DataFrame({"lluvia_3d": x[dentro]}), yd[dentro], ts_todas[dentro], n_boot=200)
+            filas.append({"punto": punto, "fuente": nombre, "dias": int(dentro.sum()),
+                          "media_mm_dias_huaico": float(serie[dentro & (yd.to_numpy() == 1)].mean()),
+                          "media_mm_otros": float(serie[dentro & (yd.to_numpy() == 0)].mean()),
+                          "auc_3d": float(c["auc"].iloc[0]), "auc_p5": float(c["auc_p5"].iloc[0]),
+                          "auc_p95": float(c["auc_p95"].iloc[0])})
+    out["dias_huaico"] = pd.DataFrame(filas)
+
+    # model: add and substitute (nested tuning, season-out folds), and the GPU null
+    filas, nulas = [], []
+    for nombre, c in fuentes.items():
+        extra = H.alinear(variables(c, F.index, nombre), D)
+        extra = extra.loc[:, extra.notna().any()]
+        r = H.evaluar_chirps(X["lluvia+antecedentes"], extra, y, ts, desde=desde_modelo)
+        filas.append(r.assign(fuente=nombre))
+        dentro = (ts >= desde_modelo) & extra.notna().any(axis=1).to_numpy()
+        base = X["lluvia+antecedentes"][dentro].to_numpy(dtype=float)
+        nulas.append(pd.Series(delta_ap_gpu(base, extra[dentro].to_numpy(dtype=float), y[dentro].to_numpy(),
+                                            ts[dentro], n_nulas=n_nulas)).rename(nombre))
+    if filas:
+        out["modelo"] = pd.concat(filas, ignore_index=True)
+        out["nula_gpu"] = pd.concat(nulas, axis=1).T
+    return out
