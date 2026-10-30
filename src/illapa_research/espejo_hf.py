@@ -83,7 +83,7 @@ def tarjeta(manifiesto: dict, publico: bool = False) -> str:
         for k, v in sorted(manifiesto.items())
         if k in ids and not (publico and k in EXCLUIDAS_EN_PUBLICO)
     ]
-    creditos = [ATRIBUCIONES[k] for k in sorted(manifiesto) if k in ATRIBUCIONES and k in ids]
+    creditos = [ATRIBUCIONES[k] for k in sorted(ids) if k in ATRIBUCIONES]  # all mirrored sources, manifest or not
     return (
         "---\nlicense: other\nlanguage:\n- es\ntags:\n- hazards\n- peru\n- debris-flow\n---\n\n"
         "# Datos de illapa-research\n\n"
