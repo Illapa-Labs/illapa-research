@@ -33,8 +33,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-BUCKET = "openmeteo/data/copernicus_era5"
-PASO_GRADOS = 0.25
+# Two grids in the bucket: ERA5 (0.25 degrees, all variables) and ERA5-Land (0.1 degrees, only
+# temperature, dew point and soil variables). The API serves ERA5-Land where it has the variable.
+MODELOS = {
+    "era5": {"carpeta": "openmeteo/data/copernicus_era5", "paso": 0.25, "nlon": 1440},
+    "land": {"carpeta": "openmeteo/data/copernicus_era5_land", "paso": 0.1, "nlon": 3600},
+}
+VARIABLES_LAND = ("temperature_2m", "dew_point_2m", "soil_moisture_0_to_7cm")
 LAT0, LON0 = -90.0, -180.0
 HORAS_POR_CHUNK = 504
 PRIMER_CHUNK = 904  # first hour of chunk 904 is 2021-12-23 00:00 UTC
@@ -66,11 +71,12 @@ DERIVADAS_DE = {
 
 
 # ---------------------------------------------------------------- pure helpers (no network)
-def indice_celda(lat: float, lon: float) -> tuple[int, int]:
+def indice_celda(lat: float, lon: float, modelo: str = "era5") -> tuple[int, int]:
     """Row and column of the grid cell nearest to a point."""
-    i = int(round((lat - LAT0) / PASO_GRADOS))
-    j = int(round((lon - LON0) / PASO_GRADOS)) % 1440
-    return i, j
+    g = MODELOS[modelo]
+    i = round((lat - LAT0) / g["paso"])
+    j = round((lon - LON0) / g["paso"]) % g["nlon"]
+    return int(i), int(j)
 
 
 def horas_utc(inicio: datetime, fin: datetime) -> pd.DatetimeIndex:
@@ -134,20 +140,20 @@ def _sistema_archivos():
     return s3fs.S3FileSystem(anon=True)
 
 
-def elevacion_celda(lat: float, lon: float, fs=None) -> float:
-    """Elevation (m) of the ERA5 cell in `static/HSURF.om`."""
+def elevacion_celda(lat: float, lon: float, fs=None, modelo: str = "era5") -> float:
+    """Elevation (m) of the cell in `static/HSURF.om` of the model."""
     from omfiles import OmFileReader
 
     fs = fs or _sistema_archivos()
-    r = OmFileReader.from_fsspec(fs, f"{BUCKET}/static/HSURF.om")
-    i, j = indice_celda(lat, lon)
+    r = OmFileReader.from_fsspec(fs, f"{MODELOS[modelo]['carpeta']}/static/HSURF.om")
+    i, j = indice_celda(lat, lon, modelo)
     return float(r.read_array((slice(i, i + 1), slice(j, j + 1))).ravel()[0])
 
 
-def _leer_segmento(fs, variable: str, nombre: str, i: int, j: int, a: int, b: int) -> np.ndarray:
+def _leer_segmento(fs, modelo: str, variable: str, nombre: str, i: int, j: int, a: int, b: int) -> np.ndarray:
     from omfiles import OmFileReader
 
-    r = OmFileReader.from_fsspec(fs, f"{BUCKET}/{variable}/{nombre}")
+    r = OmFileReader.from_fsspec(fs, f"{MODELOS[modelo]['carpeta']}/{variable}/{nombre}")
     try:
         return r.read_array((slice(i, i + 1), slice(j, j + 1), slice(a, b))).ravel().astype("float64")
     finally:
@@ -155,17 +161,17 @@ def _leer_segmento(fs, variable: str, nombre: str, i: int, j: int, a: int, b: in
 
 
 def serie_cruda(variable: str, lat: float, lon: float, inicio: datetime, fin: datetime,
-                hilos: int = 4) -> pd.Series:
-    """Hourly series (UTC index) of one bucket variable at the nearest ERA5 cell, no corrections."""
+                hilos: int = 4, modelo: str = "era5") -> pd.Series:
+    """Hourly series (UTC index) of one bucket variable at the nearest cell, no corrections."""
     fs = _sistema_archivos()
-    i, j = indice_celda(lat, lon)
+    i, j = indice_celda(lat, lon, modelo)
     segs = segmentos(inicio, fin)
 
     def uno(s):
         nombre, a, b, h0 = s
         for intento in range(4):
             try:
-                v = _leer_segmento(fs, variable, nombre, i, j, a, b)
+                v = _leer_segmento(fs, modelo, variable, nombre, i, j, a, b)
                 return pd.Series(v, index=pd.date_range(h0, periods=len(v), freq="h"))
             except Exception:  # noqa: BLE001 (transient S3 errors: wait and retry)
                 time.sleep(2 * (intento + 1))
@@ -189,11 +195,16 @@ def ultima_hora_disponible(fs=None) -> datetime:
 
 def serie_punto(
     variables: list[str], lat: float, lon: float, z_punto: float, inicio: datetime, fin: datetime,
-    lapse_t: float = LAPSE_T, lapse_td: float = LAPSE_TD, hilos: int = 4,
+    lapse_t: float = LAPSE_T, lapse_td: float = LAPSE_TD, hilos: int = 4, usar_land: bool = True,
 ) -> pd.DataFrame:
-    """Hourly table in local (America/Lima) time with the Open-Meteo names, at point elevation."""
+    """Hourly table in local (America/Lima) time with the Open-Meteo names, at point elevation.
+
+    With `usar_land` temperature, dew point and soil moisture come from the 0.1 degree ERA5-Land
+    grid (as in the API) and the rest from the 0.25 degree ERA5 grid.
+    """
     fs = _sistema_archivos()
-    z_celda = elevacion_celda(lat, lon, fs)
+    z_era5 = elevacion_celda(lat, lon, fs, "era5")
+    z_land = elevacion_celda(lat, lon, fs, "land") if usar_land else z_era5
     necesarias: set[str] = set()
     for v in variables:
         if VARIABLES.get(v) is None:
@@ -206,9 +217,11 @@ def serie_punto(
     crudas: dict[str, pd.Series] = {}
     for v in sorted(necesarias):
         carpeta = VARIABLES.get(v) or v
-        crudas[v] = serie_cruda(carpeta, lat, lon, inicio, fin, hilos)
-    t = corregir_altura(crudas["temperature_2m"], z_celda, z_punto, lapse_t) if "temperature_2m" in crudas else None
-    td = corregir_altura(crudas["dew_point_2m"], z_celda, z_punto, lapse_td) if "dew_point_2m" in crudas else None
+        modelo = "land" if usar_land and v in VARIABLES_LAND else "era5"
+        crudas[v] = serie_cruda(carpeta, lat, lon, inicio, fin, hilos, modelo)
+    z_t = z_land if usar_land else z_era5
+    t = corregir_altura(crudas["temperature_2m"], z_t, z_punto, lapse_t) if "temperature_2m" in crudas else None
+    td = corregir_altura(crudas["dew_point_2m"], z_t, z_punto, lapse_td) if "dew_point_2m" in crudas else None
     if t is not None and td is not None:
         td = td.clip(upper=t)  # a dew point above the temperature cannot happen
     out = {}
@@ -224,6 +237,8 @@ def serie_punto(
         elif v == "wind_speed_10m":
             u, w = crudas["wind_u_component_10m"], crudas["wind_v_component_10m"]
             out[v] = np.hypot(u, w) * 3.6  # m/s -> km/h, as the API
+        elif v == "pressure_msl":
+            out[v] = crudas[v] / 100.0  # Pa -> hPa
         else:
             out[v] = crudas[v]
     df = pd.DataFrame(out)
