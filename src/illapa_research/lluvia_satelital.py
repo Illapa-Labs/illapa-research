@@ -4,7 +4,7 @@ CHIRPS (the Climate Hazards Center server) did not answer, so two other public s
 
 * **PERSIANN-CDR** (NOAA NCEI, 0.25 degrees, daily, 1983 to a few months ago): infrared satellite
   rain adjusted to monthly gauge totals (GPCP). Public domain (NOAA).
-* **CPC Global Unified Gauge-Based Analysis** (NOAA PSL, 0.5 degrees, daily): interpolated rain
+* **CPC Global Unified Gauge-Based Analysis** (NOAA PSL, 0.5 degrees, daily; yearly files): interpolated rain
   gauges only, no satellite and no reanalysis. Public domain (NOAA).
 
 Both are read at the grid cell that contains the centre of each predictor point. The centres were
@@ -32,7 +32,7 @@ CENTROS = {
 }
 PERSIANN_RAIZ = "https://www.ncei.noaa.gov/data/precipitation-persiann/access"
 _HDF5 = threading.Lock()  # the HDF5 library is not thread-safe: download in parallel, parse one at a time
-CPC_URL = "https://psl.noaa.gov/thredds/dodsC/Datasets/cpc_global_precip/precip.{a}.nc"
+CPC_URL = "https://downloads.psl.noaa.gov/Datasets/cpc_global_precip/precip.{a}.nc"
 USER_AGENT = "illapa-research/0.1 (+https://github.com/Illapa-Labs/illapa-research)"
 
 
@@ -81,17 +81,25 @@ def extraer_persiann(contenido: bytes) -> dict[str, float]:
 
 
 def serie_cpc(anio: int) -> pd.DataFrame:
-    """CPC daily gauge-analysis rain at each centre for one year, read by OPeNDAP (a few kB)."""
-    import xarray as xr
+    """CPC daily gauge-analysis rain at each centre for one year (a 60 MB file, read from memory)."""
+    import netCDF4
 
-    with xr.open_dataset(CPC_URL.format(a=anio)) as ds:
-        cols = {}
-        for nombre, (x, y) in CENTROS.items():
-            i = celda_mas_cercana(ds["lat"].values, y)
-            j = celda_mas_cercana(ds["lon"].values, lon360(x))
-            v = ds["precip"].isel(lat=i, lon=j).values.astype(float)
-            cols[nombre] = np.where(v < 0, np.nan, v)
-        return pd.DataFrame(cols, index=pd.to_datetime(ds["time"].values).normalize())
+    r = requests.get(CPC_URL.format(a=anio), headers={"User-Agent": USER_AGENT}, timeout=600)
+    r.raise_for_status()
+    with _HDF5:
+        ds = netCDF4.Dataset("cpc.nc", mode="r", memory=r.content)
+        try:
+            lat, lon = np.asarray(ds["lat"][:]), np.asarray(ds["lon"][:])
+            tiempo = netCDF4.num2date(ds["time"][:], ds["time"].units, only_use_cftime_datetimes=False,
+                                      only_use_python_datetimes=True)
+            cols = {}
+            for nombre, (x, y) in CENTROS.items():
+                i, j = celda_mas_cercana(lat, y), celda_mas_cercana(lon, lon360(x))
+                v = np.ma.filled(ds["precip"][:, i, j].astype(float), np.nan)
+                cols[nombre] = np.where(v < 0, np.nan, v)
+            return pd.DataFrame(cols, index=pd.to_datetime([t.strftime("%Y-%m-%d") for t in tiempo]))
+        finally:
+            ds.close()
 
 
 def descargar_cpc(destino: Path, desde: int = 1983) -> Path:
@@ -104,7 +112,7 @@ def descargar_cpc(destino: Path, desde: int = 1983) -> Path:
             try:
                 partes.append(serie_cpc(a))
                 break
-            except OSError:
+            except (OSError, requests.RequestException):
                 time.sleep(10 * (intento + 1))
         else:
             raise RuntimeError(f"PSL no respondió para {a}")
