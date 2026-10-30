@@ -42,6 +42,15 @@ def cargar_sst(ruta: Path) -> pd.DataFrame:
     return pd.read_csv(ruta, index_col="fecha", parse_dates=True)
 
 
+def _ultimo_dia(pred, caudal, sst, lluvia_horaria) -> pd.Timestamp:
+    fin = [d.index.max() for d in pred.values()]
+    if caudal is not None:
+        fin.append(caudal.index.max())
+    if lluvia_horaria:
+        fin += [h.index.max().normalize() for h in lluvia_horaria.values()]
+    return min(fin) if fin else pd.Timestamp("2026-01-01")
+
+
 def anomalia(serie: pd.Series, base: tuple[int, int] = BASE_CLIMA, suavizado: int = 15) -> pd.Series:
     """Departure from the smoothed day-of-year mean of the base period."""
     s = serie.dropna()
@@ -71,11 +80,13 @@ def construir(
     lluvia_horaria: dict[str, pd.DataFrame] | None = None,
 ) -> pd.DataFrame:
     """Daily feature table, one row per day, columns tagged by family in `FAMILIAS`."""
-    idx = pd.date_range("1983-01-01", pred["chosica"].index.max(), freq="D")
+    idx = pd.date_range("1983-01-01", _ultimo_dia(pred, caudal, sst, lluvia_horaria), freq="D")
     f = pd.DataFrame(index=idx)
 
     # --- rain: same day (trigger) and antecedent (conditions)
     for p, nombre in (("chosica", "ch"), ("santa-eulalia-alta", "sea"), ("matucana", "mat"), ("ticlio", "tic")):
+        if p not in pred:
+            continue
         d = pred[p].reindex(idx)
         r = d["precipitation_sum"]
         f[f"{nombre}_lluvia_1d"] = r
@@ -87,17 +98,26 @@ def construir(
     if lluvia_horaria:
         for nombre, h in lluvia_horaria.items():
             p = h["precipitation"]
+            dia = p.resample("D").sum().reindex(idx)
+            f[f"{nombre}_h_lluvia_1d"] = dia
+            f[f"{nombre}_h_lluvia_3d"] = dia.rolling(3).sum()
+            f[f"{nombre}_h_lluvia_7d_previa"] = dia.shift(1).rolling(7).sum()
+            f[f"{nombre}_h_lluvia_30d_previa"] = dia.shift(1).rolling(30).sum()
             f[f"{nombre}_h_pico"] = p.resample("D").max().reindex(idx)
             f[f"{nombre}_h_3h_max"] = p.rolling(3).sum().resample("D").max().reindex(idx)
-            f[f"{nombre}_suelo"] = h["soil_moisture_0_to_7cm"].resample("D").mean().reindex(idx)
+            f[f"{nombre}_suelo"] = h["soil_moisture_0_to_7cm"].resample("D").mean().reindex(idx).shift(1)
 
     # --- soil wetness and humidity (state of the basin)
     for p, nombre in (("chosica", "ch"), ("santa-eulalia-alta", "sea"), ("matucana", "mat")):
+        if p not in pred:
+            continue
         d = pred[p].reindex(idx)
         f[f"{nombre}_suelo_era5"] = d["soil_moisture_0_to_7cm"].shift(1)
 
     # --- heat and 0 °C height upstream: warm spells melt snow and raise the rain-snow line
     for p, nombre in (("ticlio", "tic"), ("santa-eulalia-alta", "sea"), ("matucana", "mat")):
+        if p not in pred:
+            continue
         d = pred[p].reindex(idx)
         t = d["temperature_2m"]
         elev = pred[p].attrs["elevation"]
@@ -112,20 +132,22 @@ def construir(
         f[f"{nombre}_radiacion_anom"] = anomalia(d["shortwave_radiation_sum"])
 
     # --- moisture inflow from the Amazon side and the coast
-    sel = pred["selva-tarma"].reindex(idx)
-    cos = pred["costa-lima"].reindex(idx)
-    f["selva_punto_rocio_anom"] = anomalia(sel["dew_point_2m"])
-    f["selva_punto_rocio_anom_3d"] = _rezago_media(f["selva_punto_rocio_anom"], 3)
-    f["selva_nubes"] = sel["cloud_cover"]
-    f["selva_lluvia_3d"] = sel["precipitation_sum"].rolling(3).sum()
-    f["costa_punto_rocio_anom_3d"] = _rezago_media(anomalia(cos["dew_point_2m"]), 3)
-    f["costa_nubes"] = cos["cloud_cover"]
-    dp = (pred["chosica"].reindex(idx)["pressure_msl"] - sel["pressure_msl"])
-    f["gradiente_presion_chosica_selva"] = anomalia(dp)
-    f["chosica_hum_rel"] = pred["chosica"].reindex(idx)["relative_humidity_2m"]
-    f["chosica_nubes"] = pred["chosica"].reindex(idx)["cloud_cover"]
-    f["chosica_vpd_anom_3d"] = _rezago_media(anomalia(pred["chosica"].reindex(idx)["vapour_pressure_deficit"]), 3)
-    f["tic_viento"] = pred["ticlio"].reindex(idx)["wind_speed_10m"]
+    if {"selva-tarma", "costa-lima", "chosica", "ticlio"} <= set(pred):
+        sel = pred["selva-tarma"].reindex(idx)
+        cos = pred["costa-lima"].reindex(idx)
+        f["selva_punto_rocio_anom"] = anomalia(sel["dew_point_2m"])
+        f["selva_punto_rocio_anom_3d"] = _rezago_media(f["selva_punto_rocio_anom"], 3)
+        f["selva_nubes"] = sel["cloud_cover"]
+        f["selva_lluvia_3d"] = sel["precipitation_sum"].rolling(3).sum()
+        f["costa_punto_rocio_anom_3d"] = _rezago_media(anomalia(cos["dew_point_2m"]), 3)
+        f["costa_nubes"] = cos["cloud_cover"]
+        dp = (pred["chosica"].reindex(idx)["pressure_msl"] - sel["pressure_msl"])
+        f["gradiente_presion_chosica_selva"] = anomalia(dp)
+        f["chosica_hum_rel"] = pred["chosica"].reindex(idx)["relative_humidity_2m"]
+        f["chosica_nubes"] = pred["chosica"].reindex(idx)["cloud_cover"]
+        f["chosica_vpd_anom_3d"] = _rezago_media(anomalia(pred["chosica"].reindex(idx)["vapour_pressure_deficit"]), 3)
+        f["tic_viento"] = pred["ticlio"].reindex(idx)["wind_speed_10m"]
+
 
     # --- sea surface temperature: level, weekly mean and recent rise
     if sst is not None:

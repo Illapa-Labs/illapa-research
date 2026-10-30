@@ -14,13 +14,17 @@ temporada,slug,nivel,percentil_fisica,con_historial
 1998,pedregal,1,55.1,30.61
 1998,quirio,1,61.22,30.61
 1998,santo-domingo,1,32.65,30.61
+2002,chacrasana,1,44.9,30.61
+2002,huascaran,1,71.43,30.61
+2012,california,1,73.47,30.61
+2012,la-ronda,1,38.78,30.61
 2015,california,1,73.47,30.61
 2015,chacrasana,1,44.9,30.61
 2015,la-ronda,1,38.78,30.61
 2015,pedregal,1,55.1,30.61
 2015,quirio,1,61.22,30.61
 2015,santo-domingo,1,32.65,30.61
-2015,yanacoto,2,40.82,30.61
+2015,yanacoto,1,40.82,30.61
 2017,barba-blanca,3,14.29,28.57
 2017,california,1,73.47,28.57
 2017,huascaran,1,71.43,28.57
@@ -34,7 +38,7 @@ temporada,slug,nivel,percentil_fisica,con_historial
 2019,huascaran,1,71.43,30.61
 2019,los-laureles,1,69.39,30.61
 2019,quirio,1,61.22,30.61
-2019,yanacoto,2,40.82,30.61
+2019,yanacoto,1,40.82,30.61
 2020,los-laureles,1,69.39,28.57
 2020,vallecito,5,81.63,28.57
 2023,california,1,73.47,30.61
@@ -44,3 +48,5 @@ temporada,slug,nivel,percentil_fisica,con_historial
 2023,los-laureles,1,69.39,30.61
 2023,pedregal,1,55.1,30.61
 2024,huascaran,1,71.43,30.61
+2026,chacrasana,1,44.9,30.61
+2026,yanacoto,1,40.82,30.61

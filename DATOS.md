@@ -15,6 +15,10 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 | Fechas de huaicos del observatorio ENSO (`catalogo/eventos_observatorio_enso.csv`) | [PillB/observatorio-enso-peru](https://github.com/PillB/observatorio-enso-peru) (código MIT), que recopila DesInventar Sendai (UNDRR / OSSO), INDECI SINPAD y prensa | DesInventar: uso libre con atribución. SINPAD: información pública (Ley 27806). Prensa: solo titular y fecha. Se descartaron las filas del IDMC (CC BY-NC-SA) | Citar al observatorio y la fuente de cada fila |
 | Polígonos de cuenca (`catalogo/cuencas.geojson`) | Derivados de [Copernicus DEM GLO-30](https://registry.opendata.aws/copernicus-dem/), teselas S12 y S13 W077, bajadas del bucket público de AWS (`descargar-datos --solo copernicus-dem`) | Uso libre con atribución | © Unión Europea / ESA |
 | Edificaciones (centros) para el proxy de exposición | [OpenStreetMap](https://www.openstreetmap.org/copyright), vía Overpass (`--solo osm-edificios`). La cobertura es desigual | ODbL 1.0 | "© colaboradores de OpenStreetMap". Una base derivada que se publique debe seguir bajo ODbL |
+| ICEN oficial y lista de eventos El Niño costero | [IGP](http://met.igp.gob.pe/elnino/indices.html) / ENFEN (`--solo igp-icen`) | Datos públicos del IGP, sin licencia explícita: se citan | Instituto Geofísico del Perú y ENFEN |
+| Temperatura diaria del mar (Niño 1+2, costa de Perú y Lima) | [NOAA OISST v2.1](https://www.ncei.noaa.gov/products/optimum-interpolation-sst) vía ERDDAP de CoastWatch (`--solo noaa-oisst`) | Dominio público | NOAA OISST v2.1 |
+| Variables diarias de ERA5 en 6 puntos (temperatura, humedad, presión, nubes, nieve, viento, suelo) | [Open-Meteo](https://open-meteo.com) (`--solo open-meteo-predictores`) | CC BY 4.0; la API gratuita es solo no comercial | "Weather data by Open-Meteo.com" |
+| Caudal diario del Rímac y Santa Eulalia (modelo) | [Open-Meteo / GloFAS](https://open-meteo.com/en/docs/flood-api) (`--solo open-meteo-caudal`) | CC BY 4.0; la API gratuita es solo no comercial | "Weather data by Open-Meteo.com"; GloFAS (Copernicus Emergency Management Service) |
 | Índices de El Niño: ONI (Niño 3.4) y anomalía Niño 1+2, mensuales | [NOAA Climate Prediction Center](https://www.cpc.ncep.noaa.gov/data/indices/) (`--solo noaa-enso`) | Dominio público (gobierno de EE. UU.) | NOAA Climate Prediction Center |
 | Nombres y puntos de referencia de quebradas (`catalogo/quebradas_referencias.csv`) | Proyecto previo `huaico` (puntos de INGEMMET), informe del IGP 2020 (CENEPRED/SIGRID), Ordenanza N° 2542 de la Municipalidad de Lima (vértices de fajas marginales), resoluciones de la ANA y OpenStreetMap | Hechos citados con su fuente | Cada fila trae `fuente_referencia` |
 
@@ -23,7 +27,6 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 - **SENAMHI** (avisos, estaciones, límites): no hay licencia de reutilización publicada. Falta pedir autorización por escrito a atencionalciudadano@senamhi.gob.pe.
 - **INEI** (Censo 2017): condiciones por verificar.
 - **Modelos de elevación para hidrología**: solo se usa Copernicus GLO-30; revisar la licencia de cualquier otro antes de usarlo.
-- **ICEN** (índice costero del ENFEN/IGP): no se descarga todavía; el Niño costero se aproxima con la anomalía Niño 1+2 de NOAA.
 - **Coordenadas de las quebradas que faltan** (Carossio, La Cantuta, Santo Domingo, Cashahuacra...): salen de las resoluciones de faja marginal de la ANA en SIGRID y de informes del INGEMMET; se agregan a mano en `quebradas_referencias.csv`.
 
 ## Publicar datos derivados

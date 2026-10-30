@@ -109,3 +109,27 @@ def test_dejar_un_nino_fuera_no_usa_la_temporada_retenida():
     v = filtro.dejar_un_nino_fuera(_cuencas(), hist, temporadas)
     # Without 2002 the quebrada has no Niño season left: it falls to a physical-only level.
     assert len(v) == 1 and v["nivel"].iloc[0] > 2
+
+
+def test_temporadas_con_icen_usa_la_lista_oficial_y_el_umbral_despues():
+    oni = pd.DataFrame(
+        [(s, a, 0.0) for a in (2012, 2025) for s in ("DJF", "JFM", "FMA")], columns=["trimestre", "anio", "oni"]
+    )
+    n12 = pd.DataFrame([(a, m, 0.0) for a in (2012, 2025) for m in (1, 2, 3, 4)], columns=["anio", "mes", "nino12"])
+    icen = pd.DataFrame([(a, m, 0.5 if a == 2025 else 0.0) for a in (2012, 2025) for m in range(1, 13)],
+                        columns=["anio", "mes", "icen"])
+    eventos = pd.DataFrame(
+        [
+            {"anio_inicial": 2012, "mes_inicial": 3, "anio_final": 2012, "mes_final": 7, "duracion_meses": 5, "magnitud": "Débil"},
+            {"anio_inicial": 2024, "mes_inicial": 2, "anio_final": 2024, "mes_final": 4, "duracion_meses": 3, "magnitud": "Débil"},
+        ]
+    )
+    t = nino.temporadas(oni, n12, icen, eventos)
+    assert bool(t.loc[2012, "nino_costero"]) and t.loc[2012, "magnitud_icen"] == "Débil"  # March and April inside
+    assert bool(t.loc[2025, "nino_costero"])  # after the list: ICEN mean 0.5 >= 0.4
+    assert not t.loc[2012, "nino_global"]
+
+
+def test_episodios_une_temporadas_consecutivas():
+    t = pd.DataFrame({"nino": [a in {2002, 2003, 2007, 2010} for a in range(2000, 2012)]}, index=range(2000, 2012))
+    assert nino.episodios(t) == [[2002, 2003], [2007], [2010]]

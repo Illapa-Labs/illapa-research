@@ -360,42 +360,74 @@ def _open_meteo_caudal(destino: Path) -> list[str]:
 
 
 def _noaa_oisst(destino: Path) -> list[str]:
-    """Daily NOAA OISST v2.1 sea surface temperature, area means of three Pacific boxes."""
+    """Daily NOAA OISST v2.1 sea surface temperature, area means of three Pacific boxes.
+
+    Each box and year is cached in `enso/oisst_cache/`, so a rerun only asks for what is missing
+    (the current year is always asked again).
+    """
     import io
 
     import pandas as pd
 
     carpeta = destino / "enso"
-    carpeta.mkdir(parents=True, exist_ok=True)
+    cache = carpeta / "oisst_cache"
+    cache.mkdir(parents=True, exist_ok=True)
+    anio_actual = int(time.strftime("%Y"))
     series = {}
     for nombre, (s, n, w, e, paso) in CAJAS_SST.items():
         partes = []
-        for anio in range(1982, int(time.strftime("%Y")) + 1):
-            ini = f"{anio}-01-01" if anio > 1982 else "1982-01-01"
-            fin = f"{anio}-12-31" if anio < int(time.strftime("%Y")) else time.strftime("%Y-%m-%d")
-            url = (
-                "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg_LonPM180.csv?"
-                f"sst[({ini}):1:({fin})][(0.0):1:(0.0)][({s}):{paso}:({n})][({w}):{paso}:({e})]"
-            )
-            for _ in range(5):
-                try:
-                    texto = _get(url, timeout=300).text
-                    break
-                except requests.RequestException:
-                    time.sleep(20)
-            else:
-                raise RuntimeError(f"ERDDAP no respondió para {nombre} {anio}")
-            df = pd.read_csv(io.StringIO(texto), skiprows=[1])
-            partes.append(df.groupby("time")["sst"].mean())
-            time.sleep(1)
-        serie = pd.concat(partes)
-        serie.index = pd.to_datetime(serie.index).tz_localize(None).normalize()
-        series[nombre] = serie
+        for anio in range(1982, anio_actual + 1):
+            ruta = cache / f"{nombre}_{anio}.csv"
+            if not ruta.exists() or anio == anio_actual:
+                ini = f"{anio}-01-01" if anio > 1982 else "1982-01-01"
+                fin = f"{anio}-12-31" if anio < anio_actual else "last"
+                url = (
+                    "https://coastwatch.pfeg.noaa.gov/erddap/griddap/ncdcOisst21Agg_LonPM180.csv?"
+                    f"sst[({ini}):1:({fin})][(0.0):1:(0.0)][({s}):{paso}:({n})][({w}):{paso}:({e})]"
+                )
+                for _ in range(8):
+                    try:
+                        texto = _get(url, timeout=600).text
+                        break
+                    except requests.RequestException:
+                        time.sleep(30)
+                else:
+                    raise RuntimeError(f"ERDDAP no respondió para {nombre} {anio}")
+                df = pd.read_csv(io.StringIO(texto), skiprows=[1])
+                dia = df.groupby("time")["sst"].mean()
+                dia.index = pd.to_datetime(dia.index).tz_localize(None).normalize()
+                dia.rename("sst").to_csv(ruta)
+            partes.append(pd.read_csv(ruta, index_col=0, parse_dates=True)["sst"])
+        series[nombre] = pd.concat(partes)
     out = pd.DataFrame(series)
     out.index.name = "fecha"
     archivo = carpeta / "oisst_diario.csv"
     out.round(3).to_csv(archivo)
     return [str(archivo.relative_to(destino.parent))]
+
+
+def _igp_icen(destino: Path) -> list[str]:
+    """ICEN (ENFEN 2024, official) and the list of coastal El Niño events of the IGP."""
+    import html
+    import re
+
+    carpeta = destino / "enso"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    icen = carpeta / "igp_icen.txt"
+    icen.write_text(_get("http://met.igp.gob.pe/datos/ICEN.txt").text, encoding="utf-8")
+    bruto = _get("http://met.igp.gob.pe/elnino/lista_eventos.html").content.decode("latin-1")
+    bruto = re.sub(r"<script.*?</script>|<style.*?</style>", "", bruto, flags=re.DOTALL)
+    texto = re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", bruto)))
+    nino = texto.split("El Niño Costero", 1)[1].split("La Niña Costera", 1)[0]
+    filas = re.findall(r"(\d{4}) (\d{1,2}) (\d{4}) (\d{1,2}) (\d+) (Débil|Moderado|Fuerte|Extraordinario)", nino)
+    eventos = carpeta / "igp_eventos_el_nino_costero.csv"
+    eventos.write_text(
+        "anio_inicial,mes_inicial,anio_final,mes_final,duracion_meses,magnitud\n"
+        + "\n".join(",".join(f) for f in filas)
+        + "\n",
+        encoding="utf-8",
+    )
+    return [str(icen.relative_to(destino.parent)), str(eventos.relative_to(destino.parent))]
 
 
 FUENTES: dict[str, Fuente] = {
@@ -480,6 +512,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Dominio público (gobierno de EE. UU.)",
             atribucion="NOAA OISST v2.1 (Huang et al. 2021), vía ERDDAP de CoastWatch",
             descargar=_noaa_oisst,
+        ),
+        Fuente(
+            id="igp-icen",
+            nombre="IGP/ENFEN: ICEN oficial y lista de eventos El Niño costero",
+            url="http://met.igp.gob.pe/elnino/indices.html",
+            licencia="Datos públicos del IGP; sin licencia explícita (se citan)",
+            atribucion="Instituto Geofísico del Perú (IGP) y ENFEN, ICEN y lista de eventos El Niño/La Niña costeros",
+            descargar=_igp_icen,
         ),
     )
 }

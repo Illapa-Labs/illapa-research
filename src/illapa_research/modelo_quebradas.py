@@ -251,7 +251,7 @@ def dejar_un_episodio_fuera(
     fits on the rest and scores P(active) for each (quebrada, held-out season) with the log
     score and the Brier score. `climatologia` ignores the Niño flag and the covariates.
     """
-    from .modelo import episodios
+    from .nino import episodios
 
     t = temporadas[temporadas.index >= desde]
     eps = episodios(t)
@@ -312,10 +312,7 @@ def main(argv: list[str] | None = None) -> int:
     cuencas = filtro.cuencas_a_tabla(cargar_cuencas(args.catalogo / "cuencas.geojson"))
     refs = cargar_referencias(args.catalogo / "quebradas_referencias.csv")
     eventos = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True)
-    temporadas = _nino.temporadas(
-        _nino.cargar_oni(args.datos / "enso" / "noaa_oni.txt"),
-        _nino.cargar_nino12(args.datos / "enso" / "noaa_nino12.txt"),
-    )
+    temporadas = _nino.cargar_temporadas(args.datos)
     hist = filtro.asignar_historial(eventos, refs, cuencas)
     ranking = filtro.tabla(cuencas, hist, temporadas)
     ubic = set(ranking.loc[ranking["evidencia"] == "fisica+historial", "slug"])

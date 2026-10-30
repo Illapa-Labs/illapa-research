@@ -288,10 +288,7 @@ def main(argv: list[str] | None = None) -> int:
     cuencas = cuencas_a_tabla(cargar_cuencas(args.catalogo / "cuencas.geojson"))
     refs = cargar_referencias(args.catalogo / "quebradas_referencias.csv")
     eventos = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True)
-    temporadas = _nino.temporadas(
-        _nino.cargar_oni(args.datos / "enso" / "noaa_oni.txt"),
-        _nino.cargar_nino12(args.datos / "enso" / "noaa_nino12.txt"),
-    )
+    temporadas = _nino.cargar_temporadas(args.datos)
     hist = asignar_historial(eventos, refs, cuencas)
     tabla(cuencas, hist, temporadas).round(4).to_csv(
         args.catalogo / "ranking_quebradas_nino.csv", index=False
