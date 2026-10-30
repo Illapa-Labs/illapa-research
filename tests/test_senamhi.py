@@ -92,3 +92,20 @@ def test_senamhi_no_esta_en_el_espejo_de_huggingface():
     from illapa_research.espejo_hf import ARCHIVOS
 
     assert not any("senamhi" in k or "senamhi" in v for k, v in ARCHIVOS.items())
+
+
+def test_lluvia_diaria_horaria_descarta_dias_incompletos():
+    idx = pd.date_range("2020-01-01", periods=48, freq="h")
+    s = pd.DataFrame({"N_LLUVIA": 1.0}, index=idx).iloc[:36]  # day 1 complete, day 2 has 12 hours
+    d = S.lluvia_diaria_horaria(s, minimo_horas=20)
+    assert d.iloc[0] == 24 and pd.isna(d.iloc[1])
+
+
+def test_acuerdo_detecta_series_iguales_y_el_rezago():
+    idx = pd.date_range("2020-01-01", periods=200, freq="D")
+    import numpy as np
+
+    x = pd.Series(np.random.default_rng(0).gamma(0.3, 5, 200), index=idx)
+    perfecto = S.acuerdo(x, x)
+    assert perfecto["pearson_log"] == pytest.approx(1.0) and perfecto["spearman"] == pytest.approx(1.0)
+    assert S.acuerdo(x.shift(1), x, rezago=-1)["spearman"] > 0.99

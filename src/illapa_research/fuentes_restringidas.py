@@ -20,7 +20,10 @@ HISTORICAS = {
     "155122": "Autisha", "155223": "Carampoma", "151205": "Canchacalla", "155224": "Santiago de Tuna",
     "155218": "Huaros", "155217": "Lachaqui", "151213": "Sheque",
 }
-AUTOMATICAS = {"47278214": "Chosica (hidrometeorológica)", "472CE45A": "Matucana", "111290": "Ñaña"}
+AUTOMATICAS = {
+    "47278214": "Chosica (hidrometeorológica)", "472CE45A": "Matucana", "111290": "Ñaña",
+    "472EC742": "San Mateo de Otao", "472CA750": "Santiago de Tuna", "472E24B0": "Santa Eulalia (hidrometeorológica)",
+}
 
 
 def _senamhi(destino: Path) -> list[str]:

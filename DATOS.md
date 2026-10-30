@@ -26,10 +26,11 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 | Índice MJO RMM diario | [Oficina de Meteorología de Australia](http://www.bom.gov.au/climate/mjo/) (`--solo bom-rmm`) | Datos públicos del BoM; se cita Wheeler & Hendon (2004) | Australian Bureau of Meteorology |
 | Índices de El Niño: ONI (Niño 3.4) y anomalía Niño 1+2, mensuales | [NOAA Climate Prediction Center](https://www.cpc.ncep.noaa.gov/data/indices/) (`--solo noaa-enso`) | Dominio público (gobierno de EE. UU.) | NOAA Climate Prediction Center |
 | Nombres y puntos de referencia de quebradas (`catalogo/quebradas_referencias.csv`) | Proyecto previo `huaico` (puntos de INGEMMET), informe del IGP 2020 (CENEPRED/SIGRID), Ordenanza N° 2542 de la Municipalidad de Lima (vértices de fajas marginales), resoluciones de la ANA y OpenStreetMap | Hechos citados con su fuente | Cada fila trae `fuente_referencia` |
+| Estaciones del SENAMHI cercanas a Chosica (solo metadatos, `catalogo/senamhi_estaciones_cercanas.csv`) | [Observatorio del SENAMHI](https://observatorio.senamhi.gob.pe/investigadores/) | Metadatos de estaciones; citar «Información recopilada y trabajada por el SENAMHI» | SENAMHI |
 
 ## Fuera por ahora
 
-- **SENAMHI** (avisos, estaciones, límites): no hay licencia de reutilización publicada. Falta pedir autorización por escrito a atencionalciudadano@senamhi.gob.pe.
+- **SENAMHI** (series de lluvia y nivel, avisos): el sitio declara la información «de uso público» pero reserva su publicación y distribución, y no hay licencia de reutilización. Las series se leen solo con `descargar-datos --solo senamhi` (opt-in), se guardan en `datos/senamhi/` y **no se redistribuyen** (ni en git ni en el espejo de Hugging Face); solo se publican resultados agregados y metadatos de estaciones. Falta pedir autorización por escrito a atencionalciudadano@senamhi.gob.pe (borrador en `docs/11-senamhi.md`, no enviado).
 - **INEI** (Censo 2017): condiciones por verificar.
 - **Modelos de elevación para hidrología**: solo se usa Copernicus GLO-30; revisar la licencia de cualquier otro antes de usarlo.
 - **Coordenadas de las quebradas que faltan** (Carossio, La Cantuta, Santo Domingo, Cashahuacra...): salen de las resoluciones de faja marginal de la ANA en SIGRID y de informes del INGEMMET; se agregan a mano en `quebradas_referencias.csv`.

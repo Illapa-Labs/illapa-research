@@ -1,0 +1,118 @@
+estacion,codigo_historico,nombre,tipo,categoria,condicion,lon,lat,altitud_m,km_a_chosica,desde,hasta,meses_con_dato,historico_diario
+212603,,BOCATOMA HUAMPANI,hidrologica,EHA,paralizada,-76.6959,-11.9381,868.0,1.0,,,0,False
+111060,151209,CHOSICA,meteorologica,PLU,funcionando,-76.6898,-11.9299,867.0,1.1,201801,202610,106,True
+202906,,CHOSICA,hidrologica,HLG,funcionando,-76.6897,-11.9298,867.0,1.1,201701,202610,117,False
+47278214,,CHOSICA,hidrologica,EHMA,funcionando,-76.6896,-11.9299,867.0,1.1,200101,202610,306,False
+202907,,YANACOTO,hidrologica,HLM,cerrada,-76.7003,-11.9169,1237.0,1.5,,,0,False
+111003,,CHOSICA,meteorologica,CO,cerrada,-76.7003,-11.9169,1237.0,1.5,,,0,False
+111024,,LA CANTUTA,meteorologica,CP,paralizada,-76.702,-11.9459,836.0,1.8,,,0,False
+202930,,SANTA EULALIA,hidrologica,HLM,funcionando,-76.6668,-11.9198,970.0,3.8,201802,202610,105,False
+111086,155213,SANTA EULALIA,meteorologica,PLU,funcionando,-76.6666,-11.92,970.0,3.8,201801,202610,104,True
+472E24B0,,SANTA EULALIA,hidrologica,EHMA,funcionando,-76.6666,-11.92,944.0,3.8,201508,202610,135,False
+202908,,CHACRASANA,hidrologica,HLM,cerrada,-76.7503,-11.9669,695.0,6.8,,,0,False
+202909,,PUENTE LOS ANGELES,hidrologica,HLM,cerrada,-76.7503,-11.9669,695.0,6.8,,,0,False
+47A05F22,,PUENTE CUPICHE,hidrologica,EHA,funcionando,-76.6097,-11.9142,1133.0,10.0,,,0,False
+203002,,CHACRA ALTA,hidrologica,HLM,cerrada,-76.7003,-12.0336,760.0,11.5,,,0,False
+212700,,PUENTE ANTAPUCRO,hidrologica,EHA,funcionando,-76.6333,-12.0333,1021.0,13.6,199912,202610,158,False
+203003,,ANTAPUCRO,hidrologica,HLG,funcionando,-76.6244,-12.0314,1026.0,14.0,201802,202610,102,False
+111290,,ÑAÑA,meteorologica,EMA,funcionando,-76.8419,-11.9874,553.0,16.7,201711,202610,107,False
+111023,000543,ÑAÑA,meteorologica,CO,funcionando,-76.8419,-11.9874,543.0,16.7,201802,202610,104,True
+112280,,PARIACHI,meteorologica,EAA,funcionando,-76.8383,-12.0023,529.0,17.1,,,0,False
+111291,,SAN MATEO DE OTAO,meteorologica,PLU,funcionando,-76.5636,-11.847,3506.0,17.5,202110,202609,60,False
+472EC742,,SAN MATEO DE OTAO,meteorologica,EMA,funcionando,-76.5636,-11.847,3506.0,17.5,201312,202610,145,False
+472CA750,,SANTIAGO DE TUNA,meteorologica,EMA,funcionando,-76.5242,-11.9832,2926.0,20.0,201312,202610,143,False
+111092,155224,SANTIAGO DE TUNA,meteorologica,PLU,funcionando,-76.5242,-11.9832,2926.0,20.0,202110,202609,60,True
+111058,151205,CANCHACALLA,meteorologica,PLU,cerrada,-76.5314,-11.8448,2400.0,20.7,,,0,True
+111059,,CHAUTE,meteorologica,PLU,cerrada,-76.5044,-11.935,2215.0,21.3,,,0,False
+112042,,SANTA CLARA,meteorologica,CO,cerrada,-76.8836,-12.0336,436.0,23.1,,,0,False
+202910,,PUENTE HUACHIPA,hidrologica,HLM,funcionando,-76.8944,-12.0128,395.0,23.1,201802,202610,103,False
+212607,,HUACHIPA,hidrologica,EHA,funcionando,-76.8954,-12.0128,394.0,23.2,202412,202610,22,False
+111077,155122,AUTISHA,meteorologica,PLU,funcionando,-76.611,-11.7381,2220.0,23.4,201812,202609,60,True
+202903,,AUTISHA,hidrologica,HLM,funcionando,-76.6066,-11.7352,2152.0,23.9,201811,202609,60,False
+47A00F5E,,ANTIOQUIA,hidrologica,EHA,funcionando,-76.5289,-12.0661,1415.0,24.0,,,0,False
+112124,156100,ANTIOQUIA,meteorologica,PE,funcionando,-76.5288,-12.0662,1405.0,24.0,201911,202609,60,True
+47A03AC4,,AUTISHA,hidrologica,EHA,funcionando,-76.6064,-11.7336,2144.0,24.1,,,0,False
+112039,,CIENEGUILLA,meteorologica,CO,cerrada,-76.8169,-12.1169,307.0,24.4,,,0,False
+112192,,ATE,meteorologica,EMA,cerrada,-76.9186,-12.0261,362.0,26.1,,,0,False
+112275,,CERES (CRS),meteorologica,EAA,funcionando,-76.9271,-12.0287,344.0,27.0,,,0,False
+112278,,CERES,meteorologica,EMA,funcionando,-76.9271,-12.0287,339.0,27.0,202301,202610,46,False
+203005,,MANCHAY,hidrologica,HLM,cerrada,-76.8294,-12.1419,229.0,27.5,,,0,False
+112266,,HUACHIPA,meteorologica,EMA,cerrada,-76.9486,-12.0171,294.0,28.7,,,0,False
+202804,,LARANCOCHA,hidrologica,HLG,cerrada,-76.8003,-11.6836,1290.0,29.5,,,0,False
+111151,,PUENTE MAGDALENA,hidrologica,HLG,funcionando,-76.8372,-11.6946,935.0,30.1,201802,202610,102,False
+47A04C54,,BOCATOMA ATARJEA,hidrologica,EHMA,funcionando,-76.9642,-12.0253,266.0,30.6,,,0,False
+202803,,YIPATA CH-2,hidrologica,HLM,cerrada,-76.7836,-11.6669,1200.0,30.6,,,0,False
+112038,,VON HUMBOLDT,meteorologica,CP,cerrada,-76.9393,-12.0821,247.0,31.0,,,0,False
+4721725E,,PUENTE MAGDALENA,hidrologica,EHMA,cerrada,-76.8373,-11.6846,935.0,31.1,,,0,False
+111292,,PUENTE MAGDALENA II,hidrologica,EHMA,funcionando,-76.8581,-11.6964,868.0,31.2,,,0,False
+203004,,CRUZ DE LAYA,hidrologica,HLM,cerrada,-76.4669,-12.1003,1910.0,31.6,,,0,False
+112053,,MANCHAY BAJO,meteorologica,CO,cerrada,-76.8669,-12.1669,164.0,32.0,,,0,False
+112208,,SANTA ANITA,meteorologica,EMA,funcionando,-76.9714,-12.043,253.0,32.1,000104,202610,148,False
+00112271,,SANTA ANITA,meteorologica,EAA,funcionando,-76.9714,-12.043,253.0,32.1,200601,201910,25,False
+113258,,SAN JUAN DE LURIGANCHO,meteorologica,EAA,funcionando,-76.9993,-11.9808,240.0,33.0,,,0,False
+112267,,SAN JUAN DE LURIGANCHO,meteorologica,EMA,funcionando,-76.9993,-11.9816,240.0,33.1,201610,202610,114,False
+203001,,SAN DAMIAN,hidrologica,HLM,cerrada,-76.4003,-12.0169,2842.0,34.0,,,0,False
+202806,,PUENTE HUARABI,hidrologica,HLM,cerrada,-76.8669,-11.6669,1675.0,34.4,,,0,False
+111057,151204,ARAHUAY,meteorologica,PLU,funcionando,-76.6703,-11.6209,2504.0,34.5,202110,202609,60,True
+212500,,AGUA AZUL BOCATOMA,hidrologica,EHA,funcionando,-76.9977,-11.8078,350.0,35.1,201804,202605,70,False
+472A0766,,VILLA MARIA DEL TRIUNFO,meteorologica,EMA,funcionando,-76.92,-12.1664,272.0,35.5,201610,202610,111,False
+112233,,VILLA MARIA DEL TRIUNFO,meteorologica,EAA,funcionando,-76.92,-12.1664,292.0,35.5,,,0,False
+112125,,SAN DAMIAN,meteorologica,PLU,cerrada,-76.3836,-12.0169,3525.0,35.7,,,0,False
+202929,,MATUCANA,hidrologica,HLM,cerrada,-76.3797,-11.8404,2410.0,36.3,,,0,False
+111286,,CARABAYLLO,meteorologica,EMA,funcionando,-77.0336,-11.9022,179.0,36.4,201609,202610,118,False
+113260,,CARABAYLLO,meteorologica,EAA,funcionando,-77.0336,-11.9022,179.0,36.4,,,0,False
+472CE45A,,MATUCANA,meteorologica,EMA,funcionando,-76.378,-11.8391,2421.0,36.5,201308,202610,157,False
+111027,000548,MATUCANA,meteorologica,CO,funcionando,-76.3779,-11.8391,2417.0,36.5,201802,202610,105,True
+111091,155223,CARAMPOMA,meteorologica,PLU,funcionando,-76.5151,-11.655,3424.0,36.6,202110,202609,60,True
+202901,,SHEQUE,hidrologica,HLM,cerrada,-76.5024,-11.6623,3248.0,36.7,,,0,False
+212601,,SHEQUE EDEGEL,hidrologica,EHA,paralizada,-76.5025,-11.6621,3195.0,36.7,,,0,False
+111047,000618,HUARANGAL,meteorologica,CP,paralizada,-77.0104,-11.7992,404.0,36.8,,,0,True
+472CD1C0,,SHEQUE,meteorologica,EMA,cerrada,-76.5023,-11.6614,3209.0,36.8,,,0,False
+111062,151213,SHEQUE,meteorologica,PLU,funcionando,-76.5023,-11.6609,3188.0,36.9,202110,202609,60,True
+112008,,TABLADA DE LURIN,meteorologica,CO,cerrada,-76.9169,-12.1865,287.0,37.0,,,0,False
+472C14DE,,SHEQUE SEDAPAL,hidrologica,EHA,funcionando,-76.5075,-11.6533,3150.0,37.2,,,0,False
+112082,151214,LANGA,meteorologica,PLU,funcionando,-76.4211,-12.1265,2863.0,37.4,201902,202609,60,True
+111280,,MATARA MINAG,meteorologica,EAMA,cerrada,-76.3631,-11.8585,3037.0,37.5,,,0,False
+111283,,HUILLAQUE,meteorologica,EAMA,cerrada,-76.3614,-11.8648,3200.0,37.6,,,0,False
+111002,,COLLIQUE,meteorologica,CO,cerrada,-77.0467,-11.9199,147.0,37.7,,,0,False
+111178,,SOCA,meteorologica,EAMA,cerrada,-76.3604,-11.8592,3135.0,37.8,,,0,False
+112172,,CONACO,meteorologica,EMA,cerrada,-77.0264,-12.0467,165.0,37.8,,,0,False
+111205,,KUTOSHICA,meteorologica,EAMA,cerrada,-76.3582,-11.8663,3318.0,37.9,,,0,False
+111282,,HUILLPA,meteorologica,EAMA,cerrada,-76.3569,-11.8651,3263.0,38.0,,,0,False
+111155,,COLLIQUE FAP,meteorologica,SIN,paralizada,-77.05,-11.9167,143.0,38.1,,,0,False
+111285,,MARACHANCA,meteorologica,EAMA,cerrada,-76.3624,-11.8384,3081.0,38.1,,,0,False
+111276,,HUILPAS,meteorologica,EAMA,cerrada,-76.3557,-11.8646,3318.0,38.2,,,0,False
+112077,,LIMATAMBO,meteorologica,SIN,cerrada,-77.0011,-12.108,136.0,38.3,,,0,False
+112004,,ATOCONGO,meteorologica,CO,cerrada,-76.9003,-12.2169,142.0,38.6,,,0,False
+00112270,,SAN BORJA,meteorologica,EAA,funcionando,-77.0077,-12.1086,128.0,38.9,201705,201910,19,False
+112193,,SAN BORJA,meteorologica,EMA,funcionando,-77.0077,-12.1086,128.0,38.9,200601,202610,114,False
+112040,,RIMAC,meteorologica,CO,cerrada,-77.0503,-12.0169,109.0,39.3,,,0,False
+111147,,COLLIQUE,meteorologica,EMA,cerrada,-77.0647,-11.9314,138.0,39.7,,,0,False
+112003,,LINCE,meteorologica,CO,cerrada,-77.0306,-12.0832,109.0,39.8,,,0,False
+111074,,CHALILLA,meteorologica,PLU,cerrada,-76.3336,-11.9336,3975.0,39.9,,,0,False
+472BA564,,YASO,meteorologica,EAMA,funcionando,-76.7717,-11.5783,1610.0,39.9,,,0,False
+112171,,CAMPO DE MARTE,meteorologica,CP,funcionando,-77.0432,-12.0705,123.0,40.5,201802,202610,103,False
+112194,,CAMPO DE MARTE,meteorologica,EAA,funcionando,-77.0432,-12.0705,117.0,40.5,,,0,False
+112034,,CAMPO DE MARTE CGFAP,meteorologica,CP,cerrada,-77.0432,-12.0705,124.0,40.5,,,0,False
+112164,,LAS PALMAS,meteorologica,EMA,cerrada,-76.9983,-12.1519,73.0,40.8,,,0,False
+112044,,MODELO,meteorologica,MAP,cerrada,-77.0425,-12.0792,123.0,40.8,,,0,False
+112189,,CAHUIDE CA,meteorologica,EAA,cerrada,-77.0428,-12.0792,111.0,40.8,,,0,False
+112188,,CAHUIDE UV,meteorologica,EAA,paralizada,-77.0428,-12.0792,111.0,40.8,,,0,False
+100082,,LAS PALMAS,meteorologica,CO,cerrada,-77.0003,-12.1503,74.0,40.8,,,0,False
+112160,,LIMA 1,meteorologica,EMA,cerrada,-77.0428,-12.0799,110.0,40.8,,,0,False
+112165,,LAS PALMAS FAP,meteorologica,SIN,cerrada,-77.0005,-12.1512,74.0,40.9,,,0,False
+112161,,LIMA 2,meteorologica,EMA,cerrada,-77.0437,-12.0796,110.0,40.9,,,0,False
+113257,,PUENTE PIEDRA,meteorologica,EAA,funcionando,-77.0741,-11.8633,180.0,41.4,,,0,False
+111287,,PUENTE PIEDRA,meteorologica,EMA,funcionando,-77.0741,-11.8633,180.0,41.4,201610,202610,93,False
+111066,,TINGO,meteorologica,PLU,cerrada,-76.4833,-11.6167,3980.0,42.1,,,0,False
+112281,,LAS PALMAS,meteorologica,EMA,funcionando,-77.013,-12.1568,74.0,42.4,202112,202610,41,False
+111088,155217,LACHAQUI,meteorologica,PLU,funcionando,-76.6271,-11.554,3624.0,42.6,202110,202609,60,True
+112265,,SAN MARTIN DE PORRES,meteorologica,EMA,funcionando,-77.0845,-12.0089,56.0,42.7,201609,202610,122,False
+00112272,,SAN MARTIN DE PORRES,meteorologica,EAA,funcionando,-77.0845,-12.0089,56.0,42.7,,,0,False
+112196,,LURIN,meteorologica,EMA,funcionando,-76.83,-12.2933,59.0,42.8,,,0,False
+203006,,DESEMBOCADURA L-1,hidrologica,HLM,cerrada,-76.9003,-12.2698,6.0,43.6,,,0,False
+112045,,SAN MARCOS,meteorologica,CP,cerrada,-77.0843,-12.0604,72.0,44.2,,,0,False
+112159,,PANTANOS DE VILLA,meteorologica,CO,cerrada,-76.9886,-12.2107,4.0,44.3,,,0,False
+112277,,PANTANOS DE VILLA,meteorologica,EMA,funcionando,-76.988,-12.2114,3.0,44.3,202207,202610,52,False
+111146,,TAMBORAQUE,meteorologica,PLU,cerrada,-76.3169,-11.7836,3170.0,44.8,,,0,False
+112005,,CHORRILLOS,meteorologica,CO,cerrada,-77.0336,-12.167,37.0,44.8,,,0,False
