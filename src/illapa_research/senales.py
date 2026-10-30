@@ -112,11 +112,22 @@ def _auc_desde_rangos(y: np.ndarray, R: np.ndarray, V: np.ndarray) -> np.ndarray
     return a
 
 
-def _desplazar_etiquetas(y: np.ndarray, temporada: np.ndarray, rng: np.random.Generator) -> np.ndarray:
+def _desplazar_etiquetas(
+    y: np.ndarray, temporada: np.ndarray, rng: np.random.Generator, modo: str = "local"
+) -> np.ndarray:
+    """Labels moved inside each season, keeping the number of events and their clustering.
+
+    `local` moves them 7 to 25 days either way (the seasonal phase is kept, so a feature that
+    simply follows the calendar cannot pass); `estacion` moves them anywhere in the season.
+    """
     ys = y.copy()
     for s in np.unique(temporada):
         i = np.flatnonzero(temporada == s)
-        ys[i] = np.roll(y[i], int(rng.integers(5, max(6, len(i) - 5))))
+        if modo == "local":
+            k = int(rng.integers(7, 26)) * int(rng.choice([-1, 1]))
+        else:
+            k = int(rng.integers(5, max(6, len(i) - 5)))
+        ys[i] = np.roll(y[i], k)
     return ys
 
 
@@ -136,18 +147,20 @@ def bh(p: np.ndarray, q: float = 0.10) -> np.ndarray:
 
 def rezagos_nula(
     F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray, mask: np.ndarray,
-    lags: range = range(0, 15), centrar: bool = False, n_null: int = 300, semilla: int = 0,
-    q: float = 0.10,
+    lags: range = range(15), centrar: bool = False, n_null: int = 300, semilla: int = 0,
+    q: float = 0.10, modo_nula: str = "local",
 ) -> pd.DataFrame:
     """AUC per (variable, lag) with a two-sided p-value against season-shifted labels and BH.
 
-    Returns one row per pair with `auc`, `p`, `senal` (passes BH at `q`) and, in `attrs`, the
-    expected number of chance hits `q * n_tests` plus the number of hits observed.
+    Returns one row per pair with `auc`, `p`, `senal` (passes BH at `q`) and, in `attrs`: the
+    number of tests, the hits observed at BH, and the hits with nominal p < 0.05 against the
+    `0.05 * n_tests` that chance alone would give. (Under a complete null BH rejects anything
+    with probability at most `q`, so the nominal count is the useful chance benchmark.)
     """
     rng = np.random.default_rng(semilla)
     yv = y.to_numpy()[mask].astype(float)
     ts = temporada[mask]
-    nulls = [_desplazar_etiquetas(yv, ts, rng) for _ in range(n_null)]
+    nulls = [_desplazar_etiquetas(yv, ts, rng, modo_nula) for _ in range(n_null)]
     filas = []
     for lag in lags:
         R, V = _rangos_lag(F, columnas, lag, mask, temporada, centrar)
@@ -161,9 +174,10 @@ def rezagos_nula(
             filas.append({"variable": c, "lag": lag, "auc": a[j], "p": p})
     out = pd.DataFrame(filas)
     out["senal"] = bh(out["p"].to_numpy(), q)
-    out.attrs["esperados_por_azar"] = q * len(out)
     out.attrs["observados"] = int(out["senal"].sum())
     out.attrs["n_pruebas"] = len(out)
+    out.attrs["observados_p05"] = int((out["p"] < 0.05).sum())
+    out.attrs["esperados_p05_por_azar"] = 0.05 * len(out)
     return out
 
 
@@ -233,6 +247,8 @@ def regimen_temporada(
     for c in columnas:
         x = medias[c]
         ok = x.notna()
+        if x.nunique() < 3:
+            continue
         if ok.sum() < 12:
             continue
         rho = spearmanr(x[ok], n_ev[ok]).statistic
@@ -241,5 +257,59 @@ def regimen_temporada(
         filas.append({"variable": c, "temporadas": int(ok.sum()), "spearman": rho, "p": p})
     out = pd.DataFrame(filas)
     out["senal"] = bh(out["p"].to_numpy(), q)
-    out.attrs["esperados_por_azar"] = q * len(out)
+    out.attrs["observados_p05"] = int((out["p"] < 0.05).sum())
+    out.attrs["esperados_p05_por_azar"] = 0.05 * len(out)
     return out
+
+
+# ----------------------------------------------------------------------------- robustness
+def mascaras_robustez(
+    F: pd.DataFrame, temporada: np.ndarray, base: np.ndarray, temporadas_nino: pd.DataFrame | None = None
+) -> dict[str, np.ndarray]:
+    """Masks of rainy-season days for the coverage windows and subsets used as robustness checks."""
+    anio = np.asarray(F.index.year)
+    m = {
+        "1984+": base,
+        "2009+": base & (anio >= 2009),
+        "sin 1983, 1998 y 2017": base & ~np.isin(temporada, [1983, 1998, 2017]),
+    }
+    if temporadas_nino is not None:
+        nino = np.isin(temporada, temporadas_nino.index[temporadas_nino["nino"]])
+        m["solo temporadas Niño"] = base & nino
+        m["solo temporadas sin Niño"] = base & ~nino
+    return m
+
+
+def robustez(
+    F: pd.DataFrame, y: pd.Series, columnas: list[str], temporada: np.ndarray,
+    mascaras: dict[str, np.ndarray], lags: range = range(1, 15), centrar: bool = True,
+    n_null: int = 1000, q: float = 0.10, p_nominal: float = 0.10,
+) -> pd.DataFrame:
+    """AUC, p-value and verdict per (variable, lag) in each mask, and whether it is robust.
+
+    `robusta`: passes Benjamini-Hochberg in the first mask (the widest coverage window) and, in
+    each of the other coverage masks (2009+, without 1983/1998/2017), keeps the same sign with a
+    nominal p below `p_nominal` (those subsets have only ~50 event days, so a corrected test would
+    have no power). Niño / non-Niño rows are reported, not required.
+    """
+    partes = []
+    for nombre, mask in mascaras.items():
+        r = rezagos_nula(F, y, columnas, temporada, mask, lags, centrar=centrar, n_null=n_null, q=q)
+        r["ventana"] = nombre
+        partes.append(r)
+    t = pd.concat(partes)
+    auc = t.pivot_table(index=["variable", "lag"], columns="ventana", values="auc")
+    pv = t.pivot_table(index=["variable", "lag"], columns="ventana", values="p")
+    sen = t.pivot_table(index=["variable", "lag"], columns="ventana", values="senal", aggfunc="max")
+    nombres = list(mascaras)
+    principal = nombres[0]
+    cobertura = [v for v in ("2009+", "sin 1983, 1998 y 2017") if v in mascaras]
+    signo = np.sign(auc[[principal, *cobertura]] - 0.5)
+    ok = sen[principal].fillna(0).astype(bool) & (signo.nunique(axis=1) == 1)
+    for v in cobertura:
+        ok &= pv[v] < p_nominal
+    out = auc.add_prefix("auc ").join(pv.add_prefix("p ")).join(sen.add_prefix("senal ").astype(bool))
+    out["robusta"] = ok
+    out.attrs["n_pruebas"] = len(out)
+    out.attrs["esperadas_p05_por_azar"] = 0.05 * len(out)
+    return out.reset_index()
