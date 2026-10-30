@@ -52,3 +52,26 @@ def test_construir_incluye_el_flujo_de_humedad_y_el_indicador_de_vaguada(tmp_pat
     f = c.construir(tmp_path, idx)
     assert {"flujo_q_u850_anom", "flujo_q_u850_anom_3d", "z500_vaguada"} <= set(f.columns)
     assert 0.0 < f["z500_vaguada"].mean() < 0.3
+
+
+def test_mover_filas_conserva_los_valores_y_no_cruza_temporadas():
+    ts = np.repeat([1, 2], 40)
+    B = np.arange(80.0)[:, None]
+    out = c.mover_filas_en_temporada(B, ts, np.random.default_rng(0))
+    assert sorted(out[:40, 0]) == sorted(B[:40, 0]) and sorted(out[40:, 0]) == sorted(B[40:, 0])
+    assert not np.array_equal(out, B)
+
+
+def test_ganancia_bloque_detecta_una_senal_real_y_no_una_ruido():
+    pytest.importorskip("torch")
+    rng = np.random.default_rng(1)
+    n_temp, por = 12, 60
+    ts = np.repeat(np.arange(n_temp), por)
+    base = rng.normal(size=(n_temp * por, 3))
+    senal = rng.normal(size=n_temp * por)
+    y = (rng.uniform(size=n_temp * por) < 1 / (1 + np.exp(-(2.5 * senal - 3.5)))).astype(int)
+    folds = [np.flatnonzero(ts == s) for s in np.unique(ts)]
+    util = c.ganancia_bloque(base, senal[:, None], y, ts, folds, C=1.0, n_nulas=30, dispositivo_="cpu", trozo_mundos=10)
+    ruido = c.ganancia_bloque(base, rng.normal(size=(len(y), 1)), y, ts, folds, C=1.0, n_nulas=30, dispositivo_="cpu", trozo_mundos=10)
+    assert util["ganancia"] > util["nula_p95"] and util["p"] < 0.1
+    assert ruido["p"] > 0.1

@@ -183,3 +183,91 @@ def ganancia_nula(
         ys = pd.Series(S._desplazar_etiquetas(y.to_numpy(), ts, rng, "local"), index=y.index)
         out.append(ganancia_ap(D, C, folds_tipo, n_jobs, ys, solo)["ganancia"])
     return np.array(out)
+
+
+# ------------------------------------------------------------- many null worlds on the GPU
+def _oof_logit(Z: np.ndarray, y: np.ndarray, folds: list[np.ndarray], C: float, dispositivo_: str | None = None) -> np.ndarray:
+    """Out-of-fold probabilities of one ridge-logistic design `Z` over the given test folds."""
+    from . import gpu
+
+    n = len(y)
+    Y = np.tile(y.astype(float), (len(folds), 1))
+    M = np.ones((len(folds), n), dtype=bool)
+    for k, f in enumerate(folds):
+        M[k, f] = False
+    Pl = gpu.ajustar_logit_lote(Z, Y, M, C=C, dispositivo_=dispositivo_)
+    p = np.full(n, np.nan)
+    for k, f in enumerate(folds):
+        p[f] = Pl[k, f]
+    return p
+
+
+def mover_filas_en_temporada(B: np.ndarray, temporada: np.ndarray, rng: np.random.Generator, minimo: int = 5) -> np.ndarray:
+    """Rows of `B` cyclically shifted inside every season (the block keeps its own persistence and
+    its seasonal cycle, but loses the day-to-day link with the labels)."""
+    out = B.copy()
+    for s in np.unique(temporada):
+        i = np.flatnonzero(temporada == s)
+        if len(i) > 2 * minimo:
+            out[i] = np.roll(B[i], int(rng.integers(minimo, len(i) - minimo)), axis=0)
+    return out
+
+
+def ganancia_bloque(
+    Xbase: np.ndarray, Bloque: np.ndarray, y: np.ndarray, temporada: np.ndarray, folds: list[np.ndarray],
+    C: float = 0.03, n_nulas: int = 1000, semilla: int = 0, dispositivo_: str | None = None,
+    trozo_mundos: int = 25,
+) -> dict[str, float]:
+    """Average-precision gain of adding `Bloque` to `Xbase`, against null worlds, all on the GPU.
+
+    Both models are the same ridge-logistic fit (fixed `C`) over the same test folds
+    (`folds`: leave-one-season-out or leave-one-episode-out). A null world moves the rows of the
+    block cyclically inside each season and refits every fold; its gain is AP(base + moved block)
+    minus AP(base). `p` is the share of null worlds whose gain reaches the real one (plus one).
+    Missing values are median-imputed and everything standardised before (no labels used).
+    """
+    from . import gpu
+
+    rng = np.random.default_rng(semilla)
+    yv = np.asarray(y, dtype=float)
+    Zb = gpu.estandarizar(Xbase)
+    Zk = gpu.estandarizar(Bloque)
+    p0 = _oof_logit(Zb, yv, folds, C, dispositivo_)
+    p1 = _oof_logit(np.hstack([Zb, Zk]), yv, folds, C, dispositivo_)
+    ok = ~np.isnan(p0) & ~np.isnan(p1)
+    _, ap0 = gpu.auc_ap_lote(yv[None], p0[None], ok[None], dispositivo_)
+    _, ap1 = gpu.auc_ap_lote(yv[None], p1[None], ok[None], dispositivo_)
+    ganancias = []
+    for _ in range(0, n_nulas, trozo_mundos):
+        P = []
+        for _ in range(min(trozo_mundos, n_nulas - len(ganancias))):
+            Zm = mover_filas_en_temporada(Zk, temporada, rng)
+            P.append(_oof_logit(np.hstack([Zb, Zm]), yv, folds, C, dispositivo_))
+        P = np.array(P)
+        _, ap = gpu.auc_ap_lote(np.tile(yv, (len(P), 1)), np.nan_to_num(P), np.tile(ok, (len(P), 1)), dispositivo_)
+        ganancias.extend((ap - ap0[0]).tolist())
+    g = np.array(ganancias)
+    real = float(ap1[0] - ap0[0])
+    return {
+        "ap_base": float(ap0[0]), "ap_con": float(ap1[0]), "ganancia": real, "columnas": int(Bloque.shape[1]),
+        "nula_media": float(g.mean()), "nula_p95": float(np.percentile(g, 95)), "nula_p99": float(np.percentile(g, 99)),
+        "nula_max": float(g.max()), "p": float((1 + (g >= real).sum()) / (1 + len(g))), "n_nulas": len(g),
+    }
+
+
+def matrices_para_bloques(D, C: pd.DataFrame, desplazar: int = 1, hasta_temporada: int | None = None):
+    """Design pieces for `ganancia_bloque`: base matrix, shifted circulation block, labels, seasons.
+
+    `hasta_temporada` drops later seasons entirely (for the OLR, which ends in 2022, so that no
+    median has to be imputed).
+    """
+    from . import modelo_diario as md
+
+    X, y, ts, _ = md.matrices(D)
+    base = X["lluvia+antecedentes"]
+    bloque = C.shift(desplazar).add_suffix("_circ")[D.inventario["mask"]]
+    bloque.index = base.index
+    if hasta_temporada is not None:
+        k = ts <= hasta_temporada
+        base, bloque, y, ts = base[k], bloque[k], y[k], ts[k]
+    return base, bloque, y, ts
