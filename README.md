@@ -53,6 +53,18 @@ uv run modelo-quebradas      # modelo Gamma-Poisson por quebrada: rangos posteri
 
 El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy 22 cuencas tienen nombre ubicado (Quirio, Pedregal, Los Laureles, Chacrasana, La Ronda, Barba Blanca, California, Corrales, Huáscarán, Santa Inés, Cobián, Yanacoto, Vallecito, Cusipata, Santo Domingo, La Cantuta, Cupiche, Carossio, La Libertad, Mariscal Castilla y, dudosa, Río Seco) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta. Los capítulos en [docs/](docs/README.md) explican cada paso y qué falló.
 
+## Qué se ha aprendido hasta ahora (30 de octubre de 2026)
+
+Resumen honesto; el detalle, las cifras con intervalos y los límites están en los capítulos de [docs/](docs/README.md).
+
+- **El Niño sí importa, y es costero.** Con el ICEN oficial, 17 de 22 temporadas Niño tienen huaico catalogado contra 10 de 23 (Fisher p = 0,033); la razón de tasas por quebrada ronda 4,9 (IC 80 % 3,0 a 8,1). E y C (índices del Niño costero y central): gana el ICEN. El efecto cambia con la definición de Niño y viene en buena parte de 2015, 2017, 2019 y 2023, años de mucha cobertura de prensa.
+- **El terreno no ordena las quebradas que se activan.** Melton y las pendientes no discriminan (γ ≈ -0,2, intervalo con 0). El historial sigue a los edificios cerca de la salida (Spearman +0,61 en 20 quebradas): el catálogo registra donde vive la gente. Hay 22 cuencas con nombre ubicado, de 124 delimitadas.
+- **Qué día hay condiciones sí tiene señal.** Dejando una temporada fuera, lluvia más antecedentes (suelo, lluvia previa, caudal, mar) da precisión media 0,28 contra una base de 0,018, y el 5 % de días en alarma contiene el 53 % de los días con huaico. 2 000 mundos nulos en la GPU no se le acercan (p = 0,0005). Pero cuatro de cada cinco alarmas fallan, sin 1983, 1998 y 2017 baja a 0,19, y con 118 columnas para 119 positivos hay sobreajuste (0,45 dentro de muestra). **No es una alerta.**
+- **Qué cambia días antes, y qué no.** El mar cálido es un régimen lento entre temporadas más que un disparador (alza de 14 días del mar: AUC 0,64-0,66, débil). No hay calor previo aguas arriba: lo que se ve es el frío de la tormenta. La humedad de la selva no precede. Viento y humedad a 850 hPa (T19) pareció una señal y se cayó con ERA5 completo y 2 000 nulos. Viento en 200 hPa, OLR, Madden-Julian, SOI y altura a 500 hPa no mejoran el modelo. La hora de la lluvia no distingue; la duración sí un poco.
+- **Datos observados valen más que reanálisis.** Los pluviómetros del SENAMHI (uso local, no se redistribuyen) mejoran mucho al modelo de solo lluvia en 1990-2013 (precisión media 0,23 contra 0,07 con ERA5) y no se distinguen de cero en 2014-2026 con antecedentes. Las lluvias satelitales PERSIANN-CDR y CPC no mejoran ni sustituyen a ERA5.
+- **Día × quebrada.** El producto de la probabilidad del día por la participación de cada quebrada predice un poco mejor qué quebrada se activa qué día (precisión media 0,027 contra 0,018 de solo el día); la parte «día» hace casi todo.
+- **Qué falta.** Coordenadas de Cashahuacra, Huampaní, Huascata y otras; lluvia de montaña horaria entre 2014 y 2017; el permiso por escrito del SENAMHI; fechas verificadas de 1999-2008; CAPE y agua precipitable (piden cuenta de Copernicus).
+
 ## Datos
 
 La licencia AGPL cubre el **código**, no los datos. Cada fuente tiene su propia licencia; mira [DATOS.md](DATOS.md). Por ahora no se incluyen datos del SENAMHI ni del INEI: falta su autorización por escrito.

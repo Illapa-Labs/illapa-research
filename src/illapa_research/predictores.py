@@ -55,12 +55,12 @@ def anomalia(serie: pd.Series, base: tuple[int, int] = BASE_CLIMA, suavizado: in
     """Departure from the smoothed day-of-year mean of the base period."""
     s = serie.dropna()
     ref = s[(s.index.year >= base[0]) & (s.index.year <= base[1])]
-    doy = ref.groupby(ref.index.dayofyear).mean().reindex(range(1, 367))
+    doy = ref.groupby(ref.index.day_of_year).mean().reindex(range(1, 367))
     # circular smoothing so the new year has no seam
     ext = pd.concat([doy.iloc[-suavizado:], doy, doy.iloc[:suavizado]])
     suave = ext.rolling(2 * suavizado + 1, center=True, min_periods=1).mean().iloc[suavizado:-suavizado]
     suave.index = range(1, 367)
-    return serie - serie.index.dayofyear.map(suave).to_numpy()
+    return serie - serie.index.day_of_year.map(suave).to_numpy()
 
 
 def altura_cero_grados(temp_c: pd.Series, elevacion_m: float) -> pd.Series:
