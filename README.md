@@ -22,7 +22,7 @@ El kit de investigación de [Illapa Labs](https://github.com/Illapa-Labs): un sc
 | `src/illapa_research/estudio_eventos.py` | Percentiles de lluvia en los días de huaico y aciertos contra alarmas por año |
 | `src/illapa_research/grafo.py` | La red de ríos y quebradas como grafo dirigido, y la propagación del riesgo aguas abajo |
 | `src/illapa_research/quebradas.py` | Delimita con el DEM las cuencas que drenan al Rímac y a Santa Eulalia y calcula sus atributos físicos |
-| `src/illapa_research/nino.py`, `filtro.py` | Temporadas con El Niño (NOAA) y ranking de quebradas por evidencia física e historial |
+| `src/illapa_research/nino.py`, `filtro.py`, `modelo.py` | Temporadas con El Niño (NOAA) y ranking de quebradas por evidencia física e historial |
 | `notebooks/` | `01-red-de-quebradas` (de Chaclacayo a Chosica), `02-estudio-de-eventos` (qué tan extrema fue la lluvia en cada huaico) y `03-filtro-quebradas-nino` (qué quebradas tienen más probabilidad de activarse en un Niño) |
 | `catalogo/` | Eventos de huaico y polígonos de cuenca del piloto (Chosica y Chaclacayo) |
 | `tests/` | Pruebas del código |
@@ -46,6 +46,7 @@ uv run jupyter lab notebooks/
 uv run descargar-datos --solo copernicus-dem osm-aguas osm-edificios noaa-enso
 uv run delimitar-quebradas   # escribe catalogo/cuencas.geojson (66 cuencas)
 uv run filtro-quebradas      # escribe catalogo/ranking_quebradas_nino.csv y la validación
+uv run modelo-quebradas      # modelo Gamma-Poisson: rangos posteriores y razón de tasas del Niño
 ```
 
 El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy solo 4 cuencas tienen historial ubicado (Quirio, Pedregal, Los Laureles y Río Seco) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta.
