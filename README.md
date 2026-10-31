@@ -78,6 +78,20 @@ La licencia AGPL cubre el **código**, no los datos. Cada fuente tiene su propia
 
 Las APIs gratuitas limitan las llamadas, así que hay una copia pública de `datos/` en [renzoedu25/illapa-research-datos](https://huggingface.co/datasets/renzoedu25/illapa-research-datos): `uv run --extra hf descargar-datos --desde-hf renzoedu25/illapa-research-datos`. Cada archivo conserva la licencia de su fuente (revisión en [DATOS.md](DATOS.md)); los datos del IGP no se incluyen por no traer licencia explícita.
 
+## Reproducir los cuadernos
+
+Con los datos del espejo cualquiera puede correr los 16 cuadernos de `notebooks/` sin repetir las descargas (los 100 GB de archivos GEFS originales no se usan: del reforecast solo se guarda la serie reducida a cuatro cajas, 5 MB):
+
+```bash
+git clone https://github.com/Illapa-Labs/illapa-research.git && cd illapa-research
+uv sync --extra notebooks --extra hf --extra gpu        # `gpu` es opcional: sin CUDA todo corre en CPU, más lento
+uv run --extra hf descargar-datos --desde-hf renzoedu25/illapa-research-datos
+uv run descargar-datos --solo igp-icen igp-ec bom-rmm    # fuentes que el espejo no incluye (sin licencia explícita)
+cd notebooks && uv run jupyter nbconvert --to notebook --execute --inplace 05-modelo-diario.ipynb
+```
+
+Para una corrida rápida de comprobación: `ILLAPA_N_NULL=200 ILLAPA_B=200 ILLAPA_NULAS=20 ILLAPA_GPU=1` (menos réplicas y mundos nulos; las cifras cambian en la tercera cifra). Las fuentes opcionales (INGEMMET, CENEPRED, INDECI, SENAMHI crudo) no son necesarias para los cuadernos; se piden con `descargar-datos --solo <id>`. Los cuadernos se ejecutaron todos desde un clon limpio con estos pasos (resultado en la sección siguiente de cada capítulo).
+
 ## Colaborar
 
 Lee [CONTRIBUTING.md](CONTRIBUTING.md) y el [Código de Conducta](CODE_OF_CONDUCT.md).
