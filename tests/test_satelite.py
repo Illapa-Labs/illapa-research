@@ -45,3 +45,20 @@ def test_auc_dentro_de_temporada_detecta_una_senal_y_ninguna():
     tabla["nbr_media"] = rng.normal(size=len(tabla))
     sin = S.auc_dentro_de_temporada(tabla, "nbr_media", -1, n_perm=200)
     assert 0.3 < sin["auc"] < 0.7
+
+
+def test_mascara_en_rejilla_quema_y_dilata_los_puntos():
+    tr = from_origin(300000.0, 8660000.0, 10.0, 10.0)
+    pts = np.array([[300055.0, 8659945.0]])
+    m = S.mascara_en_rejilla(pts, tr, (20, 20), radio_m=20.0)
+    assert m[5, 5] and m.sum() > 1 and not m[0, 0]
+    assert S.mascara_en_rejilla(np.empty((0, 2)), tr, (20, 20)).sum() == 0
+
+
+def test_dos_vias_quita_efectos_de_cuenca_y_temporada():
+    import pandas as pd
+
+    filas = [{"slug": s, "temporada": t, "v": 2.0 * i + 3.0 * j, "activa": False}
+             for i, s in enumerate("abcde") for j, t in enumerate(range(2019, 2024))]
+    z = S.dos_vias(pd.DataFrame(filas), "v")
+    assert np.allclose(z["v"], 0.0, atol=1e-6)
