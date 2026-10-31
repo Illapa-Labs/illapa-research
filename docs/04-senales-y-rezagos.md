@@ -27,7 +27,7 @@ La lluvia del día separa los días de huaico del resto (AUC 0,82 en el notebook
 
 | Dato | Fuente | Licencia / uso | Cómo se obtiene |
 |---|---|---|---|
-| Fechas de huaico (día exacto, confianza no baja): 147 fechas, 118 en temporadas 1984-2026, 64 episodios | `catalogo/` (INDECI, IGP, prensa; cada fila cita su fuente) | Hechos citados | ya en el repositorio |
+| Fechas de huaico (día exacto, confianza no baja): 150 fechas, 121 en temporadas 1984-2026, 66 episodios | `catalogo/` (INDECI, IGP, prensa; cada fila cita su fuente) | Hechos citados | ya en el repositorio |
 | Temperatura diaria del mar | NOAA OISST v2.1 vía ERDDAP de CoastWatch; promedios de la caja Niño 1+2 y de la costa de Perú (celdas de 1°) y de la costa de Lima (0,25°) | Dominio público | `descargar-datos --solo noaa-oisst` |
 | Temperatura, humedad, presión, nubes, nieve, suelo, radiación en 6 puntos | Open-Meteo (ERA5), resúmenes diarios | CC BY 4.0; la API gratuita es solo no comercial | `descargar-datos --solo open-meteo-predictores` |
 | Caudal diario | Open-Meteo (GloFAS v4), 3 puntos cerca de Chosica y Matucana | CC BY 4.0; modelo, no medición | `descargar-datos --solo open-meteo-caudal` |
@@ -58,8 +58,8 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 
 ### Visión general
 
-- **825 pruebas** (variable × rezago 0 a 14) en el período completo: 153 pasan Benjamini-Hochberg; 182 tienen p < 0,05 contra 41 esperadas por azar. Sin la media de cada temporada: 132 y 185. Es decir, **hay estructura de verdad**, pero buena parte es persistencia: variables muy autocorrelacionadas (suelo, caudal) dan el mismo hallazgo en rezagos vecinos, que no son pruebas independientes.
-- **68 de 770** combinaciones con rezago ≥ 1 son robustas. Por hipótesis: H4, 23 de 182; H2, 22 de 294; H1, 16 de 210; H3, 7 de 84.
+- **825 pruebas** (variable × rezago 0 a 14) en el período completo: 152 pasan Benjamini-Hochberg; 192 tienen p < 0,05 contra 41 esperadas por azar. Sin la media de cada temporada: 135 y 187. Es decir, **hay estructura de verdad**, pero buena parte es persistencia: variables muy autocorrelacionadas (suelo, caudal) dan el mismo hallazgo en rezagos vecinos, que no son pruebas independientes.
+- **66 de 770** combinaciones con rezago ≥ 1 son robustas. Por hipótesis: H4, 20 de 182; H2, 21 de 294; H1, 15 de 210; H3, 10 de 84.
 
 ### H4 · Suelo y caudal: la señal más fuerte, y lo más obvio
 
@@ -71,7 +71,7 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 ### H1 · El mar: sí en régimen y también una señal diaria débil (H5)
 
 - Anomalía del mar en Niño 1+2 y costa de Perú, un día antes: **AUC 0,71** (0,66 a 14 días). Es sobre todo **entre temporadas**: al quitar la media de cada temporada baja a **0,59-0,60**, y la anomalía de 30 días a 0,51-0,53.
-- Correlación entre temporadas (43): alza del mar de la costa de Perú en 14 días **ρ = 0,41** (p = 0,007), anomalía Niño 1+2 **0,39** (p = 0,008), anomalía de 7 días 0,38 (p = 0,013). Pasan la corrección 8 de 25 variables probadas (cinco del mar, el suelo de Chosica y dos de caudal; esperadas por azar a p < 0,05: 1,2).
+- Correlación entre temporadas (43): alza del mar de la costa de Perú en 14 días **ρ = 0,42** (p = 0,006), anomalía Niño 1+2 **0,41** (p = 0,005), anomalía de 7 días 0,40 (p = 0,006). Pasan la corrección 8 de 25 variables probadas (cinco del mar, el suelo de Chosica y dos de caudal; esperadas por azar a p < 0,05: 1,2).
 - **Lo que queda dentro de la temporada** es el **alza del mar en 14 días**: AUC centrado **0,66** (costa de Lima) y **0,64** (costa de Perú) con 1 a 3 días de antelación; robusta en las dos cajas (0,66 y 0,65 desde 2009; 0,64-0,66 en temporadas Niño y 0,59-0,66 en las que no). La anomalía de la costa de Lima el día anterior también (0,64 centrada, robusta en rezagos 1 y 2). En el composite, de los 14 días previos al inicio del episodio, 7 (costa de Perú) y 4 (costa de Lima) quedan por encima de la banda nula; ninguno por debajo. El alza de 7 días en Niño 1+2 pasa solo con rezago de 1 día (0,59).
 - Lectura: H5 se confirma en lo grueso (el mar marca el régimen; la anomalía de largo plazo pierde toda la señal al centrar), pero hay una señal diaria débil de **calentamiento rápido de la costa en las dos semanas previas**, consistente en tres cajas y en las ventanas de cobertura. No se sabe si es causa, es consecuencia de un patrón de circulación común (menos viento costero y más nubosidad antes de un evento) o es coincidencia con pocos episodios; con 64 episodios y muchas pruebas, se trata como hipótesis para probar con datos nuevos, no como mecanismo.
 
@@ -84,7 +84,7 @@ Todas las cifras de esta sección salen de la corrida descrita arriba.
 
 ### H3 · Selva y gradiente de presión: la humedad de la selva **no** precede; la de la costa sí, poco
 
-Con ERA5 de los 6 puntos (6 variables, 84 pruebas con rezago ≥ 1; 13 pasan BH, 7 son robustas):
+Con ERA5 de los 6 puntos (6 variables, 84 pruebas con rezago ≥ 1; 14 pasan BH, 10 son robustas):
 
 - **Punto de rocío de la selva (Tarma)**: AUC 0,50 el día antes (crudo) y **0,45 centrado**, sin señal en ningún rezago. Si algo, la selva está un poco más seca de lo normal el día antes. **H3 no se sostiene en su parte de humedad de la selva**: el aire húmedo amazónico no se ve días antes en este punto.
 - **Nubes de la selva**: AUC 0,64 (crudo) y 0,60 (centrado) con 1 a 2 días de antelación; es cubierta nubosa en los días inmediatos, no humedad acumulada, y no es robusta.
@@ -98,11 +98,11 @@ Los valores a rezago 0 son más extremos que a rezago 1 en las variables de temp
 
 ## 6. Límites
 
-- El catálogo trae 118 días con huaico en la temporada de lluvias desde 1984, agrupados en 64 episodios y en 43 temporadas; 2017 solo aporta 23 días. La fecha publicada puede ser la del día siguiente a un evento nocturno.
+- El catálogo trae 121 días con huaico en la temporada de lluvias desde 1984, agrupados en 66 episodios y en 43 temporadas; 2017 solo aporta 23 días. La fecha publicada puede ser la del día siguiente a un evento nocturno.
 - Los datos de reanálisis (ERA5) no ven bien la lluvia convectiva de las quebradas y el caudal de GloFAS es un modelo, no una medición.
 - Cientos de pruebas autocorrelacionadas: la corrección de Benjamini-Hochberg asume dependencia positiva, que es lo razonable aquí, pero las pruebas no son independientes y los hallazgos en rezagos vecinos son una sola cosa.
 - Se mantuvo una regla única de robustez; otras reglas darían listas algo distintas.
-- Un AUC de 0,65 a 0,75 con rezago ≥ 1 no es una alarma: en 6 473 días de temporada con 118 días de huaico casi cualquier umbral sobre estas variables da muchas falsas alarmas.
+- Un AUC de 0,65 a 0,75 con rezago ≥ 1 no es una alarma: en 6 473 días de temporada con 121 días de huaico casi cualquier umbral sobre estas variables da muchas falsas alarmas.
 
 ## 7. Qué falta y qué se pide a otros módulos
 
