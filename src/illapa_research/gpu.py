@@ -165,5 +165,5 @@ def ap_real_y_nulas(
         "ap_real": float(ap[0]), "auc_real": float(auc[0]), "ap_base": float(y.mean()),
         "ap_nula_media": float(nulas.mean()), "ap_nula_p95": float(np.percentile(nulas, 95)),
         "ap_nula_max": float(nulas.max()), "p": float((1 + (nulas >= ap[0]).sum()) / (1 + len(nulas))),
-        "n_nulas": int(len(nulas)),
+        "n_nulas": len(nulas),
     }
