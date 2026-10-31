@@ -332,3 +332,27 @@ def correr_gpu(
             if verbose:
                 print(f"{esp['prueba']:24s} {tipo:9s} ganancia={r['ganancia']:+.4f} p95={r['nula_p95']:.4f} p={r['p']:.4f}", flush=True)
     return pd.DataFrame(out)
+
+
+def rehacer_resultados(raiz: Path, ruta_csv: Path | None = None, **kwargs) -> pd.DataFrame:
+    """Run again every scenario of ``docs/08-resultados/gpu_resultados.csv`` on the current data.
+
+    The scenarios (label, window, dropped seasons, last season, null worlds) and the tests of each
+    one are read from the existing table, so the layout is the same; the file is overwritten.
+    """
+    raiz = Path(raiz)
+    ruta_csv = Path(ruta_csv) if ruta_csv else raiz / "docs" / "08-resultados" / "gpu_resultados.csv"
+    previo = pd.read_csv(ruta_csv, keep_default_na=False)
+    D = __import__("illapa_research.modelo_diario", fromlist=["x"]).cargar_datos(raiz)
+    grupos_ = grupos(list(construir(raiz / "datos", D.F.index).columns))
+    claves = ["escenario", "dias_antes", "desde", "quitar", "hasta_temporada", "n_nulas"]
+    salida = []
+    for (esc, antes, desde, quitar, hasta, n), g in previo.groupby(claves, sort=False):
+        espec = [{"prueba": k, "columnas": grupos_[k]} for k in dict.fromkeys(g["prueba"]) if k in grupos_]
+        r = correr_gpu(raiz, espec, n_nulas=int(n), dias_antes=int(antes), desde=int(desde),
+                       quitar=tuple(int(x) for x in str(quitar).split(",") if x), hasta_temporada=None if int(hasta) == 9999 else int(hasta),
+                       **kwargs)
+        salida.append(r.assign(escenario=esc))
+    out = pd.concat(salida, ignore_index=True)
+    out.to_csv(ruta_csv, index=False)
+    return out
