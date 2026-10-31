@@ -1,0 +1,11 @@
+a,b,dif_ap,p5,p95,excluye_cero,entrada
+producto,solo_dia,0.01269,0.00221,0.02512,True,observada
+producto_regimen,producto,-0.00337,-0.00823,0.00026,False,observada
+producto,solo_quebrada,0.02819,0.00648,0.0563,True,observada
+producto,solo_dia,0.00768,0.00094,0.02278,True,observada sin 2017
+producto,solo_dia,0.0158,-9e-05,0.04037,False,GEFS 24 h
+producto,solo_dia,0.00906,-0.00058,0.04948,False,GEFS 24 h sin 2017
+producto,solo_dia,0.01012,-0.00171,0.0294,False,GEFS 48 h
+producto,solo_dia,0.00144,-0.00574,0.00393,False,GEFS 48 h sin 2017
+producto,solo_dia,0.00452,-0.00033,0.01143,False,GEFS 72 h
+producto,solo_dia,0.00104,-0.00136,0.0026,False,GEFS 72 h sin 2017
