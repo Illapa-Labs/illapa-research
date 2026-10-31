@@ -1,6 +1,6 @@
 from shapely.geometry import shape
 
-from illapa_research.catalogo import cargar_cuencas, cargar_eventos, cargar_todos
+from illapa_research.catalogo import cargar_cuencas, cargar_eventos, cargar_todos, en_zona
 
 
 def test_eventos_tienen_precision_valida():
@@ -36,3 +36,11 @@ def test_catalogo_completo_tiene_decadas_de_cobertura():
     assert len(fechas) > 60
     assert {f.year for f in fechas} >= {1983, 1998, 2009, 2015, 2017, 2020, 2023, 2026}
     assert not any(e.confianza == "baja" for e in cargar_todos(sin_baja_confianza=True))
+
+
+def test_solo_zona_quita_las_fechas_de_otros_distritos():
+    todos = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True)
+    zona = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True, solo_zona=True)
+    fuera = {e.fecha for e in todos} - {e.fecha for e in zona}
+    assert fuera and all(not en_zona(e) for e in todos if e.fecha in fuera)
+    assert len(zona) < len(todos)

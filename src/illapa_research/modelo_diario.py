@@ -89,7 +89,7 @@ def _icen_causal(icen: pd.DataFrame, idx: pd.DatetimeIndex) -> pd.DataFrame:
 
 
 def cargar_datos(raiz: Path = Path("."), dias_antes: int = 0, desde: int = 1984,
-                 quitar_temporadas: tuple[int, ...] = (), nino: str = "icen") -> Datos:
+                 quitar_temporadas: tuple[int, ...] = (), nino: str = "icen", solo_zona: bool = False) -> Datos:
     """Build the feature table and labels from `datos/` (whatever is already downloaded).
 
     `nino` picks the Niño definition used for episodes, the regime split and the hindsight flag:
@@ -112,7 +112,7 @@ def cargar_datos(raiz: Path = Path("."), dias_antes: int = 0, desde: int = 1984,
         raise ValueError(nino)
     icen = N.cargar_icen(datos / "enso" / "igp_icen.txt")
     F = F.join(_icen_causal(icen, F.index)).copy()
-    eventos = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True)
+    eventos = cargar_todos(solo_dia_exacto=True, sin_baja_confianza=True, solo_zona=solo_zona)
     y = E.etiquetas(eventos, F.index, dias_antes)
     ts_todas = E.temporadas_de(F.index)
     mask = P.temporada_mask(F.index) & (F.index.year >= desde) & ~np.isin(ts_todas, quitar_temporadas)
