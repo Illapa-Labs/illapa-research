@@ -344,7 +344,9 @@ def rehacer_resultados(raiz: Path, ruta_csv: Path | None = None, **kwargs) -> pd
     ruta_csv = Path(ruta_csv) if ruta_csv else raiz / "docs" / "08-resultados" / "gpu_resultados.csv"
     previo = pd.read_csv(ruta_csv, keep_default_na=False)
     D = __import__("illapa_research.modelo_diario", fromlist=["x"]).cargar_datos(raiz)
-    grupos_ = grupos(list(construir(raiz / "datos", D.F.index).columns))
+    columnas = list(construir(raiz / "datos", D.F.index).columns)
+    grupos_ = grupos(columnas)
+    grupos_.update({f"T19: {k}": v for k, v in grupos_t19(columnas).items()})  # the ablation rows are named "T19: ..."
     claves = ["escenario", "dias_antes", "desde", "quitar", "hasta_temporada", "n_nulas"]
     salida = []
     for (esc, antes, desde, quitar, hasta, n), g in previo.groupby(claves, sort=False):
