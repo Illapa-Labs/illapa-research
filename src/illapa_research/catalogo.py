@@ -47,11 +47,27 @@ def cargar_cuencas(ruta: Path = CATALOGO / "cuencas.geojson") -> dict:
     return json.loads(Path(ruta).read_text(encoding="utf-8"))
 
 
-def cargar_todos(solo_dia_exacto: bool = False, sin_baja_confianza: bool = False) -> list[Evento]:
-    """Events from the earlier project plus every `eventos_*.csv` source, ordered by date."""
+# Districts of the study zone. INDECI writes the district of Chosica simply as "Lurigancho".
+DISTRITOS_ZONA = ("chosica", "lurigancho", "chaclacayo", "santa eulalia", "ricardo palma")
+
+
+def en_zona(evento: Evento) -> bool:
+    """True when the event row names one of the districts of the study zone."""
+    d = (evento.distrito or "").lower()
+    return any(k in d for k in DISTRITOS_ZONA)
+
+
+def cargar_todos(solo_dia_exacto: bool = False, sin_baja_confianza: bool = False, solo_zona: bool = False) -> list[Evento]:
+    """Events from the earlier project plus every `eventos_*.csv` source, ordered by date.
+
+    `solo_zona` keeps only the dates that have at least one row in the study-zone districts.
+    """
     todos = cargar_eventos(solo_dia_exacto=solo_dia_exacto)
     for ruta in sorted(CATALOGO.glob("eventos_*.csv")):
         todos += cargar_eventos(ruta, solo_dia_exacto=solo_dia_exacto)
     if sin_baja_confianza:
         todos = [e for e in todos if e.confianza != "baja"]
+    if solo_zona:
+        fechas = {e.fecha for e in todos if en_zona(e)}
+        todos = [e for e in todos if e.fecha in fechas]
     return sorted(todos, key=lambda e: e.fecha)
