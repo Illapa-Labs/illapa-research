@@ -37,22 +37,22 @@ Los reanálisis de la época (R1, 2,5°) no ven una quebrada: describen el patr�
 
 ### Con qué datos se corrió (corrida final del 30 de octubre de 2026)
 
-- **ERA5 completo, 6 puntos** de Open-Meteo (Chosica, costa de Lima, Matucana, Santa Eulalia alta, selva de Tarma y Ticlio), con el modelo base `lluvia+antecedentes` de 97 columnas. Una primera versión de este capítulo usó 3 puntos de ERA5 y 3 de MERRA-2 (NASA POWER); **sus conclusiones sobre T19 cambiaron** al completar ERA5 (sección 4.2).
+- **ERA5 completo, 6 puntos** de Open-Meteo (Chosica, costa de Lima, Matucana, Santa Eulalia alta, selva de Tarma y Ticlio), con el modelo base `lluvia+antecedentes` de 116 columnas.
 - **Huecos de las fuentes de circulación:** el OLR de NOAA termina el **31 de diciembre de 2022** (producto discontinuado): no hay OLR para 2023-2026. Los archivos diarios de NCEP/NCAR R1 que sirve PSL llegan solo hasta el **17 de marzo de 2026**. El OMI llega al 24 de junio de 2026. Por eso hay una versión «hasta 2022» que no imputa nada.
-- Temporadas 1984 a 2026, 6 473 días de diciembre a abril, 118 con huaico catalogado (64 episodios). Con la etiqueta del día anterior hay 202 días positivos.
+- Temporadas 1984 a 2026, 6 473 días de diciembre a abril, 121 con huaico catalogado (66 episodios). Con la etiqueta del día anterior hay 206 días positivos.
 - Los cálculos pesados se hicieron en la PC remota con GPU (RTX 4080 SUPER) con `gpu.py`; los resultados están en `docs/08-resultados/`.
 
 ## 3. Método
 
 1. **Rezagos 1 a 15 días** con `senales.rezagos_nula`: AUC de la variable `k` días antes frente a una nula de etiquetas desplazadas 7 a 25 días dentro de la temporada; Benjamini-Hochberg con q = 0,10; con y sin restar la media de cada temporada. Robustez con `senales.robustez` (2009+, sin 1983-1998-2017; Niño y no Niño se reportan, no se exigen).
-2. **¿Mejora el modelo diario?** `circulacion.ganancia_bloque` agrega un bloque de columnas, desplazadas un día (`con_circulacion` lo exige), a las 97 columnas de `lluvia+antecedentes` del capítulo 05 y mide la ganancia de AP fuera de muestra. Los dos modelos (base y base + bloque) son la misma regresión logística con L2 fija (C = 0,03, la que el ajuste anidado del capítulo 05 eligió en 42 de 43 pliegues), con los mismos pliegues (una temporada fuera, o un episodio Niño fuera), ajustados por lotes en la GPU. **Nula:** las filas del bloque se mueven cíclicamente dentro de cada temporada (conservan su persistencia y su ciclo estacional, pero pierden el vínculo día a día con las etiquetas) y se vuelven a ajustar todos los pliegues; **2 000 mundos nulos** en la prueba principal y 1 000 en las de robustez. `p` es la fracción de mundos nulos cuya ganancia alcanza la real. Criterio de la sección 1: ganancia > percentil 95 de la nula y se mantiene dejando episodios fuera.
+2. **¿Mejora el modelo diario?** `circulacion.ganancia_bloque` agrega un bloque de columnas, desplazadas un día (`con_circulacion` lo exige), a las 116 columnas de `lluvia+antecedentes` del capítulo 05 y mide la ganancia de AP fuera de muestra. Los dos modelos (base y base + bloque) son la misma regresión logística con L2 fija (C = 0,03, la que el ajuste anidado del capítulo 05 eligió en 42 de 43 pliegues), con los mismos pliegues (una temporada fuera, o un episodio Niño fuera), ajustados por lotes en la GPU. **Nula:** las filas del bloque se mueven cíclicamente dentro de cada temporada (conservan su persistencia y su ciclo estacional, pero pierden el vínculo día a día con las etiquetas) y se vuelven a ajustar todos los pliegues; **2 000 mundos nulos** en la prueba principal y 1 000 en las de robustez. `p` es la fracción de mundos nulos cuya ganancia alcanza la real. Criterio de la sección 1: ganancia > percentil 95 de la nula y se mantiene dejando episodios fuera.
 3. **Robustez del modelo:** etiqueta del día anterior (`dias_antes=1`), sin 1983, 1998 y 2017, desde 2009, y hasta 2022 (sin imputar medianas en el OLR), y una ablación de T19 variable por variable.
 
 ## 4. Resultados
 
 ### 4.1 Rezagos: hay estructura, pero es lenta y se solapa con la lluvia
 
-Con 435 pruebas (29 variables × 15 rezagos, 2 000 permutaciones cada una) pasan Benjamini-Hochberg **134** (restando la media de la temporada; 115 sin restarla), 146 tienen p < 0,05 contra 22 esperadas por azar, y **86 son robustas**. Con la etiqueta del día anterior pasan 140. Es estructura real, pero son rezagos consecutivos de series que cambian despacio: una señal que dura 10 días cuenta 10 veces. Tablas completas en `docs/08-resultados/rezagos_*.csv`.
+Con 435 pruebas (29 variables × 15 rezagos, 2 000 permutaciones cada una) pasan Benjamini-Hochberg **132** (restando la media de la temporada; 125 sin restarla), 147 tienen p < 0,05 contra 22 esperadas por azar, y **83 son robustas**. Es estructura real, pero son rezagos consecutivos de series que cambian despacio: una señal que dura 10 días cuenta 10 veces. Tablas completas en `docs/08-resultados/rezagos_*.csv`.
 
 | Hipótesis | Qué se ve (AUC; < 0,5 = valor bajo precede al huaico) | Signo frente a lo pre-registrado |
 |---|---|---|
@@ -67,45 +67,45 @@ Estas estructuras son en buena parte lo mismo que la lluvia ya mide: una racha h
 
 ### 4.2 Modelo: nada de la circulación añade lo que ya saben la lluvia y los antecedentes
 
-Ganancia de AP fuera de muestra (base: `lluvia+antecedentes` con ERA5 completo, AP 0,290 dejando temporadas fuera y 0,298 dejando episodios fuera; tasa base 0,018). Prueba principal, 2 000 mundos nulos:
+Ganancia de AP fuera de muestra (base: `lluvia+antecedentes` con ERA5 completo, AP 0,303 dejando temporadas fuera y 0,309 dejando episodios fuera; tasa base 0,019). Prueba principal, 2 000 mundos nulos:
 
 | Grupo | Columnas | Ganancia (temporada fuera) | p95 de la nula | p | Ganancia (episodio fuera) | p95 | p | ¿Cumple? |
 |---|---|---|---|---|---|---|---|---|
-| T16 u200 | 3 | +0,0002 | 0,0057 | 0,18 | -0,0023 | 0,0069 | 0,44 | No |
-| T17 OLR y MJO | 10 | -0,0111 | 0,0132 | 0,65 | -0,0048 | 0,0109 | 0,41 | No |
-| T18 SOI | 1 | -0,0058 | 0,0003 | 0,78 | -0,0043 | 0,0010 | 0,71 | No |
-| T19 850 hPa (completo) | 11 | +0,0078 | 0,0112 | 0,10 | +0,0086 | 0,0139 | 0,14 | **No** |
-| T20 z500 | 4 | -0,0047 | 0,0066 | 0,61 | -0,0010 | 0,0084 | 0,44 | No |
-| Todas | 29 | -0,0056 | 0,0112 | 0,28 | -0,0055 | 0,0093 | 0,25 | No |
+| T16 u200 | 3 | +0,0049 | 0,0081 | 0,11 | -0,0020 | 0,0074 | 0,40 | No |
+| T17 OLR y MJO | 10 | -0,0081 | 0,0145 | 0,63 | -0,0068 | 0,0104 | 0,49 | No |
+| T18 SOI | 1 | -0,0022 | 0,0033 | 0,72 | -0,0043 | 0,0017 | 0,84 | No |
+| T19 850 hPa (completo) | 11 | +0,0069 | 0,0126 | 0,15 | +0,0089 | 0,0137 | 0,12 | **No** |
+| T20 z500 | 4 | -0,0001 | 0,0085 | 0,39 | +0,0019 | 0,0094 | 0,27 | No |
+| Todas | 29 | -0,0053 | 0,0122 | 0,30 | -0,0063 | 0,0099 | 0,27 | No |
 
-**Ninguno de los cinco bloques cumple el criterio pre-registrado.** El único candidato, T19, mejoraba el AP en +0,0225 en la primera versión del capítulo (con 3 puntos de ERA5 y 3 de MERRA-2 en el modelo base, 12 réplicas de la nula); con ERA5 completo la ganancia baja a +0,008, dentro de lo que da el azar. La señal de 850 hPa estaba compensando la humedad y el viento de baja calidad de la malla gruesa, no una señal propia.
+**Ninguno de los cinco bloques cumple el criterio pre-registrado.** El más cercano, T19, mejora el AP en +0,007 (temporada fuera) y +0,009 (episodio fuera), dentro de lo que da el azar (percentil 95 de la nula: 0,013 y 0,014). La señal de 850 hPa no añade a la lluvia y los antecedentes de ERA5 completo.
 
-**Ablación de T19** (variable por variable, 2 000 mundos): `u850` +0,0039 (p = 0,08); **`v850` +0,0092 (p = 0,014; episodio +0,0115, p = 0,006)**; `q850` -0,0026; flujo q·u +0,0019 (p = 0,12); `u850 + v850` +0,0073 (p = 0,034); `u850 + v850 + flujo` +0,0064 (p = 0,046). Solo `v850` y la pareja con `u850` superan el percentil 95 en una de las dos validaciones, con p entre 0,006 y 0,05 sobre 14 pruebas de esta ablación y unas 80 en total: con esa multiplicidad es compatible con azar.
+**Ablación de T19** (variable por variable, 2 000 mundos): `u850` +0,0051 (p = 0,099; episodio +0,0065, p = 0,052); **`v850`** +0,0121 (p = 0,008; episodio +0,0141, p = 0,003); `q850` +0,0020 (p = 0,513; episodio +0,0003, p = 0,657); flujo q·u +0,0043 (p = 0,112; episodio +0,0054, p = 0,054); `u850 + v850` +0,0076 (p = 0,048; episodio +0,0093, p = 0,017); `u850 + v850 + flujo` +0,0065 (p = 0,064; episodio +0,0086, p = 0,022). Solo `v850` y la pareja con `u850` superan el percentil 95 en una de las dos validaciones, con p entre 0,003 y 0,05 sobre 14 pruebas de esta ablación y unas 80 en total: con esa multiplicidad es compatible con azar.
 
 **Robustez** (1 000 mundos nulos; cada fila repite el modelo base y el bloque en la ventana indicada):
 
 | Escenario | Filas / positivos | Base AP | T19 completo: ganancia (temporada) / p | T19: ganancia (episodio) / p | ¿Algún otro bloque cumple? |
 |---|---|---|---|---|---|
-| Etiqueta del día anterior | 6 473 / 202 | 0,307 | +0,0040 / 0,15 | +0,0045 / 0,16 | No |
-| Sin 1983, 1998 y 2017 | 6 171 / 80 | 0,192 | +0,0124 / 0,065 | +0,0008 / 0,31 | No |
-| Desde 2009 | 2 691 / 64 | 0,375 | **+0,0130 / 0,050** (cumple, justo) | **+0,0404 / 0,004** (cumple) | No |
+| Etiqueta del día anterior | 6 473 / 206 | 0,319 | +0,0040 / 0,15 | +0,0041 / 0,15 | No |
+| Sin 1983, 1998 y 2017 | 6 171 / 82 | 0,203 | +0,0059 / 0,10 | +0,0024 / 0,22 | No |
+| Desde 2009 | 2 691 / 66 | 0,384 | +0,0068 / 0,11 | **+0,0340 / 0,009** (cumple) | No |
 | Hasta 2022, sin imputar el OLR | 5 868 / 105 | 0,253 | -0,0010 / 0,46 | +0,0032 / 0,43 | No (T17 con OLR real: -0,018 / p = 0,87) |
 
-**T19 es inconsistente entre ventanas**: no cumple en el período completo, ni con la etiqueta del día anterior, ni sin los grandes racimos, ni hasta 2022; sí cumple (y con el episodio fuera muy claro, +0,040) desde 2009, que es solo la época con 64 positivos y 18 temporadas. En la primera versión del capítulo era justo al revés (cumplía en el período completo y fallaba desde 2009), lo que confirma que la señal depende de la configuración de datos y no de una relación estable. **El OLR, con solo años donde existe, empeora el modelo** (-0,018): la versión con medianas imputadas no era la que lo perjudicaba.
+**T19 es inconsistente entre ventanas**: no cumple en el período completo, ni con la etiqueta del día anterior, ni sin los grandes racimos, ni hasta 2022; solo cumple desde 2009 y únicamente dejando episodios fuera (+0,034, p = 0,009), no dejando temporadas fuera (+0,007, p = 0,11). Esa ventana tiene solo 66 positivos y 18 temporadas, así que la señal depende de la configuración de datos y no de una relación estable. **El OLR, con solo años donde existe, empeora el modelo** (-0,018).
 
 ## 5. Qué se concluye
 
-- **Nulos reportados:** la Alta de Bolivia (T16), el OLR y la MJO (T17), el SOI (T18), el flujo de humedad a 850 hPa (T19) y la baja segregada/vaguada en 500 hPa (T20) **no añaden** a la lluvia y los antecedentes de ERA5 completo, aunque los rezagos muestren estructura. Esto contradice la lectura de la primera versión de este capítulo.
+- **Nulos reportados:** la Alta de Bolivia (T16), el OLR y la MJO (T17), el SOI (T18), el flujo de humedad a 850 hPa (T19) y la baja segregada/vaguada en 500 hPa (T20) **no añaden** a la lluvia y los antecedentes de ERA5 completo, aunque los rezagos muestren estructura.
 - **Direcciones contrarias a lo pre-registrado:** T17 (OLR alto, no bajo), T19 (viento del este más débil el día antes) y T20 (cresta, no vaguada). Se publican tal cual; el caso de abril de 2012 (baja segregada con huaico) es un solo evento y no hace una regla.
-- **Una lección de método:** una ganancia que pasa una nula con 12 réplicas, con un modelo base construido con datos de mala calidad, desaparece con 2 000 réplicas y datos completos. Las ganancias de AP de este tamaño (menos de 0,02) son comparables con el ruido de elegir un escenario de entre varios.
+- **Una lección de método:** las ganancias de AP de este tamaño (menos de 0,02) son comparables con el ruido de elegir un escenario de entre varios.
 - **El patrón de fondo es el del capítulo 04:** lo que precede al huaico a escala sinóptica es persistencia de una racha húmeda; lo que decide el día es la lluvia local y el estado de la cuenca.
 
 ## 6. Límites
 
 - Reanálisis de 2,5° (R1) para describir cajas de varios grados: no hay resolución para una quebrada.
-- Solo 118 días y 64 episodios con huaico; los racimos de 1983, 1998 y 2017 pesan mucho, y desde 2009 solo hay 64 positivos y 18 temporadas.
+- Solo 121 días y 66 episodios con huaico; los racimos de 1983, 1998 y 2017 pesan mucho, y desde 2009 solo hay 66 positivos y 18 temporadas.
 - Hueco del OLR en 2023-2026 y archivos de R1 hasta el 17 de marzo de 2026.
-- Base y bloque usan una regresión logística con L2 fija (C = 0,03), no el ajuste anidado del capítulo 05; el AP base (0,290) difiere un poco del anidado (0,282 con la mezcla de datos de la primera versión).
+- Base y bloque usan una regresión logística con L2 fija (C = 0,03), no el ajuste anidado del capítulo 05; el AP base (0,303) difiere un poco del anidado (0,289).
 - La nula mueve las filas del bloque, no las etiquetas: es la pregunta «¿cuánto gana este bloque por estar bien o mal alineado con los días con huaico?». No prueba que el bloque no tenga ninguna relación con el tiempo en general.
 - Una variable «de ayer» puede ya contener el inicio de la tormenta si el huaico se reportó con la fecha del día siguiente (evento nocturno); la etiqueta del día anterior lo cubre en parte y los resultados no cambian.
 - No es un sistema de alerta.
