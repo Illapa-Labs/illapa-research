@@ -42,9 +42,29 @@ Diferencia de AP contra la logística:
 - **El conjunto no ayuda de forma medible** (+0,006, dentro del ruido): los modelos más débiles no aportan información complementaria.
 - Es el resultado esperable con 123 positivos concentrados en pocas temporadas: más parámetros significan más ajuste a los racimos de 1983, 1998, 2017 y 2023.
 
-## 5. Límites
+## 5. ¿Se puede entrenar de forma conjunta con el SINPAD de todo Perú?
+
+Se hizo una sonda antes de construir nada. Se consultó el SINPAD público (anónimo, `fuentes_estado.sinpad_emergencias`) para 12 distritos con huaicos conocidos, de 2000 a 2026, y se contaron las emergencias con peligro principal «HUAICO» o «ALUVIÓN» por año:
+
+| Distrito | Emergencias de huaico/aluvión (2000-2026) | Años |
+|---|---|---|
+| Lurigancho-Chosica | 5 | 2019, 2020, 2023 ×2, 2026 |
+| Chanchamayo | 6 | 2020, 2021, 2023 ×2, 2025, 2026 |
+| Machu Picchu | 5 | 2020, 2021, 2022, 2024, 2026 |
+| Matucana | 3 | 2024 ×2, 2025 |
+| Yungay | 3 | 2019, 2022 ×2 |
+| Huaraz, Chivay, Carabayllo, San Ramón | 1 a 2 cada uno | — |
+| Urubamba, Huancayo, Vítor | 0 | — |
+
+Dos conclusiones:
+- **Solo hay registros desde 2019**, unas siete temporadas, aunque se pidió desde 2000.
+- **Es muy incompleto frente al catálogo propio:** en Lurigancho-Chosica el SINPAD tiene 5 huaicos desde 2019 y el catálogo de este proyecto (INDECI, Defensa Civil, prensa) tiene más de 25 fechas en el mismo período. El SINPAD público recoge quizá una quinta parte de los eventos.
+
+Por eso el entrenamiento conjunto con el SINPAD no es una buena ruta: pocos eventos por distrito, pocos años y una omisión muy grande, sin un modelo de reporte que la compense. Habría que reunir además la lluvia de cientos de distritos. Queda descartado como camino principal; podría servir más adelante como señal de contraste en distritos con buena cobertura.
+
+## 6. Límites
 
 - La GRU y el boosting se probaron con una sola configuración fijada de antemano; no se afinaron los hiperparámetros, porque hacerlo con tan pocos eventos sería ajustar a la validación. Una búsqueda más amplia podría acercarlos, pero hay poco espacio por encima de la logística.
-- Un modelo profundo tendría sentido con más datos: la ruta es entrenar de forma conjunta con otras zonas del país (huaicos y deslizamientos del SINPAD por distrito), no una arquitectura más grande con las mismas fechas.
+- Un modelo profundo tendría sentido con más datos, no con una arquitectura más grande sobre las mismas fechas. El SINPAD público no los aporta (sección 5); las rutas que quedan son etiquetas objetivas (satélite) y los avisos oficiales de activación de quebradas que se acumulan desde 2026 (capítulo 23).
 - No se calcularon mundos nulos para la GRU y el boosting; la pregunta aquí es cuál ordena mejor, no si supera el azar (la logística ya lo hace con p = 0,0005, capítulo 05).
 - Las cifras dependen del catálogo de esta corrida (152 fechas); cambian en la tercera cifra cuando se añaden fechas.
