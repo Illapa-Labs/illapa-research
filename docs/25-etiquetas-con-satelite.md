@@ -42,12 +42,34 @@ Exploratorio, quitando el efecto de cuenca y el de temporada (estandarización d
 - **Por qué es difícil con esta medida:** el disco de 700 m mezcla abanico, urbanización y cultivos; el verdor cambia entre octubre y junio por la lluvia misma (los píxeles de ladera «reverdecen» más donde llovió más, sin que haya flujo); y 20 m no resuelven un cauce de 10 a 30 m de ancho.
 - **Los negativos del catálogo no son negativos confirmados.** Una cuenca sin activación registrada puede haberse activado sin reporte; ese ruido de etiqueta baja el AUC máximo alcanzable.
 
-## 6. Límites
+## 6. Diseño v2 (pre-registrado antes de correr) y resultado
 
-- Solo 2019 a 2026 (Sentinel-2 sobre la zona); la temporada 2017, la más grande, no tiene escena limpia posterior en el período de lluvias y la estación seca siguiente no se probó.
-- Se usó una escena por fecha, sin compuestos. Un compuesto (mediana de varias escenas limpias) reduce el ruido.
-- No se separó el cauce del resto: una máscara del cauce a partir del DEM (acumulación de flujo) y bandas de 10 m son el siguiente paso lógico.
+Para quitar las debilidades de la v1 se fijó, antes de ver ningún resultado, un segundo diseño:
 
-## 7. Qué sigue
+- Máscara del **cauce** derivada del DEM (acumulación de flujo con área aguas arriba ≥ 0,1 km², dentro de cada cuenca, ensanchada 20 m) en lugar de un disco de 700 m alrededor de la salida.
+- Bandas a **10 m** (las de 20 m repetidas sobre esa rejilla).
+- **Compuestos de mediana** de hasta tres escenas limpias para «antes» y «después».
+- **Estandarización de dos vías** (se quitan el efecto de cada cuenca y el de cada temporada) antes del AUC, con permutaciones dentro de cada temporada.
+- **Regla de decisión:** el índice principal (NBR, que debe bajar) solo se considera apoyado con AUC ≥ 0,65 y p < 0,05.
 
-Un segundo diseño, pre-registrado antes de correrlo: máscara de cauce y abanico a partir del DEM en vez del disco; NDVI y NBR a 10 m; compuestos de mediana para «antes» y «después»; línea base por cuenca; y un control positivo con un evento muy grande y bien documentado (2017) usando Landsat de la estación seca. Si tampoco separa, se descarta esta vía y se deja como resultado negativo.
+Mismas temporadas (2019 a 2026), 22 cuencas con datos válidos, 110 pares cuenca-temporada y 20 activaciones del catálogo. Las escenas elegidas están en `catalogo/satelite_v2_cambio_temporadas.csv`.
+
+| Índice | Signo esperado | AUC | p | ¿Apoyado? |
+|---|---|---|---|---|
+| **NBR (principal)** | baja | **0,56** | 0,53 | **No** |
+| NDVI | baja | 0,53 | 0,60 | No |
+| SWIR | sube | 0,43 | 0,82 | No |
+
+El NBR medio en el cauce es incluso algo mayor en los pares con activación (+0,023) que en los demás (+0,016), el sentido contrario al de una cicatriz. **Con mejor medición la señal no mejora, empeora (de 0,61 a 0,56).** Eso apunta a que lo que veía la v1 era ruido (más verdor donde llovió más), no cicatrices.
+
+## 7. Conclusión
+
+- Con Sentinel-2 de 10 a 20 m, el cambio entre una escena de octubre a diciembre y otra de mayo a agosto **no separa** las cuencas con activación documentada de las demás. El resultado es negativo con dos diseños y no se sostiene como etiqueta objetiva.
+- Se descarta esta vía **para temporadas completas con la resolución de Sentinel-2**. No descarta que un flujo muy grande (2017, 2015) deje una huella visible en una comparación día a día con escenas limpias; en 2017 no hay escena limpia posterior en Sentinel-2.
+
+## 8. Límites
+
+- Solo 20 activaciones, con etiquetas ruidosas: los «negativos» del catálogo no están confirmados.
+- La temporada 2017, la mayor, quedó fuera (no hay Sentinel-2 en la ventana «antes»). Landsat 8 y 9 (30 m) existen desde 2013 y no se probaron.
+- Con cauces de 10 a 30 m de ancho y píxeles de 10 m, el cauce no se resuelve bien; imágenes de 0,5 a 3 m o radar (Sentinel-1) podrían dar más, con otro tipo de acceso.
+- Lo que sí quedó montado es el acceso anónimo y reproducible a Sentinel-2 y Landsat, por si se retoma la idea.
