@@ -95,3 +95,35 @@ def test_comparar_priorizadas_une_los_nombres_oficiales_con_nuestro_rango():
     assert q["rango_mediano"] == 3.0
     r = out[(out.entidad == "ANIN") & (out.quebrada_oficial == "Rayito de Sol")].iloc[0]
     assert r["slug"] == "corrales" and r["rango_mediano"] == 9.0
+
+
+def test_geoquebradas_historico_pagina_por_offset(tmp_path):
+    pag1 = {"features": [{"attributes": {"fecha": 1769904000000, "nivel": 3}}, {"attributes": {"fecha": 1769990400000, "nivel": 2}}],
+            "exceededTransferLimit": True}
+    pag2 = {"features": [{"attributes": {"fecha": 1770076800000, "nivel": 1}}]}
+
+    class Pagina(FE.ClienteEstado):
+        def __init__(self):
+            super().__init__(tmp_path, pausa=0)
+            self.pedidos = []
+
+        def get(self, url, params=None, cache=None, **kw):
+            self.pedidos.append(params["resultOffset"])
+            r = pytest.importorskip("requests").Response()
+            r.status_code = 200
+            r._content = json.dumps(pag1 if params["resultOffset"] == 0 else pag2).encode()
+            return r
+
+    c = Pagina()
+    filas = FE.geoquebradas_historico(c, "nombdep='LIMA'", pagina=2)
+    assert [f["nivel"] for f in filas] == [3, 2, 1] and c.pedidos == [0, 2]
+    assert FE.fecha_arcgis(filas[0]["fecha"]) == "2026-02-01"
+
+
+def test_geoquebradas_resumen_agrupa_por_dia_y_provincia():
+    filas = [{"fecha": 1769904000000, "nombprov": "A", "nivel": 3, "pob_exp": 10.4, "nombdist": "X"},
+             {"fecha": 1769904000000, "nombprov": "A", "nivel": 1, "pob_exp": 2.0, "nombdist": "Y"},
+             {"fecha": 1769904000000, "nombprov": "B", "nivel": 2, "pob_exp": 0.0, "nombdist": "Z"}]
+    r = FE.geoquebradas_resumen(filas).set_index("nombprov")
+    assert r.loc["A", "avisos"] == 2 and r.loc["A", "nivel_max"] == 3 and r.loc["A", "distritos"] == 2
+    assert r.loc["A", "pob_exp_max"] == 10 and r.loc["B", "fecha"] == "2026-02-01"

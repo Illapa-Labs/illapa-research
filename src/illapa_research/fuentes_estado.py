@@ -325,6 +325,49 @@ def huaicos_sinpad_nuevos(df: pandas.DataFrame, fechas_catalogo: set) -> pandas.
     return pd.DataFrame(filas)
 
 
+MINAM = "https://geoservidorperu.minam.gob.pe/arcgis/rest/services"
+GEOQUEBRADAS = "Servicios_Geoquebradas/geoquebradas/MapServer"
+CAMPOS_GEOQUEBRADAS = (
+    "fecha,nivel,nombdep,nombprov,nombdist,fecha_proc,eval_id,pob_exp,viv_exp,prioridad,aviso_nivel,"
+    "nro_reporte,quebrada_uid,apersistencia_7d,arecurrencia_7d,dias_persist_7d,observacion_metodologica"
+)
+
+
+def geoquebradas_historico(c: ClienteEstado, donde: str = "1=1", capa: int = 1, pagina: int = 1000,
+                           nombre_cache: str = "geoquebradas") -> list[dict]:
+    """Attributes (no geometry) of the MINAM «Geoquebradas historico» daily notices, all pages.
+
+    The public ArcGIS REST service pages with ``resultOffset``; ``capa`` 1 is the daily history
+    (from 2026-02-01), 0 the current state. Dates come as epoch milliseconds (`fecha_arcgis`).
+    """
+    url = f"{MINAM}/{GEOQUEBRADAS}/{capa}/query"
+    out: list[dict] = []
+    while True:
+        j = arcgis_json(c, url, {"where": donde, "outFields": CAMPOS_GEOQUEBRADAS, "returnGeometry": "false",
+                                 "orderByFields": "OBJECTID", "resultOffset": len(out), "resultRecordCount": pagina},
+                        cache=f"{nombre_cache}_{capa}_{len(out)}.json")
+        filas = [f["attributes"] for f in j.get("features", [])]
+        out += filas
+        if len(filas) < pagina and not j.get("exceededTransferLimit"):
+            return out
+        if not filas:
+            return out
+
+
+def geoquebradas_resumen(filas: list[dict]) -> pandas.DataFrame:  # noqa: F821
+    """One row per day and province: notices, highest level, exposed population, districts."""
+    import pandas as pd
+
+    df = pd.DataFrame(filas)
+    df["fecha"] = df["fecha"].map(fecha_arcgis)
+    out = (df.groupby(["fecha", "nombprov"])
+           .agg(avisos=("nivel", "size"), nivel_max=("nivel", "max"), pob_exp_max=("pob_exp", "max"),
+                distritos=("nombdist", "nunique"))
+           .reset_index())
+    out["pob_exp_max"] = out["pob_exp_max"].round(0)
+    return out
+
+
 CAPAS_INGEMMET = {
     "peligros_geologicos": ("SERV_PELIGROS_GEOLOGICOS", 0),
     "otros_peligros": ("SERV_PELIGROS_GEOLOGICOS", 1),

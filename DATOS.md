@@ -61,6 +61,7 @@ Revisión de licencias del 30 de octubre de 2026, fuente por fuente:
 | IGP (ICEN y lista de eventos costeros) | **No se incluye**: no traen licencia explícita | Se bajan del IGP con `descargar-datos --solo igp-icen` |
 | INGEMMET (GEOCATMIN: peligros geológicos, zonas críticas) | **No se espeja el crudo**: licencia para uso no comercial con obras derivadas permitidas | Citar a INGEMMET como fuente original; solo tablas derivadas pequeñas en `catalogo/`. `descargar-datos --solo datos-del-estado` |
 | INDECI (SINPAD, emergencias desde 2019) | Solo tablas derivadas en `catalogo/`; información pública (Ley 27806), sin licencia explícita | Citar al INDECI; no es un registro completo de huaicos |
+| MINAM (Geoquebradas: avisos diarios de activación de quebradas, desde 2026) | **No se espeja el crudo**: el servidor ArcGIS REST público no declara licencia; información pública del Estado | Solo el resumen por día y provincia en `catalogo/geoquebradas_lima_2026.csv`; citar al MINAM (Geoservidor) y al SENAMHI. Cliente: `fuentes_estado.geoquebradas_historico` |
 | CENEPRED (SIGRID: FEN 2027), ANA y ANIN | Solo listas de quebradas priorizadas (prensa) y tablas pequeñas; no se espeja | Citar a cada entidad; los servicios con token no se usan |
 
 La licencia AGPL cubre el código; cada archivo conserva la licencia de su fuente.
