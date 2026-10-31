@@ -36,6 +36,7 @@ era5 = [
 ]
 gefs = [
     "eccodes>=2.50.0",
+    "eccodeslib>=2.50.0.33",
 ]
 
 [project.scripts]
