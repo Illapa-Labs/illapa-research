@@ -119,7 +119,7 @@ class Filas:
         self.todas = [c for c in D.F.columns if not c.startswith("icen_")]
 
     def antecedentes(self, k: int) -> pd.DataFrame:
-        return self.F[self.todas].shift(k)[self.mask]
+        return self.F[self.todas].shift(k)[self.mask].add_suffix("_prev")
 
 
 def entradas_pp(filas: Filas, ens: pd.DataFrame, plazo: int, dias_prueba: pd.DatetimeIndex):
@@ -404,7 +404,7 @@ def correr(D, corridas: pd.DataFrame, plazos=(1, 2, 3), n_nulas: int = 2000, dis
             X = caracteristicas_mos(ens, k, dias, nivel)
             mod[nombre] = mos_oof(X, y_t, ts_t, C_MOS[nombre], dispositivo)
         X_ens = caracteristicas_mos(ens, k, dias, "ens")
-        mod["mos_ant"] = mos_oof(pd.concat([X_ens, ant.add_prefix("a_")], axis=1), y_t, ts_t, C_MOS["mos_ant"], dispositivo)
+        mod["mos_ant"] = mos_oof(pd.concat([X_ens, ant], axis=1), y_t, ts_t, C_MOS["mos_ant"], dispositivo)
         if len(conv):
             X_conv = caracteristicas_mos(ens, k, dias, "ens_conv", conv)
             mod["mos_ens_conv"] = mos_oof(X_conv, y_t, ts_t, C_MOS["mos_ens_conv"], dispositivo)
