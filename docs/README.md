@@ -24,3 +24,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [18 · Datos del Estado](18-datos-del-estado.md) | Qué publican INGEMMET, INDECI, CENEPRED, ANA y ANIN, qué se obtuvo y cómo cae su lista de quebradas priorizadas frente a nuestro ranking | `14` |
 | [19 · Backtest con el reforecast GEFS](19-backtest-gefs-reforecast.md) | Probabilidad de un día con huaico con lluvia pronosticada a 24, 48 y 72 h, 2000-2019, con y sin 2017 | `15` |
 | [20 · Análogos: los días más parecidos](20-analogos.md) | Búsqueda de los K días más parecidos (Lguensat et al. 2017) contra la regresión logística: señal real, no la supera | — |
+| [20 · Ficha de probabilidad desde pronóstico](20-ficha-desde-pronostico.md) | Probabilidad con intervalo y fiabilidad por plazo (24, 48, 72 h) a partir del reforecast GEFS | `16` |
