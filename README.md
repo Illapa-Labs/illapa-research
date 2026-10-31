@@ -24,8 +24,9 @@ El kit de investigación de [Illapa Labs](https://github.com/Illapa-Labs): un sc
 | `src/illapa_research/quebradas.py` | Delimita con el DEM las cuencas que drenan al Rímac y a Santa Eulalia y calcula sus atributos físicos |
 | `src/illapa_research/nino.py`, `filtro.py`, `modelo.py` | Temporadas con El Niño (NOAA) y ranking de quebradas por evidencia física e historial |
 | `src/illapa_research/predictores.py`, `evaluacion_diaria.py`, `senales.py`, `modelo_diario.py`, `integracion.py` | Señales diarias (mar, calor aguas arriba, humedad de la selva, caudal, suelo), análisis de rezagos, modelo de «día con huaico» validado fuera de muestra, y su unión con las quebradas |
-| `notebooks/` | `01-red-de-quebradas`, `02-estudio-de-eventos`, `03-filtro-quebradas-nino`, `04-senales-y-rezagos`, `05-modelo-diario` y `06-dia-y-quebrada` |
-| `docs/` | Capítulos de investigación (plan, cuencas, modelo por quebrada, señales, modelo diario) con sus datos, métodos, cifras y límites |
+| `src/illapa_research/banco_modelos.py`, `satelite.py`, `satelite_piloto.py` | Banco de modelos (logística, boosting monótono, GRU, conjunto) y piloto de etiquetas con satélite (Sentinel-2) |
+| `notebooks/` | 16 cuadernos numerados del 01 al 17 (red de quebradas, estudio de eventos, filtro, señales, modelo diario, calidad de etiquetas, circulación, hipótesis de la literatura, SENAMHI, ficha de probabilidad, backtests con pronóstico y GEFS, ficha desde pronóstico, quebradas y día) |
+| `docs/` | 25 capítulos de investigación (plan, cuencas, modelo por quebrada, señales, modelo diario, pronóstico, banco de modelos, satélite) con sus datos, métodos, cifras y límites |
 | `catalogo/` | Eventos de huaico y polígonos de cuenca del piloto (Chosica y Chaclacayo) |
 | `tests/` | Pruebas del código |
 
@@ -53,7 +54,7 @@ uv run modelo-quebradas      # modelo Gamma-Poisson por quebrada: rangos posteri
 
 El ranking mezcla dos cosas que se mantienen separadas: la susceptibilidad física de la cuenca (sin pesos ajustados) y las activaciones documentadas en temporadas Niño. Hoy 25 cuencas tienen nombre ubicado (entre ellas Quirio, Pedregal, Los Laureles, Chacrasana, La Ronda, California, Huáscarán, Carossio, Huampaní y Carapongo; lista completa en `docs/01`) porque el catálogo no trae coordenadas de las demás quebradas; las reglas, la validación dejando un Niño fuera y sus límites están en [catalogo/README.md](catalogo/README.md). Es investigación, no una alerta. Los capítulos en [docs/](docs/README.md) explican cada paso y qué falló.
 
-## Qué se ha aprendido hasta ahora (30 de octubre de 2026)
+## Qué se ha aprendido hasta ahora (31 de octubre de 2026)
 
 Resumen honesto; el detalle, las cifras con intervalos y los límites están en los capítulos de [docs/](docs/README.md).
 
@@ -68,7 +69,9 @@ Resumen honesto; el detalle, las cifras con intervalos y los límites están en 
 - **Quebrada y día (catálogo mejorado).** Con lluvia observada, multiplicar la probabilidad del día por la participación histórica de cada quebrada mejora la precisión media de los pares (0,029 contra 0,017; la diferencia excluye 0, también sin 2017) y las 5 quebradas con más historial cubren el 44 % de las activaciones contra 21 % esperado; con el pronóstico GEFS la ventaja no se distingue de cero. Ver [docs/21](docs/21-quebradas-y-dia.md).
 - **Ficha desde pronóstico.** Con un pronóstico de lluvia a 24, 48 o 72 h la ficha informa la frecuencia observada de días con huaico en la banda de probabilidad, con intervalo y advertencias: a 24 h la banda de 25 % o más tuvo huaico en 41 % de 27 días (20 % sin 2017); a 48 y 72 h esa banda no es fiable (15 % y 8 %). Ver [docs/20](docs/20-ficha-desde-pronostico.md).
 - **Datos del Estado.** INGEMMET, SINPAD y CENEPRED (FEN 2027) aportaron 4 cuencas nuevas (Huampaní, La Laguna, Carapongo, Señor de los Milagros) y 2 fechas verificadas de Callahuanca; el 77,5 % de los puntos nombrados de INGEMMET cae en la cuenca que habíamos asignado. Coinciden con las listas oficiales Quirio, Pedregal, Chacrasana y La Ronda; Santo Domingo, Cusipata y las quebradas sin historial quedan abajo en nuestro ranking (ver [docs/18](docs/18-datos-del-estado.md)).
-- **Qué falta.** Coordenadas de Cashahuacra, Huascata, Santa María y otras; lluvia de montaña horaria entre 2014 y 2017; fechas verificadas de 1999-2008; CAPE y agua precipitable (piden cuenta de Copernicus).
+- **Qué modelo.** Probamos logística regularizada, boosting con relaciones monótonas, una red recurrente (GRU) y un conjunto con la misma validación (una temporada fuera): **la logística sigue siendo la mejor** (AP 0,30; la GRU queda 0,08 por debajo, con intervalo que excluye el cero). Con 123 días con huaico un modelo más grande no ayuda (ver [docs/24](docs/24-banco-de-modelos.md)). El SINPAD público tampoco sirve para entrenar con todo el país: solo registra desde 2019 y recoge una quinta parte de los huaicos de nuestra zona.
+- **Los límites son de los datos, no del modelo.** De 152 fechas con día exacto, 55 tienen quebrada ubicada y solo unas 11 quebradas pasan de 4 días de historial; 4 temporadas (1983, 1998, 2017, 2023) pesan casi la mitad. Cuatro agentes de búsqueda y la revisión del archivo del INDECI y de datos abiertos sumaron 7 fechas ubicadas; el conjunto de emergencias históricas del INDECI en datos abiertos tiene los archivos caídos (404). **Etiquetas objetivas con satélite:** dos diseños con Sentinel-2 (disco de la salida y cauce del DEM, 10 a 20 m) no separan las cuencas activadas de las demás (AUC 0,43 a 0,61, ver [docs/25](docs/25-etiquetas-con-satelite.md)). Con celdas de 10 a 25 km, la lluvia de Chosica predice igual de bien los eventos de Santa Eulalia: la lluvia por zona no ayuda.
+- **Qué falta.** Una validación prospectiva en la temporada 2026-27 (el ranking y la ficha se fijan antes y se comparan con los avisos oficiales y los reportes del COEN); etiquetas de gravedad y localización (coordenadas o kilómetro de la Carretera Central) en vez de nombres; coordenadas de Cashahuacra, Huaycoloro, Cuculí, Lucumaseca y Palle; fechas verificadas de 1999-2008 y de 1983-1998 (solo salen de hemeroteca de papel); CAPE y agua precipitable (piden cuenta de Copernicus).
 
 ## Datos
 
