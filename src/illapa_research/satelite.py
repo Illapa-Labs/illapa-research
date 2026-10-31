@@ -366,7 +366,8 @@ def dos_vias(tabla, columna: str):
     x = tabla.pivot(index="slug", columns="temporada", values=columna).dropna(how="all")
     x = x.loc[x.notna().sum(axis=1) >= 4]
     for _ in range(10):
-        x = x.sub(x.mean(axis=1), axis=0).sub(x.mean(axis=0), axis=1)
+        x = x.sub(x.mean(axis=1), axis=0)
+        x = x.sub(x.mean(axis=0), axis=1)
     return x.stack(future_stack=True).rename(columna).dropna().reset_index()
 
 
