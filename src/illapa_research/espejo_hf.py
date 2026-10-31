@@ -42,6 +42,12 @@ ARCHIVOS = {
     "circulacion/soi_cpc.txt": "noaa-circulacion",
     "circulacion/rmm.txt": "bom-rmm",
     "senamhi/tablas": "senamhi",
+    "senamhi/cache": "senamhi",  # raw answers of the SENAMHI API, so notebook 11 runs without asking the API again
+    "senamhi/ogc": "senamhi",
+    "senamhi/datosabiertos": "senamhi",  # datosabiertos.gob.pe, ODC-By
+    "senamhi/avisos_2020_puntos.json": "senamhi",
+    "senamhi/avisos_2020_bbox.json": "senamhi",
+    "senamhi/ninos_anomalia.json": "senamhi",
     "pisco/rimac_diario.csv": "senamhi",  # PISCOp v3 reduced to the Rímac valley; the backtests read it from here
     "gefs_reforecast/gefs_corridas.csv.gz": "gefs-reforecast",
     "pronosticos": "pronosticos-previous-runs",
