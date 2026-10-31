@@ -12,7 +12,7 @@ El evento es exactamente ese: un día de temporada de lluvias (diciembre a abril
 
 ## 2. Datos
 
-ERA5 en 6 puntos (3 por la API de Open-Meteo y 3 de sus archivos en AWS, capítulo 13), temperatura del mar NOAA OISST, caudal GloFAS, ICEN oficial (IGP/ENFEN) y el catálogo de 148 fechas. Muestra: 6 473 días de temporada, **119 con huaico**, 43 temporadas, 118 columnas (las del capítulo 05, «+Niño»). Corrida del 30 de octubre de 2026.
+ERA5 en 6 puntos (3 por la API de Open-Meteo y 3 de sus archivos en AWS, capítulo 13), temperatura del mar NOAA OISST, caudal GloFAS, ICEN oficial (IGP/ENFEN) y el catálogo de 150 fechas. Muestra: 6 473 días de temporada, **121 con huaico**, 43 temporadas, 118 columnas (las del capítulo 05, «+Niño»). Corrida del 30 de octubre de 2026.
 
 ## 3. Pre-registro y resultado de cada hipótesis
 
@@ -20,35 +20,35 @@ Las decisiones y las hipótesis se escribieron en el notebook antes de mirar nin
 
 | | Hipótesis | Resultado |
 |---|---|---|
-| P1 | Un modelo reducido (2 columnas por familia, elegidas dentro de cada entrenamiento) no es peor que el completo | **No.** Log-loss 0,0725 contra 0,0646; Brier 0,0166 contra 0,0154; precisión media 0,17 contra 0,28. Modelo principal: el **completo** (ridge, C = 0,03 en 40 de 43 pliegues; usa 117 de 118 columnas) |
-| P2 | La recalibración mejora la fiabilidad | **No.** El ridge ya sale calibrado: Platt da a = 0,023 y b = 0,978 (casi la identidad) y el log-loss pasa de 0,0637 a 0,0646. Se conserva por el pre-registro, sin efecto práctico |
-| P3 | Un ajuste de régimen (ICEN causal ≥ 0,4) corrige el desbalance Niño / no Niño | **No.** Empeora el log-loss 0,27 % y no mueve las razones (1,22 y 0,67 pasan a 1,21 y 0,68). No se adopta |
-| P4 | Sigue calibrada por era y sin los grandes racimos | **Solo en conjunto.** Razón observado/predicho 1,009 en total, pero 0,85 (1984-1998), 0,69 (1999-2008) y 1,28 (2009-2026). Reentrenando sin 1983, 1998 y 2017: precisión media 0,155 (12 veces la base), AUC 0,873, razón 1,00 |
-| P5 | Las familias que más empujan son estables | **Sí.** En el 93 % a 100 % de los 500 modelos remuestreados |
-| P6 | `P(día) × π_quebrada` ordena mejor los pares que solo el día | **Sí, poco.** Precisión media 0,029 contra 0,020 (+51 %), AUC 0,923 contra 0,920; solo la quebrada: 0,0012 |
+| P1 | Un modelo reducido (2 columnas por familia, elegidas dentro de cada entrenamiento) no es peor que el completo | **No.** Log-loss 0,0728 contra 0,0652; Brier 0,0167 contra 0,0155; precisión media 0,18 contra 0,29. Modelo principal: el **completo** (ridge, C = 0,03 en 38 de 43 pliegues y 0,01 en 5; usa 117 de 118 columnas) |
+| P2 | La recalibración mejora la fiabilidad | **No.** El ridge ya sale calibrado: Platt es casi la identidad y el log-loss pasa de 0,0644 a 0,0652. Se conserva por el pre-registro, sin efecto práctico |
+| P3 | Un ajuste de régimen (ICEN causal ≥ 0,4) corrige el desbalance Niño / no Niño | **No.** Empeora el log-loss 0,29 % y no mueve las razones (1,21 y 0,67 pasan a 1,21 y 0,68). No se adopta |
+| P4 | Sigue calibrada por era y sin los grandes racimos | **Solo en conjunto.** Razón observado/predicho 1,009 en total, pero 0,85 (1984-1998), 0,70 (1999-2008) y 1,27 (2009-2026). Reentrenando sin 1983, 1998 y 2017: precisión media 0,159 (12 veces la base), AUC 0,873, razón 1,00 |
+| P5 | Las familias que más empujan son estables | **Sí.** En el 92 % a 100 % de los 500 modelos remuestreados |
+| P6 | `P(día) × π_quebrada` ordena mejor los pares que solo el día | **Sí, poco.** Precisión media 0,031 contra 0,017 (+79 %), AUC 0,931 contra 0,919; solo la quebrada: 0,0012 |
 
 ## 4. Calibración y poder de resolución
 
-Globalmente (probabilidades fuera de muestra): Brier 0,0154 (habilidad 0,14 frente a la climatología por mes), log-loss 0,0646, precisión media 0,278 (base 0,018), AUC 0,900.
+Globalmente (probabilidades fuera de muestra): Brier 0,0155 (habilidad 0,15 frente a la climatología por mes), log-loss 0,0652, precisión media 0,285 (base 0,019), AUC 0,899.
 
 **Por banda fija**, con intervalo del 80 % que remuestrea temporadas enteras:
 
 | Banda | Días | Con huaico | Fracción observada | IC 80 % | Probabilidad media |
 |---|---|---|---|---|---|
-| 0 a 0,5 % | 3 679 | 7 | 0,2 % | 0,1 a 0,3 % | 0,2 % |
-| 0,5 a 1 % | 937 | 8 | 0,9 % | 0,4 a 1,3 % | 0,7 % |
-| 1 a 2 % | 716 | 10 | 1,4 % | 0,8 a 2,1 % | 1,4 % |
-| 2 a 5 % | 616 | 17 | 2,8 % | 2,0 a 3,6 % | 3,2 % |
-| 5 a 10 % | 280 | 24 | 8,6 % | 5,8 a 11,1 % | 7,0 % |
-| 10 a 25 % | 175 | 28 | 16,0 % | 9,9 a 21,4 % | 14,9 % |
-| 25 % o más | 70 | 25 | 35,7 % | 23,7 a 46,9 % | 42,1 % |
+| 0 a 0,5 % | 3 669 | 5 | 0,1 % | 0,0 a 0,3 % | 0,2 % |
+| 0,5 a 1 % | 945 | 10 | 1,1 % | 0,5 a 1,6 % | 0,7 % |
+| 1 a 2 % | 711 | 9 | 1,3 % | 0,8 a 1,8 % | 1,4 % |
+| 2 a 5 % | 617 | 20 | 3,2 % | 2,4 a 4,2 % | 3,2 % |
+| 5 a 10 % | 279 | 23 | 8,2 % | 5,7 a 10,6 % | 7,0 % |
+| 10 a 25 % | 180 | 29 | 16,1 % | 10,5 a 21,4 % | 15,0 % |
+| 25 % o más | 72 | 25 | 34,7 % | 23,4 a 45,3 % | 42,1 % |
 
-La probabilidad separa bien: el 3 % de los días (la banda más alta) contiene el 21 % de los días con huaico; la banda más baja (57 % de los días) contiene el 6 %. La banda más alta sobreestima algo (42 % predicho, 36 % observado, con intervalo amplio).
+La probabilidad separa bien: el 1 % de los días (la banda más alta) contiene el 21 % de los días con huaico; la banda más baja (57 % de los días) contiene el 4 %. La banda más alta sobreestima algo (42 % predicho, 35 % observado, con intervalo amplio).
 
 **Lo que no está calibrado.**
-- **Por régimen.** En temporadas Niño el modelo subestima (observado/predicho 1,22) y en no Niño sobreestima (0,67).
-- **Por era.** La causa parece ser la cobertura del catálogo, no el Niño: antes de 2009 hay menos fechas por día de lluvia extrema (capítulo 07). Un calibrador *exploratorio* ajustado solo con 2009 en adelante lleva la razón de 1,28 a 1,03 en esos años, pero no mejora Brier ni log-loss (0,0187 contra 0,0184; 0,0734 contra 0,0728). En días de hoy, las probabilidades de este capítulo probablemente son bajas, del orden de un 25 % a 30 %.
-- **Racimos.** En 2017 hubo 23 días con huaico y el modelo esperaba 12,3.
+- **Por régimen.** En temporadas Niño el modelo subestima (observado/predicho 1,21) y en no Niño sobreestima (0,67).
+- **Por era.** La causa parece ser la cobertura del catálogo, no el Niño: antes de 2009 hay menos fechas por día de lluvia extrema (capítulo 07). Un calibrador *exploratorio* ajustado solo con 2009 en adelante lleva la razón de 1,27 a 1,03 en esos años, pero no mejora Brier ni log-loss (0,0187 contra 0,0189; 0,0744 contra 0,0748). En días de hoy, las probabilidades de este capítulo probablemente son bajas, del orden de un 25 % a 30 %.
+- **Racimos.** En 2017 hubo 23 días con huaico y el modelo esperaba 12,9.
 
 ## 5. Qué empuja hacia arriba
 
@@ -56,14 +56,14 @@ Aporte medio por familia en escala logit, respecto a un día promedio de tempora
 
 | Familia | Diferencia | Estabilidad |
 |---|---|---|
-| Lluvia del día | +1,79 | 100 % |
-| Temperatura del mar | +0,57 | 100 % |
-| Lluvia de los días previos | +0,42 | 99,6 % |
+| Lluvia del día | +1,76 | 100 % |
+| Temperatura del mar | +0,58 | 100 % |
+| Lluvia de los días previos | +0,44 | 100 % |
 | Humedad y nubes | +0,36 | 99,8 % |
-| Caudal de los ríos | +0,30 | 97,8 % |
-| Temperatura en altura | +0,24 | 99,4 % |
-| Humedad del suelo | +0,22 | 99,6 % |
-| Régimen El Niño (ICEN) | +0,14 | 93,2 % |
+| Caudal de los ríos | +0,31 | 97,8 % |
+| Temperatura en altura | +0,27 | 99,6 % |
+| Humedad del suelo | +0,21 | 99,0 % |
+| Régimen El Niño (ICEN) | +0,13 | 91,8 % |
 
 La lluvia del día manda (y es la condición de la que menos aviso previo hay). Las demás son un fondo favorable: mar cálido, suelo húmedo, lluvia reciente, caudal alto. «Temperatura en altura» no es calor previo: en los días con huaico aparece *fría y nublada* (capítulo 04).
 
@@ -71,7 +71,7 @@ En cada ficha se listan las 5 condiciones que más empujan, en lenguaje claro y 
 
 ## 6. Intervalos
 
-Cada remuestreo de temporadas reajusta el modelo; el intervalo del 80 % de un día pasado usa solo los remuestreos que no vieron su temporada. En días con huaico la probabilidad mediana es 0,089 (10 a 90 %: 0,009 a 0,50) y el ancho mediano del intervalo, 0,116; en los demás días, 0,0035 y 0,0047. Es decir, el intervalo es del orden de la propia probabilidad (ancho relativo mediano 1,2 a 1,4): **una probabilidad de 9 % debe leerse como «entre 4 % y 17 %»**, no como 9 %.
+Cada remuestreo de temporadas reajusta el modelo; el intervalo del 80 % de un día pasado usa solo los remuestreos que no vieron su temporada. El intervalo es del orden de la propia probabilidad: el 9 de febrero de 2019 la probabilidad fuera de muestra es 0,58 con intervalo de 0,19 a 0,76, y el 17 de marzo de 2017, 0,91 con 0,74 a 0,98. **Una probabilidad de 0,58 debe leerse como «entre 0,19 y 0,76»**, no como un número exacto.
 
 ## 7. Por quebrada
 
@@ -80,10 +80,10 @@ Cada remuestreo de temporadas reajusta el modelo; el intervalo del 80 % de un d�
 ## 8. Retrospectiva
 
 Probabilidades fuera de muestra, con el intervalo fuera de bolsa.
-- **Días con huaico más probables:** 2017-03-16 (0,98), 2017-03-17 (0,90), 1985-02-25 (0,79), 2015-03-21 (0,78).
-- **Días con huaico menos probables:** 2000-01-02 (0,0009), 2012-01-05 (0,0015), 1993-01-25 (0,003): eventos con poca lluvia en los datos de reanálisis o catalogados con fecha dudosa.
-- **Días sin huaico con probabilidad alta:** 2019-02-09 (0,62), 1998-02-10 (0,60), 1989-02-11 (0,59), 2008-04-03 (0,59): los falsos positivos del capítulo 07, que no se pudieron verificar en prensa.
-- **Temporadas tipo.** 2017 (Niño costero): 151 días, 23 con huaico, 12,3 esperados, probabilidad máxima 0,98, mediana 0,022. 2016 (Niño casi sin huaicos): 2 con huaico, 2,6 esperados, máxima 0,17. 2018 (sin Niño): 0 con huaico, 1,1 esperados, máxima 0,16.
+- **Días con huaico más probables:** 2017-03-16 (0,98), 2017-03-17 (0,91), 2017-03-15 (0,81), 1985-02-25 (0,78).
+- **Días con huaico menos probables:** 2000-01-02 (0,0008), 2012-01-05 (0,0013), 1993-01-25 (0,0033): eventos con poca lluvia en los datos de reanálisis o catalogados con fecha dudosa.
+- **Días sin huaico con probabilidad alta:** 1998-02-10 (0,61), 1989-02-11 (0,61), 2008-04-03 (0,59), 2025-02-13 (0,59), 2019-02-09 (0,58): casi los mismos falsos positivos del capítulo 07, que no se pudieron verificar en prensa.
+- **Temporadas tipo.** 2017 (Niño costero): 151 días, 23 con huaico, 12,9 esperados, probabilidad máxima 0,98, mediana 0,022. 2016 (Niño casi sin huaicos): 2 con huaico, 2,7 esperados, máxima 0,18. 2018 (sin Niño): 0 con huaico, 1,1 esperados, máxima 0,17.
 
 ## 9. La ficha (API)
 
@@ -92,15 +92,15 @@ from illapa_research import probabilidad as pr
 R = pr.correr(".")                      # ajusta todo (≈ 15 s en GPU; unos minutos en CPU)
 ficha = pr.ficha(R["modelo"], R["X"].loc["2017-03-16"])
 ```
-Devuelve: `probabilidad`, `intervalo_80`, `banda_de_fiabilidad` (cuántos días históricos cayeron en esa banda y cuántos tuvieron huaico), `factores_favorables`, `quebradas` (con `evidencia`), `regimen_nino`, el `evento` definido y el texto de `limites`. Para una fecha pasada la ficha del modelo final es «dentro de muestra» (sale más alta que fuera de muestra: 0,997 contra 0,982 el 16 de marzo de 2017); para ver lo honesto de una fecha pasada usa `pr.retrospectiva`.
+Devuelve: `probabilidad`, `intervalo_80`, `banda_de_fiabilidad` (cuántos días históricos cayeron en esa banda y cuántos tuvieron huaico), `factores_favorables`, `quebradas` (con `evidencia`), `regimen_nino`, el `evento` definido y el texto de `limites`. Para una fecha pasada la ficha del modelo final es «dentro de muestra» (sale más alta que fuera de muestra: 0,996 contra 0,981 el 16 de marzo de 2017); para ver lo honesto de una fecha pasada usa `pr.retrospectiva`.
 
 ## 10. Qué NO garantiza
 
 - Es la frecuencia de días **en el catálogo**; no mide huaicos no registrados.
-- Con 119 positivos y 43 temporadas los intervalos son anchos y las bandas altas tienen pocos días; sin 1983, 1998 y 2017 la habilidad baja (AP 0,155).
-- El modelo usa 117 de 118 columnas con 119 positivos: sobreajuste posible; la validación (temporada fuera, C elegida dentro) es la única medida honesta, y el reducido, que se pre-registró para limitarlo, rindió peor.
+- Con 121 positivos y 43 temporadas los intervalos son anchos y las bandas altas tienen pocos días; sin 1983, 1998 y 2017 la habilidad baja (AP 0,159).
+- El modelo usa 117 de 118 columnas con 121 positivos: sobreajuste posible; la validación (temporada fuera, C elegida dentro) es la única medida honesta, y el reducido, que se pre-registró para limitarlo, rindió peor.
 - Calibración desigual por era y por régimen (§4).
-- Las probabilidades por quebrada heredan el sesgo de reporte y solo existen para las 20 con historial ubicado.
+- Las probabilidades por quebrada heredan el sesgo de reporte y solo existen para las cuencas con historial ubicado (24).
 - Depende de ERA5 en 6 puntos y del ICEN: un cambio de fuente cambia los números.
 
 ## 11. Reproducir
