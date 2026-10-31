@@ -45,6 +45,7 @@ descargar-datos = "illapa_research.descargar:main"
 delimitar-quebradas = "illapa_research.quebradas:main"
 filtro-quebradas = "illapa_research.filtro:main"
 modelo-quebradas = "illapa_research.modelo_quebradas:main"
+analogos-informe = "illapa_research.analogos:main"
 
 [build-system]
 requires = ["hatchling"]

@@ -54,6 +54,12 @@ Con la rejilla chica, el modelo lineal de 11 variables daba 0,168 y el constante
 
 ## 6. Reproducir
 
+```bash
+uv run --extra gpu analogos-informe          # escribe catalogo/analogos_resultados.csv
+```
+
+Necesita `datos/` (ver `descargar-datos`). Con `--nulas 200` sirve para probar rápido. El CSV trae AP, AUC, el p95 de las nulas, el valor de p y la configuración elegida; la columna `top5` (huaicos en el 5 % de días con más probabilidad) solo se calcula para los análogos, y los valores de la logística (50 %, 40 % y 31 %) salen de una corrida aparte con `gpu.ajustar_logit_lote`, mismas variables y pliegues. Sin la CLI:
+
 ```python
 from pathlib import Path
 from illapa_research import analogos, modelo_diario as M
@@ -63,4 +69,11 @@ cols = [c for c in M.SELECCION_PARSIMONIOSA if c in X["+nino"].columns]
 r = analogos.evaluar(X["+nino"][cols].to_numpy(float), y.to_numpy(float), ts, "lineal", n_nulas=2000)
 ```
 
-Tarda unos 2 minutos para la variante lineal y unos 35 s para la constante en la GPU del Mac (la logística con sus 2 000 nulas, unos 10 s).
+Tiempos en la GPU del Mac: unos 35 s la variante constante y 1 a 2 min la lineal, con 2 000 nulas (la logística con sus nulas, unos 10 s). Comparación de dispositivos en el [capítulo 12](12-computo-gpu.md).
+
+## 7. Fuentes
+
+- Lguensat, R., Tandeo, P., Ailliot, P., Pulido, M. y Fablet, R. (2017). *The Analog Data Assimilation*. Monthly Weather Review 145(10), 4093-4107. DOI 10.1175/MWR-D-16-0441.1. Código de los autores: <https://github.com/ptandeo/AnDA>. Se leyó el texto completo del PDF del repositorio de los autores (secciones 3 y 6).
+- Van den Dool, H. M. (1994), citado por el paper: sin ~10³⁰ años de datos no hay buen análogo sinóptico del hemisferio norte; de ahí la regla de pocas dimensiones.
+- Cleveland, W. S. (1979), citado por el paper: regresión local ponderada, que da la variante lineal.
+- El paper trabaja con dinámica caótica (Lorenz-63 y Lorenz-96) y asimilación de datos; **no** trata clasificación ni eventos raros. Llevarlo a «día con huaico sí o no» es una adaptación de este proyecto, no una receta suya.

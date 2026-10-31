@@ -27,7 +27,18 @@ PC remota (WSL2 Ubuntu, 24 hilos, RTX 4080 SUPER 16 GB), datos de `lluvia+antece
 | 1 000 mundos nulos | GPU | 6,6 s |
 | 2 000 mundos nulos + mundo real, 4 teorías | GPU | 6 a 14 s cada una |
 
-La versión de scikit-learn en serie (`evaluacion_diaria.prueba_nula`, medida en un Mac) tarda unos 1,2 s por mundo; 2 000 mundos serían unos 40 minutos por teoría, contra 6 a 14 s en la GPU (unas 100 a 200 veces menos).
+Los tiempos de la tabla son por el conjunto de mundos indicado, no por mundo (2 000 mundos más el real en 6 a 14 s). La versión de scikit-learn en serie (`evaluacion_diaria.prueba_nula`) tarda unos 1,2 s por mundo **en la CPU de un Mac**; 2 000 mundos serían unos 40 minutos por teoría, contra 6 a 14 s en la GPU de la PC (unas 100 a 200 veces menos). Ojo: esa comparación es CPU de un Mac contra GPU Nvidia, no GPU contra GPU.
+
+### GPU del Mac (MPS), medido el 30 de octubre de 2026
+
+Mismo código (`ajustar_logit_lote`), datos sintéticos con la forma real (6 473 días, 113 columnas, 1,8 % de positivos), 100 regresiones logísticas en lote (un mundo son 45, una por pliegue):
+
+| Dispositivo | 100 regresiones |
+|---|---|
+| CPU del Mac (PyTorch, `float64`) | 0,64 s |
+| GPU del Mac (MPS, `float32`) | 0,25 s |
+
+Eso da unos 0,11 s por mundo en MPS, es decir unos 4 minutos para 2 000 mundos por teoría (extrapolado, no medido de punta a punta), contra unos 40 minutos con scikit-learn en serie. La RTX 4080 SUPER hizo 100 mundos (4 500 regresiones) en 1,1 s: unas 10 veces más rápida por regresión que MPS. Para iterar, el Mac alcanza; los 2 000 mundos de un resultado final conviene correrlos en la PC. El capítulo 18 se corrió entero en el Mac (el modelo de análogos de 11 variables con sus 2 000 nulos, entre 35 s y 2 min; la logística de comparación con sus nulos, unos 10 s).
 
 ## Resultado científico que esto permitió
 

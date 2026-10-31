@@ -226,3 +226,51 @@ def evaluar(X: np.ndarray, y: np.ndarray, ts: np.ndarray, variante: str = "const
         "ap_nula_max": float(ap_n.max()),
         "p_valor": float((1 + (ap_n >= ap_fijo).sum()) / (1 + len(ap_n))), "n_nulas": n_nulas,
     }
+
+
+CONJUNTOS = {
+    "11": None,  # SELECCION_PARSIMONIOSA
+    "6": ("chosica_h_lluvia_1d", "chosica_h_lluvia_3d", "chosica_suelo_prev", "chosica_h_lluvia_7d_previa_prev",
+          "caudal_rimac-chosica_max_7d_prev", "icen_mes_previo"),
+    "3": ("chosica_h_lluvia_1d", "chosica_h_lluvia_3d", "chosica_suelo_prev"),
+}
+
+
+def informe(raiz, n_nulas: int = 2000, dispositivo_: str | None = None):
+    """Table of chapter 18: logistic L2 vs constant and linear analogs, on 11, 6 and 3 variables."""
+    import pandas as pd
+
+    from . import modelo_diario as M
+
+    D = M.cargar_datos(raiz)
+    X, y, ts, _ = M.matrices(D)
+    Xn, yv = X["+nino"], y.to_numpy(dtype=float)
+    filas = []
+    for nombre, cols in CONJUNTOS.items():
+        cols = [c for c in (cols or M.SELECCION_PARSIMONIOSA) if c in Xn.columns]
+        Xa = Xn[cols].to_numpy(dtype=float)
+        b = gpu.ap_real_y_nulas(Xa, y.to_numpy(), ts, C=0.03, n_nulas=n_nulas, dispositivo_=dispositivo_)
+        filas.append({"variables": nombre, "modelo": "logistica_L2", "ap": b["ap_real"], "auc": b["auc_real"],
+                      "ap_nula_p95": b["ap_nula_p95"], "p_valor": b["p"], "configuracion": "C=0.03"})
+        for var in ("constante", "lineal"):
+            r = evaluar(Xa, yv, ts, var, n_nulas=n_nulas, dispositivo_=dispositivo_)
+            filas.append({"variables": nombre, "modelo": f"analogos_{var}", "ap": r["ap"], "auc": r["auc"],
+                          "top5": r["top5"], "ap_nula_p95": r["ap_nula_p95"], "p_valor": r["p_valor"],
+                          "configuracion": str(r["config_moda"])})
+    return pd.DataFrame(filas)
+
+
+def main() -> None:
+    import argparse
+    from pathlib import Path
+
+    ap = argparse.ArgumentParser(description="Capítulo 18: análogos contra regresión logística.")
+    ap.add_argument("--raiz", default=".")
+    ap.add_argument("--nulas", type=int, default=2000)
+    ap.add_argument("--salida", default=None, help="CSV de salida (por defecto catalogo/analogos_resultados.csv)")
+    a = ap.parse_args()
+    tabla = informe(Path(a.raiz), a.nulas)
+    salida = Path(a.salida or Path(a.raiz) / "catalogo" / "analogos_resultados.csv")
+    tabla.round(4).to_csv(salida, index=False)
+    print(tabla.round(3).to_string(index=False))
+    print(f"-> {salida}")
