@@ -1,4 +1,4 @@
-# 14 · Ficha de probabilidad
+# 15 · Ficha de probabilidad
 
 > **No es una alerta ni una predicción para decidir evacuaciones.** Es la frecuencia histórica de días con huaico *catalogado* bajo condiciones parecidas. Ante una emergencia llama al 115 (INDECI).
 
