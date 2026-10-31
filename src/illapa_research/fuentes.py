@@ -685,7 +685,20 @@ def _pronosticos_previous_runs(destino: Path) -> list[str]:
 
 
 # Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
-NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr", "era5-aws", "pronosticos-previous-runs"})
+NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast"})
+
+
+def _gefs_reforecast(destino: Path) -> list[str]:
+    """GEFSv12 reforecast 2000-2019 (NOAA, AWS Open Data) reduced to rain, CAPE and precipitable water in boxes.
+
+    Heavy (about 3 000 runs x 5 members, 100+ GB read by byte ranges, one hour on 20 cores): opt-in.
+    Needs the extra `gefs` (eccodes). Raw GRIB messages are never stored, only small CSVs per run.
+    """
+    from .gefs_reforecast import descargar as _bajar
+
+    carpeta = destino / "gefs_reforecast"
+    _bajar(carpeta, 2000, 2019, hilos=20)
+    return [str((carpeta / "runs").relative_to(destino.parent))]
 
 
 FUENTES: dict[str, Fuente] = {
@@ -850,6 +863,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="CC BY 4.0 (Open-Meteo; la API gratuita es solo no comercial); UK Met Office CC BY-SA 4.0",
             atribucion="Weather data by Open-Meteo.com; UK Met Office, JMA, NOAA NCEP y ECMWF (modelos de origen)",
             descargar=_pronosticos_previous_runs,
+        ),
+        Fuente(
+            id="gefs-reforecast",
+            nombre="NOAA GEFSv12 reforecast 2000-2019: lluvia (6 h), CAPE y agua precipitable pronosticados en cajas del valle del Rímac",
+            url="https://registry.opendata.aws/noaa-gefs-reforecast/",
+            licencia="Datos abiertos de NOAA (atribuir; no insinuar respaldo)",
+            atribucion="NOAA/NCEP Global Ensemble Forecast System v12 reforecast (Hamill et al. 2022), AWS Open Data",
+            descargar=_gefs_reforecast,
         ),
     )
 }
