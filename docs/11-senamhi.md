@@ -110,16 +110,16 @@ Las estaciones de la cuenca media-alta (2900 a 3500 m) separan mejor que las del
 
 | Ventana | Modelo | AP (base) | AUC | Aciertos con 5 % de días en alarma |
 |---|---|---|---|---|
-| 1990-2013 (25 temporadas, 53 días con huaico, 11 pluviómetros) | ERA5, lluvia del día | 0,070 (0,015) | 0,81 | 0,25 |
+| 1990-2013 (25 temporadas, 53 días con huaico, 11 pluviómetros) | ERA5, lluvia del día | 0,085 (0,015) | 0,81 | 0,25 |
 | | **Pluviómetros, lluvia del día** | **0,233** | 0,90 | 0,47 |
-| | ERA5 día + antecedentes | 0,048 | 0,68 | 0,26 |
-| | ERA5 día + antecedentes + pluviómetros | 0,212 | 0,78 | 0,49 |
-| 2014-2026 (13 temporadas, 51 días con huaico, 5 automáticas) | ERA5, lluvia del día | 0,196 (0,026) | 0,87 | 0,37 |
-| | Pluviómetros, lluvia del día | 0,308 | 0,75 | 0,45 |
-| | ERA5 día + antecedentes | 0,353 | 0,93 | 0,59 |
-| | ERA5 día + antecedentes + pluviómetros | 0,387 | 0,93 | 0,55 |
+| | ERA5 día + antecedentes | 0,048 | 0,75 | 0,21 |
+| | ERA5 día + antecedentes + pluviómetros | 0,228 | 0,86 | 0,51 |
+| 2014-2026 (13 temporadas, 54 días con huaico, 5 automáticas) | ERA5, lluvia del día | 0,297 (0,028) | 0,90 | 0,41 |
+| | Pluviómetros, lluvia del día | 0,332 | 0,77 | 0,44 |
+| | ERA5 día + antecedentes | 0,404 | 0,93 | 0,59 |
+| | ERA5 día + antecedentes + pluviómetros | 0,451 | 0,94 | 0,56 |
 
-Diferencias de AP (bootstrap de temporadas, mediana e intervalo 90 %): 1990-2013, pluviómetros menos ERA5 **+0,166 (0,112 a 0,254)**; 2014-2026, +0,111 (−0,069 a 0,359) y con el modelo completo +0,049 (−0,038 a 0,250), **indistinguible de cero**. La prueba nula (etiquetas desplazadas dentro de cada temporada, 40 repeticiones) da AP 0,011 de media y 0,028 de máximo contra 0,19 real. Los pluviómetros dan la lluvia del día: es un *nowcast*.
+Diferencias de AP (bootstrap de temporadas, mediana e intervalo 90 %): 1990-2013, pluviómetros menos ERA5 **+0,157 (0,102 a 0,238)**; 2014-2026, +0,047 (−0,143 a 0,322) y con el modelo completo +0,054 (−0,046 a 0,244), **indistinguible de cero**. La prueba nula (etiquetas desplazadas dentro de cada temporada, 40 repeticiones) da AP 0,011 de media y 0,028 de máximo contra 0,19 real. Los pluviómetros dan la lluvia del día: es un *nowcast*.
 
 ### 6.4 Nivel del río frente a GloFAS (T32)
 
