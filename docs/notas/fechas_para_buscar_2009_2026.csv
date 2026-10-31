@@ -1,0 +1,27 @@
+fecha,distrito,en_zona,lo_que_dice_hoy,fuentes
+2009-01-18,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2009-02-12,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2009-02-17,Lurigancho-Chosica,True,"('(huaycos)',)","Valverde Torres (CIP, set. 2012), c"
+2012-01-05,Chaclacayo,True,"('(sin quebrada)',) | ('Los Angeles',)","COEN-INDECI, reporte preliminar «Hu | PillB/observatorio-enso-peru, catál"
+2012-02-18,Ricardo Palma,True,(),RPP 'Huarochirí: Caída de 5 huaicos
+2012-02-19,Ricardo Palma,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2012-03-10,Lurigancho-Chosica,True,"('(varias)',) | ('Huaycoloro',)","MDLCH (2012), citado en Sánchez Mez | Valverde Torres (CIP, set. 2012), C"
+2012-03-11,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2012-04-08,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2015-02-07,Santa Eulalia,True,"('Bellavista',)","America TV, 'Huarochirí: huaicos af"
+2015-02-20,Lurigancho; Lurigancho-Chosica,True,"('(sin quebrada)',) | ('Huaycoloro',)","El Comercio 'Huaico afectó zona en  | PillB/observatorio-enso-peru, catál"
+2015-04-02,Santa Eulalia,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2017-01-26,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)') | ('Huaycoloro',)",Sub Gerencia de Defensa Civil de Lu
+2017-01-31,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)') | ('Huaycoloro',)",Sub Gerencia de Defensa Civil de Lu
+2017-02-03,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)') | ('Huaycoloro',)",Sub Gerencia de Defensa Civil de Lu
+2017-02-17,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)') | ('San Antonio', 'Huaycoloro')",Sub Gerencia de Defensa Civil de Lu
+2017-02-26,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)') | ('Huaycoloro',)",Sub Gerencia de Defensa Civil de Lu
+2017-03-17,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)')",Sub Gerencia de Defensa Civil de Lu
+2017-03-18,Lurigancho-Chosica; Santa Eulalia,True,"('(varias', ' ver tabla de la fuente)') | ('Santa Eulalia',)",RPP 'El huaico caido en Santa Eulal | Sub Gerencia de Defensa Civil de Lu
+2017-03-22,Lurigancho-Chosica,True,"('(varias', ' ver tabla de la fuente)')",Sub Gerencia de Defensa Civil de Lu
+2017-03-23,Ricardo Palma,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2023-02-17,Santa Eulalia,True,"('Cuculí', 'Lucumaseca', 'Palle Viejo') | ('Cuculí', 'Lucumaseca', 'Palle')","INDECI-COEN, Reporte Complementario | Trome nota actualizada 18/02/2023 ("
+2023-02-19,Lurigancho-Chosica; Lurigancho-Chosica;Chaclacayo;Lurigancho,True,"('(sin nombre)',) | ()","INDECI-COEN, Informe de Emergencia  | Infobae cobertura en vivo publicada"
+2023-04-07,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2026-05-10,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
+2026-10-02,Lurigancho,True,"('(sin quebrada)',)","PillB/observatorio-enso-peru, catál"
