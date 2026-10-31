@@ -1,0 +1,4 @@
+indice,signo_esperado,auc,p,n,positivos
+nbr_media,-1,0.6056,0.1734,110,20
+ndvi_media,-1,0.6122,0.0545,110,20
+swir_media,1,0.5189,0.3478,110,20
