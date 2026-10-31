@@ -37,7 +37,7 @@ import io
 import re
 import time
 from collections.abc import Iterable
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from datetime import date, timedelta
 from pathlib import Path
@@ -220,24 +220,30 @@ def fechas_de_corridas(desde: int, hasta: int) -> list[date]:
     return out
 
 
+def _trabajo(args: tuple[date, str, bool]) -> str:
+    d, carpeta, con_convectivas = args
+    try:
+        df = procesar_corrida(d, con_convectivas=con_convectivas)
+    except FileNotFoundError:
+        return f"falta {d}"
+    df.to_csv(Path(carpeta) / f"{d:%Y%m%d}.csv", index=False, float_format="%.4f")
+    return ""
+
+
 def descargar(destino: Path, desde: int = 2000, hasta: int = 2019, hilos: int = 5,
               con_convectivas: bool = True) -> int:
-    """Download and reduce every run to a small CSV in `destino/runs/`; resumable."""
+    """Download and reduce every run to a small CSV in `destino/runs/`; resumable.
+
+    Decoding GRIB2 holds the interpreter, so the work runs in processes, not threads (the first
+    version with threads did about 10 runs a minute).
+    """
     carpeta = Path(destino) / "runs"
     carpeta.mkdir(parents=True, exist_ok=True)
     pendientes = [d for d in fechas_de_corridas(desde, hasta) if not (carpeta / f"{d:%Y%m%d}.csv").exists()]
-
-    def trabajo(d: date) -> str:
-        try:
-            df = procesar_corrida(d, con_convectivas=con_convectivas)
-        except FileNotFoundError:
-            return f"falta {d}"
-        df.to_csv(carpeta / f"{d:%Y%m%d}.csv", index=False, float_format="%.4f")
-        return ""
-
+    trabajos = [(d, str(carpeta), con_convectivas) for d in pendientes]
     hechos = 0
-    with ThreadPoolExecutor(hilos) as pool:
-        for r in pool.map(trabajo, pendientes):
+    with ProcessPoolExecutor(hilos) as pool:
+        for r in pool.map(_trabajo, trabajos, chunksize=2):
             hechos += 1
             if r:
                 print(r, flush=True)
