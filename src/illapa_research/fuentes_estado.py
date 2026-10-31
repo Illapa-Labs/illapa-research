@@ -10,6 +10,7 @@ used (truststore), never ``verify=False``.
 
 from __future__ import annotations
 
+import json
 import re
 import time
 from pathlib import Path
@@ -322,3 +323,65 @@ def huaicos_sinpad_nuevos(df: pandas.DataFrame, fechas_catalogo: set) -> pandas.
             "confianza": "alta", "notas": "Registro oficial de emergencia; no dice qué quebrada se activó",
         })
     return pd.DataFrame(filas)
+
+
+CAPAS_INGEMMET = {
+    "peligros_geologicos": ("SERV_PELIGROS_GEOLOGICOS", 0),
+    "otros_peligros": ("SERV_PELIGROS_GEOLOGICOS", 1),
+    "zonas_criticas": ("SERV_PELIGROS_GEOLOGICOS", 2),
+    "alerta_zonas_criticas": ("SERV_PERU_ALERTA", 1),
+    "alerta_zc_quebradas": ("SERV_PERU_ALERTA", 4),
+    "alerta_activacion_quebrada": ("SERV_PERU_ALERTA", 5),
+}
+CAPAS_CENEPRED = {
+    "puntos_criticos_2027": ("sectores/COEN_FEN_2027", 25),
+    "riesgo_mm_distritos": ("FEN/ER_NINO2027_BD", 5),
+}
+
+
+def descargar_todo(datos: Path = Path("datos")) -> list[str]:
+    """INGEMMET layers, CENEPRED FEN 2027 layers and SINPAD district lists, in `datos/` (opt-in)."""
+    import pandas as pd
+
+    escritos = []
+    c = ClienteEstado(datos / "ingemmet")
+    for nombre, (svc, capa) in CAPAS_INGEMMET.items():
+        f = arcgis_consulta(c, svc, capa, nombre_cache=nombre)
+        ruta = datos / "ingemmet" / f"{nombre}.geojson"
+        ruta.write_text(json.dumps(a_geojson(f), ensure_ascii=False), encoding="utf-8")
+        escritos.append(str(ruta))
+    c = ClienteEstado(datos / "cenepred")
+    base = "https://sigrid.cenepred.gob.pe/arcgis/rest/services"
+    for nombre, (svc, capa) in CAPAS_CENEPRED.items():
+        url = f"{base}/{svc}/MapServer/{capa}/query"
+        geo = {"geometry": ",".join(map(str, VENTANA_ESTUDIO)), "geometryType": "esriGeometryEnvelope", "inSR": 4326,
+               "spatialRel": "esriSpatialRelIntersects", "where": "1=1"}
+        ids = arcgis_json(c, url, {**geo, "returnIdsOnly": "true"}, cache=f"{nombre}_ids.json").get("objectIds") or []
+        feats: list[dict] = []
+        for i in range(0, len(ids), 300):
+            j = arcgis_json(c, url, {"objectIds": ",".join(map(str, ids[i : i + 300])), "outFields": "*", "outSR": 4326,
+                                     "returnGeometry": "true"}, cache=f"{nombre}_{i}.json")
+            feats += j.get("features", [])
+        ruta = datos / "cenepred" / f"{nombre}.geojson"
+        ruta.write_text(json.dumps(a_geojson(feats), ensure_ascii=False), encoding="utf-8")
+        escritos.append(str(ruta))
+    c = ClienteEstado(datos / "indeci")
+    filas = []
+    for nombre, cod in DISTRITOS_SINPAD.items():
+        for a, b in (("01/01/2000", "31/12/2019"), ("01/01/2020", "31/12/2022"), ("01/01/2023", time.strftime("31/12/%Y"))):
+            for e in sinpad_emergencias(c, cod, a, b):
+                filas.append({**e, "distrito": nombre, "ubigeo": cod})
+    ruta = datos / "indeci" / "sinpad_zona.csv"
+    pd.DataFrame(filas).to_csv(ruta, index=False)
+    escritos.append(str(ruta))
+    return escritos
+
+
+def main() -> int:
+    for r in descargar_todo():
+        print(r)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

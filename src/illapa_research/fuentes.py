@@ -685,7 +685,9 @@ def _pronosticos_previous_runs(destino: Path) -> list[str]:
 
 
 # Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
-NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast"})
+NO_POR_DEFECTO = frozenset(
+    {"chirps-v3", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast", "datos-del-estado"}
+)
 
 
 def _gefs_reforecast(destino: Path) -> list[str]:
@@ -699,6 +701,13 @@ def _gefs_reforecast(destino: Path) -> list[str]:
     carpeta = destino / "gefs_reforecast"
     _bajar(carpeta, 2000, 2019, hilos=20)
     return [str((carpeta / "runs").relative_to(destino.parent))]
+
+
+def _datos_del_estado(destino: Path) -> list[str]:
+    """INGEMMET hazard inventory, CENEPRED FEN 2027 layers and INDECI SINPAD lists (see docs/18)."""
+    from .fuentes_estado import descargar_todo
+
+    return descargar_todo(destino)
 
 
 FUENTES: dict[str, Fuente] = {
@@ -871,6 +880,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Datos abiertos de NOAA (atribuir; no insinuar respaldo)",
             atribucion="NOAA/NCEP Global Ensemble Forecast System v12 reforecast (Hamill et al. 2022), AWS Open Data",
             descargar=_gefs_reforecast,
+        ),
+        Fuente(
+            id="datos-del-estado",
+            nombre="INGEMMET (peligros geológicos, zonas críticas), CENEPRED (FEN 2027) e INDECI (SINPAD): zona Rímac-Santa Eulalia",
+            url="https://geocatmin.ingemmet.gob.pe",
+            licencia="INGEMMET: licencia para uso no comercial, citando a INGEMMET; INDECI y CENEPRED: información pública del Estado (Ley 27806)",
+            atribucion="INGEMMET (GEOCATMIN); INDECI (SINPAD); CENEPRED (SIGRID)",
+            descargar=_datos_del_estado,
         ),
     )
 }
