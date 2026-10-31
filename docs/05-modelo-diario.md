@@ -44,7 +44,7 @@ Todas entran por `descargar-datos` y están en `fuentes.py` y `DATOS.md`. Las an
 - **Referencia**: la climatología mensual (T1), aprendida también fuera de muestra.
 - **Métricas**: precisión media (AP) frente a la tasa base (0,019), AUC, *Brier skill* y ganancia de log-loss contra T1, y qué parte de los días con huaico cae entre el 5 % y el 10 % de días de mayor probabilidad.
 - **Intervalos**: remuestreo de temporadas completas (los días con huaico vienen en racimos: 23 en 2017).
-- **Nula**: se desplazan cíclicamente los días con huaico dentro de cada temporada y se repite la validación dejando una temporada fuera. **2 000 mundos nulos** en la GPU (`gpu.ap_real_y_nulas`, regresión logística con la misma penalización que scikit-learn, C = 0,03 fijo), que reemplazan a los 30 de la primera versión. El AP «real» de esta tabla es el del mismo ajuste de C fijo, para comparar lo comparable.
+- **Nula**: se desplazan cíclicamente los días con huaico dentro de cada temporada y se repite la validación dejando una temporada fuera. **2 000 mundos nulos** en la GPU (`gpu.ap_real_y_nulas`, regresión logística con la misma penalización que scikit-learn, C = 0,03 fijo). El AP «real» de esta tabla es el del mismo ajuste de C fijo, para comparar lo comparable.
 - **Cálculo**: PC remota (24 hilos; `n_jobs=-1`; capítulo 12), sobre el commit `ddc70f0` del repositorio (448 s en total). Las tres corridas (base, etiqueta del día anterior, Niño alterno) y la robustez van en el mismo cuaderno.
 
 ## 4. Resultados (etiqueta del día; Niño por ICEN)

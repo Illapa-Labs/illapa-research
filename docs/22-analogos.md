@@ -1,4 +1,4 @@
-# 20 · Análogos: los días más parecidos
+# 22 · Análogos: los días más parecidos
 
 > **No es una alerta ni una predicción para decidir evacuaciones.** Es una prueba de si buscar en el historial los días más parecidos mejora al modelo logístico. Ante una emergencia llama al 115 (INDECI).
 

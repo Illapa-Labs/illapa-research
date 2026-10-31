@@ -264,7 +264,7 @@ def main() -> None:
     import argparse
     from pathlib import Path
 
-    ap = argparse.ArgumentParser(description="Capítulo 20: análogos contra regresión logística.")
+    ap = argparse.ArgumentParser(description="Capítulo 22: análogos contra regresión logística.")
     ap.add_argument("--raiz", default=".")
     ap.add_argument("--nulas", type=int, default=2000)
     ap.add_argument("--salida", default=None, help="CSV de salida (por defecto catalogo/analogos_resultados.csv)")
