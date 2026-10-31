@@ -485,3 +485,70 @@ def cobertura_top_k(activaciones: pd.DataFrame, ubicadas: list[str], temporadas:
             cubiertas += int(g["slug"].isin(top).sum())
     return {"dias_con_huaico_ubicado": dias, "pares_activos": total, "en_top_k": cubiertas,
             "fraccion": cubiertas / max(1, total), "esperada_al_azar": k / len(ubicadas)}
+
+
+def tabla_diferencias(R: dict, n: int = 2000) -> pd.DataFrame:
+    """Paired AP differences (season resamples) between the models of interest, per lead and subset."""
+    filas = []
+    pares = (("pp_qm", "techo"), ("pp_qm", "pp_crudo"), ("mos_ens", "mos_media"), ("mos_ens", "pp_qm"),
+             ("mos_ens_conv", "mos_ens"), ("mos_ant", "mos_ens"), ("mos_media", "gefs_media"))
+    for k, mod in R["plazos"].items():
+        for sub in ("todo", "sin_2017"):
+            m = SUBCONJUNTOS[sub](R["ts"])
+            for a, b in pares:
+                if a in mod and b in mod:
+                    filas.append({"plazo": k, "subconjunto": sub, "a": a, "b": b,
+                                  **diferencia_pareada(R["y"][m], R["ts"][m], mod[a][m], mod[b][m], n)})
+    return pd.DataFrame(filas)
+
+
+def tabla_intervalos(R: dict, n: int = 1000) -> pd.DataFrame:
+    filas = []
+    for k, mod in R["plazos"].items():
+        for sub in ("todo", "sin_2017"):
+            m = SUBCONJUNTOS[sub](R["ts"])
+            cols = {nm: mod[nm][m] for nm in ("techo", "pp_qm", "mos_ens", "mos_ant", "gefs_media")}
+            cols["climatologia"] = R["clim"][m]
+            bt = bootstrap_temporadas(R["y"][m], R["ts"][m], cols, n=n)
+            bt.insert(0, "subconjunto", sub)
+            bt.insert(0, "plazo", k)
+            filas.append(bt)
+    return pd.concat(filas, ignore_index=True)
+
+
+def guardar_resultados(R: dict, carpeta, n_boot: int = 1000) -> None:
+    """Write the tables of the backtest as small CSVs (and the out-of-fold probabilities, gzipped)."""
+    from pathlib import Path
+
+    carpeta = Path(carpeta)
+    tabla_metricas(R).round(4).to_csv(carpeta / "gefs_metricas.csv", index=False)
+    tabla_nulas(R).round(5).to_csv(carpeta / "gefs_nulas.csv", index=False)
+    tabla_diferencias(R, n_boot * 2).round(4).to_csv(carpeta / "gefs_diferencias_pareadas.csv", index=False)
+    tabla_intervalos(R, n_boot).round(4).to_csv(carpeta / "gefs_intervalos.csv", index=False)
+    filas = []
+    for k, mod in R["plazos"].items():
+        d = pd.DataFrame({"dia": R["dias"], "plazo": k, "temporada": R["ts"], "huaico": R["y"].astype(int),
+                          "climatologia": R["clim"], **mod})
+        filas.append(d)
+    pd.concat(filas).round(5).to_csv(carpeta / "gefs_probabilidades_fuera_de_muestra.csv.gz", index=False)
+
+
+def main(argv: list[str] | None = None) -> int:
+    import argparse
+    from pathlib import Path
+
+    from . import modelo_diario as md
+
+    ap = argparse.ArgumentParser(description="Backtest con el reforecast GEFSv12: escribe catalogo/gefs_*.csv")
+    ap.add_argument("--raiz", type=Path, default=Path("."))
+    ap.add_argument("--nulas", type=int, default=2000)
+    args = ap.parse_args(argv)
+    D = md.cargar_datos(args.raiz)
+    R = correr(D, G.cargar_corridas(args.raiz / "datos" / "gefs_reforecast"), n_nulas=args.nulas)
+    guardar_resultados(R, args.raiz / "catalogo")
+    print("listo:", len(R["dias"]), "días de prueba,", int(R["y"].sum()), "con huaico")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
