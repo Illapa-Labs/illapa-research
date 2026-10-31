@@ -44,6 +44,8 @@ La licencia AGPL de este repositorio cubre el **código**, no los datos. `descar
 
 Las APIs gratuitas (sobre todo Open-Meteo) limitan las llamadas por hora y por día: reconstruir `datos/` desde las fuentes originales puede tardar horas. Para no repetirlo hay una copia pública en [renzoedu25/illapa-research-datos](https://huggingface.co/datasets/renzoedu25/illapa-research-datos). `uv run --extra hf descargar-datos --desde-hf renzoedu25/illapa-research-datos` la baja; `--subir-hf USUARIO/REPO [--publico]` sube la propia (privada por defecto). Hace falta `hf auth login` una vez; el código nunca lee ni guarda el token.
 
+**Qué contiene el espejo:** todo lo que usan los 16 cuadernos de `notebooks/`, salvo los índices del IGP (ICEN, E y C) y el RMM de la BoM, que no traen licencia explícita y se bajan con `descargar-datos --solo igp-icen igp-ec bom-rmm`. Incluye la serie PISCOp del valle (`pisco/rimac_diario.csv`), las respuestas crudas públicas del SENAMHI (`senamhi/cache`, `senamhi/ogc`, `senamhi/datosabiertos`, con su leyenda), y del reforecast GEFS solo la serie reducida a cuatro cajas (`gefs_reforecast/gefs_corridas.csv.gz`, 5 MB): los archivos originales de NOAA (unos 100 GB) no se usan ni se guardan. Las fuentes opcionales (INGEMMET, CENEPRED, INDECI, pronósticos de Open-Meteo) se piden con `descargar-datos --solo <id>`.
+
 Revisión de licencias del 30 de octubre de 2026, fuente por fuente:
 
 | Fuente | ¿Se puede redistribuir? | Condición que va en la tarjeta |
