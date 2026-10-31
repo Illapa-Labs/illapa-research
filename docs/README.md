@@ -21,3 +21,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [15 · Ficha de probabilidad](15-ficha-de-probabilidad.md) | Probabilidad de un día con huaico catalogado, con intervalo, fiabilidad por banda y condiciones que empujan | `12` |
 | [16 · De pronóstico de lluvia a probabilidad](16-pronostico-a-probabilidad.md) | Cómo se hace en otros sistemas, cómo se hace el backtest y qué archivos de pronósticos históricos hay | — |
 | [17 · Backtest con pronósticos de lluvia](17-backtest-con-pronostico.md) | Del pronóstico de lluvia a la probabilidad del día: qué se conserva a cada lead, calibración y potencia | `13` |
+| [18 · Datos del Estado](18-datos-del-estado.md) | Qué publican INGEMMET, INDECI, CENEPRED, ANA y ANIN, qué se obtuvo y cómo cae su lista de quebradas priorizadas frente a nuestro ranking | `14` |
