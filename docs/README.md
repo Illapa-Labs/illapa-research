@@ -22,3 +22,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [16 · De pronóstico de lluvia a probabilidad](16-pronostico-a-probabilidad.md) | Cómo se hace en otros sistemas, cómo se hace el backtest y qué archivos de pronósticos históricos hay | — |
 | [17 · Backtest con pronósticos de lluvia](17-backtest-con-pronostico.md) | Del pronóstico de lluvia a la probabilidad del día: qué se conserva a cada lead, calibración y potencia | `13` |
 | [18 · Datos del Estado](18-datos-del-estado.md) | Qué publican INGEMMET, INDECI, CENEPRED, ANA y ANIN, qué se obtuvo y cómo cae su lista de quebradas priorizadas frente a nuestro ranking | `14` |
+| [19 · Backtest con el reforecast GEFS](19-backtest-gefs-reforecast.md) | Probabilidad de un día con huaico con lluvia pronosticada a 24, 48 y 72 h, 2000-2019, con y sin 2017 | `15` |
