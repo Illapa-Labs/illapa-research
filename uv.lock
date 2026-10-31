@@ -1537,6 +1537,7 @@ dependencies = [
     { name = "scipy", version = "1.17.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "scipy", version = "1.18.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "shapely" },
+    { name = "truststore" },
     { name = "xarray" },
 ]
 
@@ -1588,6 +1589,7 @@ requires-dist = [
     { name = "scipy", specifier = ">=1.17.1" },
     { name = "shapely", specifier = ">=2.0" },
     { name = "torch", marker = "extra == 'gpu'", specifier = ">=2.4" },
+    { name = "truststore", specifier = ">=0.9" },
     { name = "xarray", specifier = ">=2026.9.0" },
 ]
 provides-extras = ["notebooks", "dev", "hf", "gpu", "era5", "gefs"]
