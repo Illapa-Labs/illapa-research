@@ -676,8 +676,16 @@ def _era5_aws(destino: Path) -> list[str]:
     return descargar_puntos(destino)
 
 
+def _pronosticos_previous_runs(destino: Path) -> list[str]:
+    """Hourly rain forecasts of past model runs (lead 0 to 3 days) over the Rímac valley cells."""
+    from .pronostico_probabilidad import descargar as descargar_pronosticos
+
+    rutas = descargar_pronosticos(destino / "pronosticos")
+    return [str(r.relative_to(destino.parent)) for r in rutas]
+
+
 # Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
-NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr", "era5-aws"})
+NO_POR_DEFECTO = frozenset({"chirps-v3", "persiann-cdr", "era5-aws", "pronosticos-previous-runs"})
 
 
 FUENTES: dict[str, Fuente] = {
@@ -834,6 +842,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="CC BY 4.0 (Open-Meteo); datos de Copernicus Climate Change Service (ERA5), uso libre con atribución",
             atribucion="Weather data by Open-Meteo.com; contains modified Copernicus Climate Change Service information (ERA5, ERA5-Land)",
             descargar=_era5_aws,
+        ),
+        Fuente(
+            id="pronosticos-previous-runs",
+            nombre="Open-Meteo previous runs: pronósticos de lluvia pasados (UKMO, JMA, GFS, ECMWF IFS) sobre el valle del Rímac",
+            url="https://open-meteo.com/en/docs/previous-runs-api",
+            licencia="CC BY 4.0 (Open-Meteo; la API gratuita es solo no comercial); UK Met Office CC BY-SA 4.0",
+            atribucion="Weather data by Open-Meteo.com; UK Met Office, JMA, NOAA NCEP y ECMWF (modelos de origen)",
+            descargar=_pronosticos_previous_runs,
         ),
     )
 }
