@@ -103,6 +103,22 @@ def auc_ap_lote(Y: np.ndarray, P: np.ndarray, mascara: np.ndarray | None = None,
     return auc.cpu().numpy(), ap.cpu().numpy()
 
 
+def mundos_desplazados(y: np.ndarray, temporada: np.ndarray, n_nulas: int, semilla: int = 0) -> np.ndarray:
+    """(n_nulas, n) label worlds: the labels rolled cyclically inside every season.
+
+    Same number of events and same clustering in each season, no link with the weather.
+    """
+    rng = np.random.default_rng(semilla)
+    por_temp = {s: np.flatnonzero(temporada == s) for s in np.unique(temporada)}
+    mundos = np.empty((n_nulas, len(y)))
+    for b in range(n_nulas):
+        ys = y.astype(float).copy()
+        for i in por_temp.values():
+            ys[i] = np.roll(y[i], int(rng.integers(5, max(6, len(i) - 5))))
+        mundos[b] = ys
+    return mundos
+
+
 def nulas_desplazadas(
     X: np.ndarray, y: np.ndarray, temporada: np.ndarray, C: float = 0.05, n_nulas: int = 200,
     semilla: int = 0, dispositivo_: str | None = None, trozo: int = 256,
@@ -113,18 +129,11 @@ def nulas_desplazadas(
     clustering, no link to the weather), then the model is fitted in every leave-one-season-out
     fold and scored on the pooled out-of-fold probabilities.
     """
-    rng = np.random.default_rng(semilla)
     temporadas = np.unique(temporada)
     por_temp = {s: np.flatnonzero(temporada == s) for s in temporadas}
     n = len(y)
     Z = estandarizar(X)
-    aps = []
-    mundos = np.empty((n_nulas, n))
-    for b in range(n_nulas):
-        ys = y.astype(float).copy()
-        for s, i in por_temp.items():
-            ys[i] = np.roll(y[i], int(rng.integers(5, max(6, len(i) - 5))))
-        mundos[b] = ys
+    mundos = mundos_desplazados(y, temporada, n_nulas, semilla)
     # Fit every (world, fold) at once in chunks; predictions of a fold are read back on its rows.
     pares = [(b, s) for b in range(n_nulas) for s in temporadas]
     P = np.full((n_nulas, n), np.nan)
