@@ -27,3 +27,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [21 · Quebrada y día](21-quebradas-y-dia.md) | Si conocer la quebrada agrega algo a conocer el día, con lluvia observada y con pronóstico GEFS | `17` |
 | [22 · Análogos: los días más parecidos](22-analogos.md) | Búsqueda de los K días más parecidos (Lguensat et al. 2017) contra la regresión logística: señal real, no la supera | — |
 | [23 · Geoquebradas del MINAM](23-geoquebradas.md) | Avisos oficiales diarios de activación de quebradas (desde febrero de 2026) frente a los huaicos de 2026 y nuestra ficha | — |
+| [24 · Banco de modelos](24-banco-de-modelos.md) | Logística, boosting monótono, GRU y conjunto con la misma validación: la logística sigue siendo la mejor | `05` |

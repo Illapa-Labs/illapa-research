@@ -1,0 +1,4 @@
+a,b,dif_ap,p5,p95,excluye_cero
+boosting_monotono,logistica,-0.03905,-0.11117,0.05533,False
+gru,logistica,-0.07996,-0.12364,-0.02055,True
+conjunto,logistica,0.00625,-0.02027,0.03429,False
