@@ -42,6 +42,9 @@ ARCHIVOS = {
     "circulacion/soi_cpc.txt": "noaa-circulacion",
     "circulacion/rmm.txt": "bom-rmm",
     "senamhi/tablas": "senamhi",
+    "gefs_reforecast/gefs_corridas.csv.gz": "gefs-reforecast",
+    "pronosticos": "pronosticos-previous-runs",
+    "open_meteo_ukmo_archivo.json": "pronosticos-previous-runs",
     "MANIFIESTO.json": "",
 }
 
@@ -65,6 +68,10 @@ ATRIBUCIONES = {
     "era5-aws": "Weather data by Open-Meteo.com (CC BY 4.0); contains modified Copernicus Climate Change Service information (ERA5, ERA5-Land).",
     "cpc-lluvia": "NOAA PSL, CPC Global Unified Gauge-Based Analysis of Daily Precipitation (public domain).",
     "persiann-cdr": "Ashouri et al. (2015), BAMS, doi:10.1175/BAMS-D-13-00068.1; NOAA NCEI CDR PERSIANN (public domain).",
+    "gefs-reforecast": "NOAA GEFS version 12 reforecast (Hamill et al. 2022), NOAA open data on AWS; series reduced "
+    "to boxes by illapa-research.",
+    "pronosticos-previous-runs": "Weather data by Open-Meteo.com (CC BY 4.0); the UKMO archive file carries "
+    "CC BY-SA 4.0 (UK Met Office via Open-Meteo): share alike applies to derivatives of that file.",
     "nasa-power": "NASA Prediction Of Worldwide Energy Resources (POWER) Project, MERRA-2.",
     "noaa-oisst": "NOAA OISST v2.1 (Huang et al., 2021), public domain.",
     "senamhi": "Información recopilada y trabajada por el Servicio Nacional de Meteorología e Hidrología del Perú. "

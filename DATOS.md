@@ -53,6 +53,9 @@ Revisión de licencias del 30 de octubre de 2026, fuente por fuente:
 | NASA POWER | Sí, datos abiertos | Citar POWER / MERRA-2 |
 | Open-Meteo (ERA5, ERA5-Land, GloFAS) | Sí: sus datos son CC BY 4.0 y permiten copiar y redistribuir con atribución | «Weather data by Open-Meteo.com»; Copernicus C3S y GloFAS. La API gratuita es solo no comercial: quien vuelva a pedirla debe respetarlo |
 | OpenStreetMap (ríos, edificios) | Sí, bajo ODbL | © colaboradores de OpenStreetMap; una base derivada debe seguir bajo ODbL |
+| NOAA GEFSv12 reforecast (series reducidas a cajas) | Sí, datos abiertos de NOAA | Citar a NOAA (Hamill et al. 2022) |
+| Pronósticos de Open-Meteo (previous runs y archivo del UK Met Office) | Sí: CC BY 4.0; el archivo del UKMO es CC BY-SA 4.0 (compartir igual en derivados) | «Weather data by Open-Meteo.com» y UK Met Office |
+| PISCOp v3.0 (serie diaria sobre el valle del Rímac) y tablas del SENAMHI | Sí, con la leyenda del SENAMHI, sin comercializar ni presentar como oficial | Leyenda del SENAMHI |
 | IGP (ICEN y lista de eventos costeros) | **No se incluye**: no traen licencia explícita | Se bajan del IGP con `descargar-datos --solo igp-icen` |
 | INGEMMET (GEOCATMIN: peligros geológicos, zonas críticas) | **No se espeja el crudo**: licencia para uso no comercial con obras derivadas permitidas | Citar a INGEMMET como fuente original; solo tablas derivadas pequeñas en `catalogo/`. `descargar-datos --solo datos-del-estado` |
 | INDECI (SINPAD, emergencias desde 2019) | Solo tablas derivadas en `catalogo/`; información pública (Ley 27806), sin licencia explícita | Citar al INDECI; no es un registro completo de huaicos |

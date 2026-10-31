@@ -73,7 +73,7 @@ Carossio (0,55 km²), La Libertad (0,60), Mariscal Castilla (0,88) y La Cantuta 
 
 **Niveles** (regla fija, sin ajustar con los eventos): 1 activada en 2 o más temporadas Niño; 2 en una; 3, 4 y 5 sin historial ubicado según el tercio (alto, medio, bajo) de la susceptibilidad física; 6 menos de 2 km², no evaluable. La susceptibilidad física es el promedio de los percentiles de Melton, pendiente del cauce (10 a 85 %) y pendiente media entre las cuencas de 2 a 50 km², sin pesos. Dentro de un nivel se ordena por la tasa y luego por la física. Hoy 18 cuencas están en los niveles 1 y 2.
 
-**Historial.** De 148 fechas de huaico con día exacto y confianza no baja, 48 se ubican en una cuenca, 18 nombran una quebrada que no se pudo ubicar y 82 no dicen cuál. «Sin historial ubicado» no es «nunca se activó».
+**Historial.** De 150 fechas de huaico con día exacto y confianza no baja, 48 se ubican en una cuenca, 18 nombran una quebrada que no se pudo ubicar y 84 no dicen cuál. «Sin historial ubicado» no es «nunca se activó».
 
 **Qué dicen los datos.**
 - Con cualquier quebrada, 17 de 22 temporadas Niño tienen alguna fecha catalogada contra 10 de 23 sin Niño; la mediana de días por temporada es 2,5 contra 0 (Fisher p = 0,033; Mann-Whitney p = 0,010). Con el proxy anterior (15 temporadas) el contraste era mucho más débil (p = 0,33 y 0,08): la definición oficial del ICEN separa mejor, pero esa definición se eligió porque es la oficial, no por el resultado.
