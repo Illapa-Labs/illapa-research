@@ -19,3 +19,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [11 · Datos del SENAMHI](11-senamhi.md) | Pluviómetros reales, umbrales oficiales, avisos de 2020 y anomalías de los Niños; términos de uso y leyenda | `11` |
 | [14 · Corregir el sesgo del pronóstico](14-correccion-sesgo.md) | El modelo del UK Met Office marca 2,6 veces más lluvia que PISCOp; corregirlo arregla la calibración pero no la detección de huaicos | — |
 | [15 · Ficha de probabilidad](15-ficha-de-probabilidad.md) | Probabilidad de un día con huaico catalogado, con intervalo, fiabilidad por banda y condiciones que empujan | `12` |
+| [16 · De pronóstico de lluvia a probabilidad](16-pronostico-a-probabilidad.md) | Cómo se hace en otros sistemas, cómo se hace el backtest y qué archivos de pronósticos históricos hay | — |
