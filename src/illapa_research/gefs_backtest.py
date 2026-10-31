@@ -460,3 +460,28 @@ def tabla_nulas(R: dict) -> pd.DataFrame:
                           "ap_nula_p95": float(np.percentile(ap, 95)), "ap_nula_max": float(ap.max()),
                           "p": float((1 + (ap >= real).sum()) / (1 + len(ap))), "mundos": len(ap)})
     return pd.DataFrame(filas)
+
+
+def cobertura_top_k(activaciones: pd.DataFrame, ubicadas: list[str], temporadas: pd.DataFrame, k: int = 5,
+                    temporadas_prueba=TEMPORADAS_PRUEBA) -> dict[str, float]:
+    """On huaico days, how many of the quebradas that were active fall in the `k` highest-participation ones.
+
+    The participation of each quebrada (`integracion.participacion`) is learned without the season
+    of the day. It is compared with the share a random choice of `k` quebradas would give.
+    """
+    from . import integracion as ig
+
+    a = activaciones[activaciones["slug"].isin(ubicadas)].drop_duplicates(["fecha", "slug"])
+    total = cubiertas = dias = 0
+    for s in temporadas_prueba:
+        hoy = a[a["temporada"] == s]
+        if hoy.empty:
+            continue
+        pi = ig.participacion(a[a["temporada"] != s], set(ubicadas), temporadas[temporadas.index != s])
+        top = set(pi[pi["temporadas"] == "todas"].nlargest(k, "pi")["slug"])
+        for _, g in hoy.groupby("fecha"):
+            dias += 1
+            total += len(g)
+            cubiertas += int(g["slug"].isin(top).sum())
+    return {"dias_con_huaico_ubicado": dias, "pares_activos": total, "en_top_k": cubiertas,
+            "fraccion": cubiertas / max(1, total), "esperada_al_azar": k / len(ubicadas)}
