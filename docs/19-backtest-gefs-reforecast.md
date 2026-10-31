@@ -132,7 +132,7 @@ La media del ensamble en la caja del valle marca **entre 3,4 y 4,2 veces** la ll
 | Plazo | Umbral | Sin corregir: POD / FAR / alarmas en otros días | Con cuantiles: POD / FAR / alarmas en otros días |
 |---|---|---|---|
 | 24 h | p90 (2,7 mm) | 0,91 / 0,84 / 55 % (55 de 55 huaicos) | 0,31 / 0,70 / 9 % (28 de 55) |
-| 24 h | p95 (3,8 mm) | 0,89 / 0,89 / 42 % (55 de 55) | 0,27 / 0,74 / 5 % (21 de 55) |
+| 24 h | p95 (3,8 mm) | 0,91 / 0,89 / 42 % (55 de 55) | 0,27 / 0,74 / 5 % (21 de 55) |
 | 72 h | p90 | 0,88 / 0,83 / 51 % (55 de 55) | 0,32 / 0,68 / 9 % (26 de 55) |
 
 (Los POD y FAR son sobre días de lluvia observada ≥ umbral; los huaicos capturados, sobre los 55 del catálogo, con el día o el anterior.) **Sin corregir, el umbral pasa casi todos los huaicos con la mitad de los días del año en alarma** (útil para nada). Corrigiendo el sesgo, la tasa de alarma cae a un 5-9 % pero se captura solo el 20-50 % de los huaicos: una corrección monótona no mejora la detección, solo la calibración (coincide con el capítulo 14). Un umbral en mm no es una buena regla de decisión.
