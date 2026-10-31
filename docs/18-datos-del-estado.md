@@ -6,7 +6,7 @@ Notebook: [`notebooks/14-datos-del-estado.ipynb`](../notebooks/14-datos-del-esta
 
 ## 1. Pregunta
 
-El usuario preguntó por qué no teníamos datos de la ANA, la ANIN o el CENEPRED, y si los tienen. Se buscó qué publican esas entidades (y el INGEMMET y el INDECI, que las complementan) para las dos mayores limitaciones del proyecto: el catálogo de huaicos (82 de 148 fechas sin quebrada, 1999-2008 casi vacío) y las quebradas con nombre (faltaban Huampaní, Santa María, Cashahuacra...).
+La pregunta de partida fue por qué no había datos de la ANA, la ANIN o el CENEPRED, y si los tienen. Se buscó qué publican esas entidades (y el INGEMMET y el INDECI, que las complementan) para las dos mayores limitaciones del proyecto: el catálogo de huaicos (84 de 150 fechas sin quebrada, 1999-2008 casi vacío) y las quebradas con nombre (faltaban Huampaní, Santa María, Cashahuacra...).
 
 ## 2. Método y reglas
 

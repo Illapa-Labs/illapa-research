@@ -18,7 +18,7 @@ Un modelo es pequeño (unos 6 500 días × 100 variables). Lo caro son **miles d
 
 ## Medidas
 
-PC remota (WSL2 Ubuntu, 24 hilos, RTX 4080 SUPER 16 GB), datos de `lluvia+antecedentes` (6 473 días, 113 columnas, 118 positivos):
+PC remota (WSL2 Ubuntu, 24 hilos, RTX 4080 SUPER 16 GB), datos de `lluvia+antecedentes` (6 473 días, 118 columnas, 121 positivos):
 
 | Cálculo | Dispositivo | Tiempo |
 |---|---|---|
@@ -46,12 +46,12 @@ Con 2 000 mundos nulos por teoría, ninguno alcanza la precisión media real en 
 
 | Teoría | AP real | AP nula media / p95 / máx | AUC real |
 |---|---|---|---|
-| lluvia del día | 0,122 | 0,016 / 0,022 / 0,037 | 0,824 |
-| antecedentes | 0,247 | 0,024 / 0,041 / 0,081 | 0,888 |
-| lluvia + antecedentes | 0,298 | 0,024 / 0,041 / 0,082 | 0,908 |
-| + Niño (ICEN causal) | 0,296 | 0,026 / 0,044 / 0,081 | 0,910 |
+| lluvia del día | 0,159 | 0,017 / 0,024 / 0,039 | 0,835 |
+| antecedentes | 0,215 | 0,027 / 0,047 / 0,108 | 0,883 |
+| lluvia + antecedentes | 0,303 | 0,027 / 0,046 / 0,095 | 0,904 |
+| + Niño (ICEN causal) | 0,300 | 0,029 / 0,049 / 0,081 | 0,904 |
 
-(Datos del 30 de octubre de 2026: ERA5 en Matucana, Santa Eulalia alta y Ticlio; MERRA-2 de NASA POWER en Chosica, costa de Lima y selva de Tarma.)
+(Corrida del 30 de octubre de 2026 con ERA5 en los seis puntos y 150 fechas de huaico; los segundos por teoría están en el CSV.)
 
 ## Cómo ejecutar en la PC remota
 

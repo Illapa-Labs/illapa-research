@@ -54,7 +54,7 @@ Alturas del punto (Copernicus GLO-30): Chosica 1 069 m, costa de Lima 23,5 m, se
 
 Comprobación cruzada con MERRA-2 (anomalías diarias, 1983-2026): presión 0,76-0,88, punto de rocío 0,59-0,64, nubosidad 0,30-0,58, lluvia de Tarma 0,26. Más bajo que contra la propia API porque MERRA-2 es mucho más gruesa; solo confirma que las series tienen la misma señal.
 
-Efecto en el modelo diario (`modelo_diario`, una temporada fuera, lluvia + antecedentes): precisión media 0,275 con los seis puntos ERA5 (antes 0,282 con tres de ERA5 y tres de MERRA-2); quitar el bloque de humedad y circulación la baja a 0,256 (−0,019). Es decir, la humedad de la selva sí aporta un poco con datos de buena calidad, pero poco.
+Efecto en el modelo diario (`modelo_diario`, una temporada fuera, lluvia + antecedentes): precisión media 0,289 con los seis puntos ERA5; quitar el bloque de humedad y circulación la baja a 0,269 (−0,017). Es decir, la humedad de la selva sí aporta un poco con datos de buena calidad, pero poco.
 
 ## 6. Licencia y atribución
 

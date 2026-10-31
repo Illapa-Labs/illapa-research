@@ -141,7 +141,7 @@ Prioridad: **A** probar ya (datos abiertos accesibles y mecanismo respaldado), *
 | MJO (fases 8-1-2 y 2-3) | RMM, OMI | BoM, NOAA PSL | 5-15 días | resumen / leído (2023) | en curso (cap. 08, T17) | A |
 | Alta de Bolivia / u200 | u200 caja Altiplano | NCEP/NCAR R1 | simultáneo a 5 días | resumen | en curso (cap. 08, T16) | A |
 | Baja segregada / vaguada frente a Chile-Perú | Z500, vorticidad 500 hPa | NCEP/NCAR R1, ERA5 | 1-3 días (caso 2012) | leído (un caso) | no | A (T20) |
-| Flujo del este a 850 hPa y humedad de la selva | u, v, q 850 hPa | NCEP/NCAR R1; ERA5 | 1-5 días | resumen | en curso (cap. 08, T19); MERRA-2 de respaldo (cap. 04) | A |
+| Flujo del este a 850 hPa y humedad de la selva | u, v, q 850 hPa | NCEP/NCAR R1; ERA5 | 1-5 días | resumen | hecho (cap. 08, T19) | A |
 | Convección amazónica | OLR | NOAA OLR interpolado | 5-15 días | resumen | en curso (cap. 08) | M |
 | Brisa de mar / vientos de valle | hora del pico y fracción vespertina | Open-Meteo horario (ya descargado) | horas | leído (2 casos) | no | M (T23) |
 | Inestabilidad | CAPE, agua precipitable | ERA5 (CDS, requiere cuenta) | horas a 1 día | resumen | no (Open-Meteo no entrega CAPE histórico) | B (bloqueada) |
