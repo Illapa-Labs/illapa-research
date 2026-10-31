@@ -54,6 +54,9 @@ Revisión de licencias del 30 de octubre de 2026, fuente por fuente:
 | Open-Meteo (ERA5, ERA5-Land, GloFAS) | Sí: sus datos son CC BY 4.0 y permiten copiar y redistribuir con atribución | «Weather data by Open-Meteo.com»; Copernicus C3S y GloFAS. La API gratuita es solo no comercial: quien vuelva a pedirla debe respetarlo |
 | OpenStreetMap (ríos, edificios) | Sí, bajo ODbL | © colaboradores de OpenStreetMap; una base derivada debe seguir bajo ODbL |
 | IGP (ICEN y lista de eventos costeros) | **No se incluye**: no traen licencia explícita | Se bajan del IGP con `descargar-datos --solo igp-icen` |
+| INGEMMET (GEOCATMIN: peligros geológicos, zonas críticas) | **No se espeja el crudo**: licencia para uso no comercial con obras derivadas permitidas | Citar a INGEMMET como fuente original; solo tablas derivadas pequeñas en `catalogo/`. `descargar-datos --solo datos-del-estado` |
+| INDECI (SINPAD, emergencias desde 2019) | Solo tablas derivadas en `catalogo/`; información pública (Ley 27806), sin licencia explícita | Citar al INDECI; no es un registro completo de huaicos |
+| CENEPRED (SIGRID: FEN 2027), ANA y ANIN | Solo listas de quebradas priorizadas (prensa) y tablas pequeñas; no se espeja | Citar a cada entidad; los servicios con token no se usan |
 
 La licencia AGPL cubre el código; cada archivo conserva la licencia de su fuente.
 

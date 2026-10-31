@@ -237,7 +237,7 @@ CONJUNTOS = {
 
 
 def informe(raiz, n_nulas: int = 2000, dispositivo_: str | None = None):
-    """Table of chapter 18: logistic L2 vs constant and linear analogs, on 11, 6 and 3 variables."""
+    """Table of chapter 20: logistic L2 vs constant and linear analogs, on 11, 6 and 3 variables."""
     import pandas as pd
 
     from . import modelo_diario as M
@@ -264,7 +264,7 @@ def main() -> None:
     import argparse
     from pathlib import Path
 
-    ap = argparse.ArgumentParser(description="Capítulo 18: análogos contra regresión logística.")
+    ap = argparse.ArgumentParser(description="Capítulo 20: análogos contra regresión logística.")
     ap.add_argument("--raiz", default=".")
     ap.add_argument("--nulas", type=int, default=2000)
     ap.add_argument("--salida", default=None, help="CSV de salida (por defecto catalogo/analogos_resultados.csv)")

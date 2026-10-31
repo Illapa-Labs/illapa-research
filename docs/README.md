@@ -21,4 +21,6 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [15 · Ficha de probabilidad](15-ficha-de-probabilidad.md) | Probabilidad de un día con huaico catalogado, con intervalo, fiabilidad por banda y condiciones que empujan | `12` |
 | [16 · De pronóstico de lluvia a probabilidad](16-pronostico-a-probabilidad.md) | Cómo se hace en otros sistemas, cómo se hace el backtest y qué archivos de pronósticos históricos hay | — |
 | [17 · Backtest con pronósticos de lluvia](17-backtest-con-pronostico.md) | Del pronóstico de lluvia a la probabilidad del día: qué se conserva a cada lead, calibración y potencia | `13` |
-| [18 · Análogos: los días más parecidos](18-analogos.md) | Búsqueda de los K días más parecidos (Lguensat et al. 2017) contra la regresión logística: señal real, no la supera | — |
+| [18 · Datos del Estado](18-datos-del-estado.md) | Qué publican INGEMMET, INDECI, CENEPRED, ANA y ANIN, qué se obtuvo y cómo cae su lista de quebradas priorizadas frente a nuestro ranking | `14` |
+| [19 · Backtest con el reforecast GEFS](19-backtest-gefs-reforecast.md) | Probabilidad de un día con huaico con lluvia pronosticada a 24, 48 y 72 h, 2000-2019, con y sin 2017 | `15` |
+| [20 · Análogos: los días más parecidos](20-analogos.md) | Búsqueda de los K días más parecidos (Lguensat et al. 2017) contra la regresión logística: señal real, no la supera | — |

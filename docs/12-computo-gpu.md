@@ -38,7 +38,7 @@ Mismo código (`ajustar_logit_lote`), datos sintéticos con la forma real (6 473
 | CPU del Mac (PyTorch, `float64`) | 0,64 s |
 | GPU del Mac (MPS, `float32`) | 0,25 s |
 
-Eso da unos 0,11 s por mundo en MPS, es decir unos 4 minutos para 2 000 mundos por teoría (extrapolado, no medido de punta a punta), contra unos 40 minutos con scikit-learn en serie. La RTX 4080 SUPER hizo 100 mundos (4 500 regresiones) en 1,1 s: unas 10 veces más rápida por regresión que MPS. Para iterar, el Mac alcanza; los 2 000 mundos de un resultado final conviene correrlos en la PC. El capítulo 18 se corrió entero en el Mac (el modelo de análogos de 11 variables con sus 2 000 nulos, entre 35 s y 2 min; la logística de comparación con sus nulos, unos 10 s).
+Eso da unos 0,11 s por mundo en MPS, es decir unos 4 minutos para 2 000 mundos por teoría (extrapolado, no medido de punta a punta), contra unos 40 minutos con scikit-learn en serie. La RTX 4080 SUPER hizo 100 mundos (4 500 regresiones) en 1,1 s: unas 10 veces más rápida por regresión que MPS. Para iterar, el Mac alcanza; los 2 000 mundos de un resultado final conviene correrlos en la PC. El capítulo 20 se corrió entero en el Mac (el modelo de análogos de 11 variables con sus 2 000 nulos, entre 35 s y 2 min; la logística de comparación con sus nulos, unos 10 s).
 
 ## Resultado científico que esto permitió
 
