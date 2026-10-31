@@ -21,7 +21,6 @@ El modelo diario se entrena con «hay una fecha de huaico catalogada». Pero (a)
 
 - Fechas: `catalogo/eventos*.csv` (9 archivos, incluido `eventos_hemeroteca_2026.csv`, que nace de este capítulo: §5, T15). Se usan las filas con día exacto y confianza por encima de `baja` (las mismas que el capítulo 05): 148 fechas, 141 desde 1983, **119 en temporadas de lluvias desde 1984**.
 - Variables diarias: las del capítulo 05 (`predictores.construir`), **con ERA5 completo en los seis puntos** (Matucana, Santa Eulalia alta y Ticlio por la API de Open-Meteo; Chosica, costa de Lima y selva de Tarma por los archivos de Open-Meteo en AWS, capítulo 13), temperatura del mar NOAA OISST (3 cajas), caudal GloFAS y lluvia horaria ERA5, hasta el 24 de octubre de 2026. Corrida del **30 de octubre de 2026 en la PC remota** (GPU RTX 4080 SUPER): **5 000 remuestreos** de temporadas y **2 000 mundos nulos** por etiqueta con `gpu.py`.
-- Una primera versión de este capítulo se corrió con MERRA-2 de respaldo en tres puntos y 200 remuestreos; las conclusiones no cambiaron (la base fue lift 15,5 y AUC 0,90 entonces; 15,3 y 0,904 ahora).
 - Tipos de fuente (heurística de palabras clave sobre la columna `fuente`): instituciones (INDECI, COEN, SINPAD, Defensa Civil, CENEPRED), ciencia (IGP, INGEMMET, Valverde, UNFV, PREDES), DesInventar, prensa de Lima y televisión. Una fecha sin ninguna palabra reconocida cuenta 0 tipos.
 
 ## 4. Método

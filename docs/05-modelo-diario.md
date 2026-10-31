@@ -196,31 +196,7 @@ Corrida del **30 de octubre de 2026** en la PC remota, repositorio en el commit 
 - ICEN: `enso/igp_icen.txt`; temporadas Niño: `nino.cargar_temporadas` (22 temporadas Niño de 45 con el ICEN; 15 con el proxy Niño 1+2).
 - Catálogo: 147 fechas con día exacto en el commit anterior y una más en este; 119 días en temporadas 1984 a 2026.
 
-## 8. Qué cambió frente a la corrida con 3 puntos de ERA5
-
-La primera versión de este capítulo (30 de octubre, caché parcial con Matucana, Santa Eulalia alta y Ticlio) dio:
-
-| | 3 puntos | 6 puntos |
-|---|---|---|
-| Días con huaico | 118 | 119 (un evento nuevo) |
-| Columnas de T5 | 93 | 118 |
-| T2 lluvia, AP | 0,120 | 0,149 |
-| T3 antecedentes, AP | 0,165 | 0,199 |
-| T4, AP · aciertos con 5 % | 0,271 · 0,534 | 0,281 · 0,529 |
-| T5, AP | 0,269 | 0,276 |
-| T6 no lineal, AP (¿distinto de T4?) | 0,175 (sí) | 0,235 (no se distingue) |
-| Ablación: calor aguas arriba | −0,065 | +0,010 |
-| Ablación: humedad y circulación | 0 (familia vacía) | −0,013 |
-| Ablación: mar | −0,041 | −0,046 |
-| Sobreajuste: AP dentro / fuera | 0,414 / 0,269 | 0,452 / 0,276 |
-| Coeficientes estables | 88 de 96 | 109 de 116 |
-| Sin 1983, 1998 y 2017, AP de T4 | 0,173 | 0,185 |
-| Pruebas nulas | 30 mundos (p < 0,034) | 2 000 mundos (p = 0,0005) |
-| Observado / predicho, Niño · no Niño | 1,30 · 0,72 | 1,29 · 0,74 |
-
-Lo que se confirma: el orden T2 < T3 < T4, la habilidad frente a la nula, el peso del mar, el sesgo Niño / no Niño y la dependencia de los racimos. Lo que cambia: el punto de Chosica mejora la lluvia del día (AP 0,12 a 0,15), **el calor aguas arriba deja de aportar** (probable explicación: con tres puntos el modelo lo usaba para suplir lo que faltaba de la costa, la selva y Chosica) y el modelo no lineal deja de ser peor que el lineal. Dos efectos no atribuibles a ERA5: el cambio de 90 a 2 000 mundos nulos y el evento nuevo del catálogo.
-
-## 9. Qué falta
+## 8. Qué falta
 
 - Un registro de huaicos con hora (INDECI/COEN) para separar eventos de noche y de día; sin él el rezago de un día es ambiguo.
 - Pluviómetros o radar en las cabeceras (SENAMHI: ver el capítulo 11).

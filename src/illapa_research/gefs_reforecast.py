@@ -255,8 +255,9 @@ def descargar(destino: Path, desde: int = 2000, hasta: int = 2019, hilos: int = 
 def cargar_corridas(destino: Path) -> pd.DataFrame:
     """All reduced runs in one table."""
     archivos = sorted((Path(destino) / "runs").glob("*.csv"))
-    if not archivos:
-        return pd.DataFrame()
+    if not archivos:  # the mirror ships the same table as a single file
+        unica = Path(destino) / "gefs_corridas.csv.gz"
+        return pd.read_csv(unica, parse_dates=["run"]) if unica.exists() else pd.DataFrame()
     return pd.concat((pd.read_csv(a, parse_dates=["run"]) for a in archivos), ignore_index=True)
 
 

@@ -44,20 +44,6 @@ Anomalías respecto de una climatología suavizada por día del año de 1991-202
 - Mar: las tres cajas (Niño 1+2, costa de Perú y costa de Lima), 1982 a octubre de 2026.
 - Caudal GloFAS, 3 puntos, 1984-2026 (los de «Rímac Chosica» y «Santa Eulalia» caen en casi la misma celda y se comportan igual). Lluvia horaria y suelo de Chosica y la cuenca alta de la primera fase.
 
-**Corrida anterior (30 de octubre, portátil, 3 de 6 puntos de ERA5, 1 000 réplicas):** sin Chosica, costa de Lima ni selva de Tarma, así que H3 no se pudo probar. Las cifras de esa corrida se conservan en el historial de git (`23ae47a`, `424583e`).
-
-**Qué cambió al pasar a los 6 puntos y 10 000 réplicas**
-
-| | 3 puntos, 1 000 réplicas | 6 puntos, 10 000 réplicas |
-|---|---|---|
-| Pruebas (variable × rezago 0-14) | 735 | 825 |
-| Pasan Benjamini-Hochberg (crudo / sin la media de la temporada) | 121 / 121 | 153 / 132 |
-| p < 0,05 (crudo) contra el azar | 165 contra 37 | 182 contra 41 |
-| Robustas (rezago ≥ 1) | 56 de 686 | 68 de 770 |
-| Por hipótesis (robustas) | H1 14, H2 21, H3 sin datos, H4 21 | H1 16, H2 22, H3 7, H4 23 |
-
-Todo lo que ya estaba (suelo, caudal, alza del mar en 14 días, frío del día anterior) **se mantiene con las mismas cifras redondeadas**. Lo nuevo es H3 y que la anomalía de la costa de Lima se suma a la lista de robustas de H1. Los cambios de H2 son un rezago más (Matucana 5 días) y no alteran la lectura.
-
 ## 3. Método
 
 1. **Rezagos.** Para cada variable `x` y cada rezago `k` de 0 a 14 días se calcula el AUC de `x(t-k)` para separar los días con huaico de los demás, en días de temporada de lluvias (diciembre a abril) desde 1984. Se calcula con rangos y se compara con las réplicas de la nula (10 000 en la PC con GPU, `ILLAPA_N_NULL` y `ILLAPA_GPU=1`; el AUC de todas las réplicas es un solo producto de matrices).

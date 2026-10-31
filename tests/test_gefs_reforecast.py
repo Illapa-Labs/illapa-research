@@ -119,3 +119,12 @@ def test_metricas_y_ensamblado_de_pliegues_en_cpu():
     assert set(out) == {"techo", "pp_qm", "pp_crudo"} and all(len(v) == 60 for v in out.values())
     m = B.metricas(y[:60], out["techo"], np.full(60, y.mean()))
     assert 0 <= m["auc"] <= 1 and "brier_skill" in m
+
+
+def test_cargar_corridas_lee_el_archivo_unico_del_espejo(tmp_path):
+    t = pd.DataFrame({"run": ["2000-01-01"], "miembro": ["c00"], "variable": ["apcp"], "h_ini": [6.0], "h_fin": [12],
+                      "caja": ["valle"], "valor": [0.0]})
+    t.to_csv(tmp_path / "gefs_corridas.csv.gz", index=False)
+    c = G.cargar_corridas(tmp_path)
+    assert len(c) == 1 and c["run"].iloc[0] == pd.Timestamp("2000-01-01")
+    assert G.cargar_corridas(tmp_path / "vacio").empty

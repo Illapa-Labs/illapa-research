@@ -42,6 +42,7 @@ ARCHIVOS = {
     "circulacion/soi_cpc.txt": "noaa-circulacion",
     "circulacion/rmm.txt": "bom-rmm",
     "senamhi/tablas": "senamhi",
+    "pisco/rimac_diario.csv": "senamhi",  # PISCOp v3 reduced to the Rímac valley; the backtests read it from here
     "gefs_reforecast/gefs_corridas.csv.gz": "gefs-reforecast",
     "pronosticos": "pronosticos-previous-runs",
     "open_meteo_ukmo_archivo.json": "pronosticos-previous-runs",
