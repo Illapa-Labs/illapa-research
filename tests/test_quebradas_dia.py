@@ -39,3 +39,10 @@ def test_cobertura_top_k_usa_la_participacion_de_otras_temporadas():
     d = QD.pares(p, act, ub, t, ts)
     c = QD.cobertura_top_k(d, k=1)
     assert c["quebradas"] == 3 and abs(c["al_azar"] - 1 / 3) < 1e-9 and 0 <= c["cobertura"] <= 1
+
+
+def test_cobertura_no_depende_del_orden_en_los_empates():
+    p, act, ub, t, ts = _datos()
+    d = QD.pares(p, act, ub, t, ts)
+    d_inv = d.iloc[::-1].reset_index(drop=True)
+    assert QD.cobertura_top_k(d, k=2) == QD.cobertura_top_k(d_inv, k=2)

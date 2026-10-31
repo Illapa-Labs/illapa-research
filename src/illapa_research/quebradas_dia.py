@@ -94,7 +94,7 @@ def cobertura_top_k(d: pd.DataFrame, k: int = 5) -> dict[str, float]:
     n_q = d["slug"].nunique()
     dentro = total = 0
     for _, g in d.groupby("temporada"):
-        top = g.groupby("slug")["solo_quebrada"].first().sort_values(ascending=False).index[:k]
+        top = g.groupby("slug")["solo_quebrada"].first().sort_values(ascending=False, kind="stable").index[:k]  # ties: alphabetical, same on every platform
         act = g[g["y"] == 1]
         dentro += int(act["slug"].isin(top).sum())
         total += len(act)
