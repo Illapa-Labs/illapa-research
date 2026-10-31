@@ -252,3 +252,211 @@ def diferencia_pareada(y, ts, p_a, p_b, n: int = 2000, semilla: int = 0) -> dict
         d.append(average_precision_score(y[ii], p_a[ii]) - average_precision_score(y[ii], p_b[ii]))
     lo, hi = np.percentile(d, [5, 95])
     return {"delta_ap": float(np.mean(d)), "p5": float(lo), "p95": float(hi), "p_positivo": float(np.mean(np.array(d) > 0))}
+
+
+# ------------------------------------------------------------------ MOS (trained inside 2000-2019)
+def caracteristicas_mos(ens: pd.DataFrame, plazo: int, dias: pd.DatetimeIndex, nivel: str = "ens",
+                        conv: pd.DataFrame | None = None) -> pd.DataFrame:
+    """Forecast statistics per box for the test days. `nivel`: 'media' or 'ens' (+ max, spread, probabilities)."""
+    cols = {}
+    for caja in G.CAJAS:
+        e = ens.xs((plazo, caja), level=("plazo", "caja"))
+        e.index = pd.DatetimeIndex(e.index)
+        e = e.sort_index()
+        media = e["media"]
+        cols[f"{caja}_media"] = np.log1p(media.reindex(dias))
+        cols[f"{caja}_3d"] = np.log1p(media.rolling(3).sum().reindex(dias))
+        if nivel in ("ens", "ens_conv"):
+            cols[f"{caja}_max"] = np.log1p(e["maximo"].reindex(dias))
+            cols[f"{caja}_disp"] = np.log1p(e["dispersion"].reindex(dias))
+            for u in ("1", "5", "10"):
+                cols[f"{caja}_p{u}"] = e[f"p_gt{u}"].reindex(dias)
+    if conv is not None and nivel == "ens_conv":
+        for caja in G.CAJAS:
+            c = conv.xs((plazo, caja), level=("plazo", "caja"))
+            c.index = pd.DatetimeIndex(c.index)
+            for v in ("cape", "pwat"):
+                if v in c:
+                    cols[f"{caja}_{v}"] = c[v].reindex(dias)
+    return pd.DataFrame(cols, index=dias)
+
+
+def _ajuste_pliegues_prueba(X: np.ndarray, y: np.ndarray, ts: np.ndarray, C: float, dispositivo=None) -> np.ndarray:
+    """Out-of-fold probabilities, leave one season out, rows = test rows only."""
+    seasons = np.unique(ts)
+    Y = np.tile(y, (len(seasons), 1))
+    M = np.stack([ts != s for s in seasons])
+    P = gpu.ajustar_logit_lote(X, Y, M, C=C, dispositivo_=dispositivo)
+    out = np.empty(len(y))
+    for f, s in enumerate(seasons):
+        j = ts == s
+        out[j] = P[f, j]
+    return out
+
+
+def mos_oof(X: pd.DataFrame, y: np.ndarray, ts: np.ndarray, C: float, dispositivo=None) -> np.ndarray:
+    Z = _estandarizar_ref(X.to_numpy(), len(X))
+    return _ajuste_pliegues_prueba(Z, y, ts, C, dispositivo)
+
+
+def nulas_mos(X: pd.DataFrame, y: np.ndarray, ts: np.ndarray, C: float, n: int = 2000, semilla: int = 0,
+              dispositivo=None, trozo: int = 400) -> np.ndarray:
+    """Average precision of `n` null worlds for a MOS model (labels shifted inside each season)."""
+    rng = np.random.default_rng(semilla)
+    seasons = np.unique(ts)
+    por = {s: np.flatnonzero(ts == s) for s in seasons}
+    Z = _estandarizar_ref(X.to_numpy(), len(X))
+    mundos = np.empty((n, len(y)))
+    for b in range(n):
+        ys = y.copy()
+        for s, i in por.items():
+            ys[i] = np.roll(y[i], int(rng.integers(5, max(6, len(i) - 5))))
+        mundos[b] = ys
+    P = np.empty((n, len(y)))
+    for f, s in enumerate(seasons):
+        m = np.tile(ts != s, (min(trozo, n), 1))
+        for i in range(0, n, trozo):
+            Yc = mundos[i : i + trozo]
+            Pc = gpu.ajustar_logit_lote(Z, Yc, m[: len(Yc)], C=C, dispositivo_=dispositivo)
+            P[i : i + trozo, por[s]] = Pc[:, por[s]]
+    return gpu.auc_ap_lote(mundos, P, dispositivo_=dispositivo)[1]
+
+
+def nulas_pp(X_grande: np.ndarray, y_era: np.ndarray, ts_era: np.ndarray, temporadas_prueba, pos_era_prueba: np.ndarray,
+             ts_prueba: np.ndarray, n_era: int, n: int = 2000, semilla: int = 0, dispositivo=None,
+             trozo: int = 256) -> np.ndarray:
+    """Average precision of `n` null worlds of the PP-QM pipeline (labels shifted on the ERA5 rows,
+    every leave-one-season-out model refitted, predictions read from the quantile-mapped forecast rows)."""
+    rng = np.random.default_rng(semilla)
+    seasons = np.unique(ts_era)
+    por = {s: np.flatnonzero(ts_era == s) for s in seasons}
+    mundos = np.empty((n, n_era))
+    for b in range(n):
+        ys = y_era.copy()
+        for s, i in por.items():
+            ys[i] = np.roll(y_era[i], int(rng.integers(5, max(6, len(i) - 5))))
+        mundos[b] = ys
+    nt = len(ts_prueba)
+    N = X_grande.shape[0]
+    P = np.empty((n, nt))
+    for f, s in enumerate(temporadas_prueba):
+        j = np.flatnonzero(ts_prueba == s)
+        for i in range(0, n, trozo):
+            Yc = np.zeros((min(trozo, n - i), N))
+            Yc[:, :n_era] = mundos[i : i + trozo]
+            Mc = np.zeros(Yc.shape, dtype=bool)
+            Mc[:, :n_era] = ts_era != s
+            Pc = gpu.ajustar_logit_lote(X_grande, Yc, Mc, C=C_PP, dispositivo_=dispositivo)
+            P[i : i + trozo, j] = Pc[:, n_era + j]
+    Yt = mundos[:, pos_era_prueba]
+    return gpu.auc_ap_lote(Yt, P, dispositivo_=dispositivo)[1]
+
+
+# ------------------------------------------------------------------ pipeline
+def climatologia_oof(filas: Filas, ts_prueba: np.ndarray, pos_era_prueba: np.ndarray) -> np.ndarray:
+    """Monthly base rate of each test row from the seasons other than its own (all ERA-period rows)."""
+    out = np.empty(len(ts_prueba))
+    for s in np.unique(ts_prueba):
+        entrena = filas.ts != s
+        tasa = pd.Series(filas.y[entrena]).groupby(filas.mes[entrena]).mean()
+        j = np.flatnonzero(ts_prueba == s)
+        out[j] = pd.Series(filas.mes[pos_era_prueba[j]]).map(tasa).to_numpy()
+    return out
+
+
+def dias_con_pronostico(filas: Filas, ens: pd.DataFrame, plazos=(1, 2, 3)) -> pd.DatetimeIndex:
+    """Test days (seasons 2000-2019) with a complete forecast (all boxes, 3 consecutive days) at every lead."""
+    ok = None
+    for k in plazos:
+        for caja in set(MAPEO_LLUVIA.values()):
+            s = serie_gefs(ens, k, caja, "media").reindex(filas.F.index)
+            tres = s.rolling(3).sum().notna()
+            ok = tres if ok is None else (ok & tres)
+    en_prueba = np.isin(filas.ts, TEMPORADAS_PRUEBA)
+    dias = filas.idx[en_prueba]
+    return dias[ok.reindex(dias).to_numpy(dtype=bool)]
+
+
+def correr(D, corridas: pd.DataFrame, plazos=(1, 2, 3), n_nulas: int = 2000, dispositivo=None,
+           con_nulas: bool = True) -> dict:
+    """Run the whole backtest. Returns a dict with the test rows and, per lead, the probabilities of every model."""
+    filas = Filas(D)
+    ens = tabla_de_ensamble(corridas)
+    conv = G.convectivas_por_dia(corridas)
+    dias = dias_con_pronostico(filas, ens, plazos)
+    pos = filas.idx.get_indexer(dias)
+    ts_t, y_t = filas.ts[pos], filas.y[pos]
+    temporadas = sorted(set(ts_t))
+    R = {"dias": dias, "ts": ts_t, "y": y_t, "mes": filas.mes[pos], "plazos": {}, "nulas": {}}
+    R["clim"] = climatologia_oof(filas, ts_t, pos)
+    n_era = len(filas.idx)
+    for k in plazos:
+        era, fq, fc = entradas_pp(filas, ens, k, dias)
+        X_grande = _estandarizar_ref(np.vstack([era.to_numpy(), fq.to_numpy(), fc.to_numpy()]), n_era)
+        P = ajustar_por_pliegue(X_grande, filas.y, filas.ts, temporadas, n_era, dispositivo=dispositivo)
+        mod = ensamblar(P, temporadas, ts_t, pos, n_era)
+        P17 = ajustar_por_pliegue(X_grande, filas.y, filas.ts, temporadas, n_era, quitar_de_entrenamiento=(2017,),
+                                  dispositivo=dispositivo)
+        mod["pp_qm_sin2017_ent"] = ensamblar(P17, temporadas, ts_t, pos, n_era)["pp_qm"]
+        # MOS models
+        ant = filas.antecedentes(k).loc[dias]
+        for nombre, nivel in (("mos_media", "media"), ("mos_ens", "ens")):
+            X = caracteristicas_mos(ens, k, dias, nivel)
+            mod[nombre] = mos_oof(X, y_t, ts_t, C_MOS[nombre], dispositivo)
+        X_ens = caracteristicas_mos(ens, k, dias, "ens")
+        mod["mos_ant"] = mos_oof(pd.concat([X_ens, ant.add_prefix("a_")], axis=1), y_t, ts_t, C_MOS["mos_ant"], dispositivo)
+        if len(conv):
+            X_conv = caracteristicas_mos(ens, k, dias, "ens_conv", conv)
+            mod["mos_ens_conv"] = mos_oof(X_conv, y_t, ts_t, C_MOS["mos_ens_conv"], dispositivo)
+        mod["gefs_media"] = serie_gefs(ens, k, "valle", "media").reindex(dias).to_numpy()
+        mod["gefs_max_ens"] = serie_gefs(ens, k, "valle", "maximo").reindex(dias).to_numpy()
+        R["plazos"][k] = mod
+        if con_nulas:
+            R["nulas"][k] = {
+                "pp_qm": nulas_pp(X_grande, filas.y, filas.ts, temporadas, pos, ts_t, n_era, n_nulas, dispositivo=dispositivo),
+                "mos_ens": nulas_mos(X_ens, y_t, ts_t, C_MOS["mos_ens"], n_nulas, dispositivo=dispositivo),
+            }
+            if "mos_ens_conv" in mod:
+                R["nulas"][k]["mos_ens_conv"] = nulas_mos(X_conv, y_t, ts_t, C_MOS["mos_ens_conv"], n_nulas,
+                                                          dispositivo=dispositivo)
+    R["ens"], R["conv"] = ens, conv
+    return R
+
+
+SUBCONJUNTOS = {
+    "todo": lambda ts: np.ones(len(ts), dtype=bool),
+    "sin_2017": lambda ts: ts != 2017,
+    "2000-2008": lambda ts: ts <= 2008,
+    "2009-2019": lambda ts: ts >= 2009,
+}
+ES_PROBABILIDAD = {"techo", "pp_qm", "pp_crudo", "pp_qm_sin2017_ent", "mos_media", "mos_ens", "mos_ant", "mos_ens_conv"}
+
+
+def tabla_metricas(R: dict, subconjuntos=SUBCONJUNTOS) -> pd.DataFrame:
+    filas = []
+    for k, mod in R["plazos"].items():
+        for sub, fn in subconjuntos.items():
+            m = fn(R["ts"])
+            y = R["y"][m]
+            if y.sum() == 0:
+                continue
+            clim = R["clim"][m]
+            filas.append({"plazo": k, "subconjunto": sub, "modelo": "climatologia", **metricas(y, clim, clim, True)})
+            for nombre, p in mod.items():
+                filas.append({"plazo": k, "subconjunto": sub, "modelo": nombre,
+                              **metricas(y, p[m], clim, nombre in ES_PROBABILIDAD)})
+    return pd.DataFrame(filas)
+
+
+def tabla_nulas(R: dict) -> pd.DataFrame:
+    """Real AP against the null worlds, per lead and model (all test rows)."""
+    from sklearn.metrics import average_precision_score
+
+    filas = []
+    for k, nul in R["nulas"].items():
+        for nombre, ap in nul.items():
+            real = average_precision_score(R["y"], R["plazos"][k][nombre])
+            filas.append({"plazo": k, "modelo": nombre, "ap_real": real, "ap_nula_media": float(ap.mean()),
+                          "ap_nula_p95": float(np.percentile(ap, 95)), "ap_nula_max": float(ap.max()),
+                          "p": float((1 + (ap >= real).sum()) / (1 + len(ap))), "mundos": len(ap)})
+    return pd.DataFrame(filas)
