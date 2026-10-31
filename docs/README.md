@@ -4,6 +4,8 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 
 > **No es un sistema de alerta ni una predicción para decidir evacuaciones.** Es investigación en curso. Ante una emergencia llama al 115 (INDECI).
 
+**Versión de los datos de las cifras.** Las cifras de los capítulos 03 a 22 salen de una corrida completa sobre el catálogo de **150 fechas con día exacto (121 días con huaico en las temporadas de lluvia 1984-2026)**, en el commit `ddc70f0`. Después se añadieron 2 fechas y 7 fechas con quebrada ubicada: hoy el catálogo tiene 152 fechas y 123 días con huaico. Eso mueve las cifras en la tercera cifra y no cambia ninguna conclusión (por ejemplo, la logística de ancho fijo da AP 0,303 con 121 días y 0,299 con 123, capítulo 24), así que no se rehicieron todas las corridas por dos fechas. Se rehacen cuando el catálogo cambie de forma material. Los capítulos 23 y 24 usan el catálogo actual.
+
 | Capítulo | Contenido | Notebook |
 |---|---|---|
 | [00 · Plan y teorías](00-plan-y-teorias.md) | Preguntas, teorías en competencia, criterios de validación | — |
