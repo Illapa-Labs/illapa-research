@@ -31,3 +31,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [23 · Geoquebradas del MINAM](23-geoquebradas.md) | Avisos oficiales diarios de activación de quebradas (desde febrero de 2026) frente a los huaicos de 2026 y nuestra ficha | — |
 | [24 · Banco de modelos](24-banco-de-modelos.md) | Logística, boosting monótono, GRU y conjunto con la misma validación: la logística sigue siendo la mejor | `05` |
 | [25 · Etiquetas con satélite](25-etiquetas-con-satelite.md) | Dos diseños de cambio por temporada (disco de salida y cauce del DEM) contra las activaciones del catálogo; sin señal (AUC 0,43 a 0,61) | `—` |
+| [26 · Lluvia corregida para el mapa](26-lluvia-corregida-para-la-web.md) | CHIRPS en malla de 0,05° y corrección por nodo del UKMO contra PISCOp: el sesgo se arregla, pero los días fuertes se ven menos | — |
