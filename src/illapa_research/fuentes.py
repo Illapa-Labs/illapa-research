@@ -646,6 +646,18 @@ def _chirps_v3(destino: Path) -> list[str]:
     return [str(archivo.relative_to(destino.parent))]
 
 
+def _chirps_malla(destino: Path) -> list[str]:
+    """CHIRPS v3 daily (rnl, ERA5 timing) on its 0.05° grid over the five forecast zones, 1981 on.
+
+    About 1.7 s per day read by windows (four threads): a few hours for the whole record. See
+    `chirps_malla` for what the daily values mean.
+    """
+    from .chirps_malla import descargar as _bajar
+
+    rutas = _bajar(destino / "chirps_malla", "rnl")
+    return [str(r.relative_to(destino.parent)) for r in rutas]
+
+
 def _igp_ec(destino: Path) -> list[str]:
     """E and C indices (Takahashi et al. 2011, ERSSTv5) as published by the IGP."""
     carpeta = destino / "enso"
@@ -686,7 +698,7 @@ def _pronosticos_previous_runs(destino: Path) -> list[str]:
 
 # Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
 NO_POR_DEFECTO = frozenset(
-    {"chirps-v3", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast", "datos-del-estado"}
+    {"chirps-v3", "chirps-malla", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast", "datos-del-estado"}
 )
 
 
@@ -832,6 +844,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Dominio público y CC BY 4.0 (Climate Hazards Center)",
             atribucion="Funk, C. et al. (2026), CHIRPS v3, Scientific Data 13, 718, doi:10.1038/s41597-026-07096-4",
             descargar=_chirps_v3,
+        ),
+        Fuente(
+            id="chirps-malla",
+            nombre="CHIRPS v3 diario (rnl, tiempo de ERA5) en su malla de 0,05° sobre las 5 zonas del mapa, 1981 a hoy",
+            url="https://www.chc.ucsb.edu/data/chirps3",
+            licencia="Dominio público y CC BY 4.0 (Climate Hazards Center)",
+            atribucion="Funk, C. et al. (2026), CHIRPS v3, Scientific Data 13, 718, doi:10.1038/s41597-026-07096-4",
+            descargar=_chirps_malla,
         ),
         Fuente(
             id="igp-ec",
