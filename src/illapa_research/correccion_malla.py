@@ -283,3 +283,50 @@ def ukmo_bucket(celdas: pd.DataFrame, inicio: str, fin: str, hilos: int = 8) -> 
     out = pd.concat(partes).sort_index()
     out = out[~out.index.duplicated(keep="last")]
     return out.loc[pd.Timestamp(inicio) : pd.Timestamp(fin)]
+
+
+def principal(zona_id: str = "lima-este", raiz: Path = Path("."), hasta: str = "2025-12-31") -> pd.DataFrame:
+    """Stage 1 for one zone: data (cached in `datos/correccion_malla/`), year-out validation, tables.
+
+    Writes `catalogo/correccion_<zona>_metricas.csv` (per node and version), `..._resumen.csv` and the
+    tables fitted on every year, `catalogo/correccion_<zona>_{escala,cuantiles}.json`.
+    """
+    raiz = Path(raiz)
+    carpeta = raiz / "datos" / "correccion_malla"
+    carpeta.mkdir(parents=True, exist_ok=True)
+    z = zona(zona_id)
+    nd = nodos(z)
+    r_celdas = carpeta / f"{zona_id}_celdas.csv"
+    if not r_celdas.exists():
+        celdas_api(nd).to_csv(r_celdas)
+    celdas = pd.read_csv(r_celdas, index_col=0)
+    r_horas = carpeta / f"{zona_id}_ukmo_horario.csv.gz"
+    if not r_horas.exists():
+        ukmo_bucket(celdas, "2022-01-01", (pd.Timestamp(hasta) + pd.Timedelta(days=1)).strftime("%Y-%m-%d 12:00")).to_csv(r_horas)
+    horas = pd.read_csv(r_horas, index_col=0, parse_dates=True)
+    horas.columns = horas.columns.astype(int)
+    r_obs = carpeta / f"{zona_id}_pisco_diario.csv.gz"
+    if not r_obs.exists():
+        pisco_en_nodos(raiz / "datos" / "pisco" / "PISCOp_d.nc", nd).to_csv(r_obs)
+    obs = pd.read_csv(r_obs, index_col=0, parse_dates=True)
+    obs.columns = obs.columns.astype(int)
+    mod = diario_desde_horas(horas)
+    dias = mod.dropna(how="all").index.intersection(obs.index)
+    mod, obs = mod.loc[dias], obs.loc[dias]
+    versiones = {
+        "crudo": mod,
+        "escala": corregir_fuera_de_anio(mod, obs, nd, Escala),
+        "cuantiles": corregir_fuera_de_anio(mod, obs, nd, MapeoCuantiles, n=20),
+        "cuantiles_sin_vecinos": corregir_fuera_de_anio(mod, obs, nd, MapeoCuantiles, radio=0, n=20),
+    }
+    tablas = {k: evaluar(obs, v) for k, v in versiones.items()}
+    pd.concat(tablas, names=["version"]).round(4).to_csv(raiz / "catalogo" / f"correccion_{zona_id}_metricas.csv")
+    res = resumen(tablas)
+    res.insert(0, "dias_lluvias", int((regimen(dias) == "lluvias").sum()))
+    res.round(4).to_csv(raiz / "catalogo" / f"correccion_{zona_id}_resumen.csv")
+    fuente = "PISCOp v3.0 (SENAMHI, GPL-3.0) contra UKMO global 10 km (Open-Meteo, CC BY-SA 4.0)"
+    for nombre, metodo, kw in (("escala", Escala, {}), ("cuantiles", MapeoCuantiles, {"n": 20})):
+        t = a_json(ajustar(mod, obs, nd, metodo, **kw), z, nombre, fuente)
+        t["periodo"] = [str(dias.min().date()), str(dias.max().date())]
+        (raiz / "catalogo" / f"correccion_{zona_id}_{nombre}.json").write_text(json.dumps(t), encoding="utf-8")
+    return res
