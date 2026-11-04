@@ -108,3 +108,9 @@ def test_pisco_con_el_contador_z1_del_archivo_real(tmp_path):
         d.createVariable("precipitation", "f4", ("Z1", "latitude", "longitude"))[:] = np.ones((3, 2, 2))
     s = M.pisco_en_nodos(ruta, M.nodos({**Z, "cells": [0]}))
     assert list(s.index) == list(pd.date_range("1981-01-01", periods=3)) and (s[0] == 1).all()
+
+
+def test_indice_ukmo_devuelve_la_celda_del_centro_que_da_la_api():
+    # centres returned by the API in chapter 14
+    assert M.indice_ukmo(-11.90625, -76.78125) == (833, 734)
+    assert M.indice_ukmo(-12.0, -76.640625) == (832, 735)
