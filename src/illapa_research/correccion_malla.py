@@ -248,7 +248,8 @@ def ukmo_bucket(celdas: pd.DataFrame, inicio: str, fin: str, hilos: int = 8) -> 
     from omfiles import OmFileReader
 
     fs = s3fs.S3FileSystem(anon=True)
-    i0, i1, j0, j1 = celdas["i"].min(), celdas["i"].max() + 1, celdas["j"].min(), celdas["j"].max() + 1
+    i0, i1 = int(celdas["i"].min()), int(celdas["i"].max()) + 1
+    j0, j1 = int(celdas["j"].min()), int(celdas["j"].max()) + 1
 
     def h(t) -> int:
         return int((pd.Timestamp(t) - pd.Timestamp("1970-01-01")).total_seconds() // 3600)
@@ -272,7 +273,7 @@ def ukmo_bucket(celdas: pd.DataFrame, inicio: str, fin: str, hilos: int = 8) -> 
                     r.close()
                 horas = pd.date_range(pd.Timestamp("1970-01-01") + pd.Timedelta(hours=c * UKMO_HORAS_POR_CHUNK),
                                       periods=bloque.shape[2], freq="h")
-                return pd.DataFrame({cel: bloque[r_.i - i0, r_.j - j0] for cel, r_ in celdas.iterrows()}, index=horas)
+                return pd.DataFrame({cel: bloque[int(i) - i0, int(j) - j0] for cel, i, j in zip(celdas.index, celdas["i"], celdas["j"], strict=True)}, index=horas)
             except Exception as e:  # noqa: BLE001 (transient S3 errors: wait and retry)
                 import time
 
