@@ -95,3 +95,23 @@ def test_la_resolucion_en_float32_del_servidor_no_cambia_la_forma(tmp_path):
         a = C.leer(src, {"z": caja})["z"]
     lat, lon = C.coordenadas(caja, -78.0, -11.0)
     assert a.shape == (len(lat), len(lon))
+
+
+def test_comparar_encuentra_el_rezago_y_la_razon():
+    idx = pd.date_range("2000-01-01", "2003-12-31")
+    rng = np.random.default_rng(0)
+    obs = pd.Series(rng.gamma(0.5, 4, len(idx)), index=idx)
+    chirps = 2 * obs.shift(-1)  # CHIRPS a day early and twice as wet
+    r = C.comparar(chirps, obs)
+    assert r["r_diaria_rezago+1"] > 0.99 and r["r_diaria_rezago+0"] < 0.3
+    assert r["razon_medias"] == pytest.approx(2, rel=0.05) and r["r_mensual"] > 0.9
+
+
+def test_serie_punto_toma_la_celda_que_contiene_la_estacion():
+    import xarray as xr
+
+    t = pd.date_range("2024-01-01", periods=3)
+    v = np.arange(3 * 2 * 2, dtype=float).reshape(3, 2, 2)
+    da = xr.DataArray(v, coords={"time": t, "lat": [-11.325, -11.375], "lon": [-77.375, -77.325]}, dims=("time", "lat", "lon"))
+    s = C.serie_punto(da, -77.33, -11.37)
+    assert list(s.values) == [3.0, 7.0, 11.0]

@@ -208,3 +208,47 @@ def pentadas(da):
     p = np.minimum((t.day - 1) // 5, 5)
     clave = (t.year * 100 + t.month) * 10 + p
     return da.assign_coords(pentada=("time", clave)).groupby("pentada").sum(skipna=False)
+
+
+# The six PISCOp cells over the Rímac valley (correccion_sesgo.LONGITUDES x LATITUDES): their outer edges.
+CAJA_VALLE_PISCO = (-76.80, -12.00, -76.50, -11.80)
+MESES_LLUVIA = (12, 1, 2, 3, 4)
+
+
+def serie_punto(da, lon: float, lat: float):
+    """Daily series of the CHIRPS cell that contains a point (a station)."""
+    import pandas as pd
+
+    s = da.sel(lon=lon, lat=lat, method="nearest")
+    return pd.Series(s.to_numpy(), index=pd.DatetimeIndex(da["time"].to_numpy()), name="chirps")
+
+
+def comparar(chirps, obs, meses: tuple[int, ...] = MESES_LLUVIA) -> dict[str, float]:
+    """How a CHIRPS series agrees with an observed daily series in the rainy months.
+
+    CHIRPS days are UTC days and SENAMHI's are read at 7 a.m. local, so the daily correlation is
+    given at lags -1, 0 and +1 (CHIRPS shifted against the observation). Pentads and months are
+    the scales CHIRPS is built at, and they do not depend on the day convention.
+    """
+    import pandas as pd
+
+    j = pd.concat({"c": chirps, "o": obs}, axis=1).dropna()
+    j = j[j.index.month.isin(meses)]
+    out: dict[str, float] = {"dias": float(len(j))}
+    if len(j) < 30:
+        return out
+    for k in (-1, 0, 1):
+        x = pd.concat({"c": chirps.shift(k), "o": obs}, axis=1).dropna()
+        x = x[x.index.month.isin(meses)]
+        out[f"r_diaria_rezago{k:+d}"] = float(x["c"].corr(x["o"]))
+    p = np.minimum((j.index.day - 1) // 5, 5)
+    clave = (j.index.year * 100 + j.index.month) * 10 + p
+    pent = j.groupby(clave).sum()
+    out["r_pentada"] = float(pent["c"].corr(pent["o"]))
+    mens = j.groupby(j.index.year * 100 + j.index.month).sum()
+    out["r_mensual"] = float(mens["c"].corr(mens["o"]))
+    out["razon_medias"] = float(j["c"].mean() / j["o"].mean()) if j["o"].mean() > 0 else float("nan")
+    for m in meses:
+        jm = j[j.index.month == m]
+        out[f"razon_mes_{m:02d}"] = float(jm["c"].mean() / jm["o"].mean()) if jm["o"].mean() > 0 else float("nan")
+    return out
