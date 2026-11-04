@@ -71,7 +71,32 @@ El mapa (`peru-alerta-lluvia`) dibuja la lluvia hora por hora del UK Met Office 
 - **Qué es.** El GEFS operativo ajustado a CHIRPS v3 a 0,05°, con archivo diario desde 2001 (sin 2020) y CC BY 4.0. Quedó como fuente opt-in (`--solo chirps3-gefs`).
 - **Qué pasó.** Justo después de las 5 horas de CHIRPS, `data.chc.ucsb.edu` dejó de responder a la IP de la PC: solo tiempos de espera, sin código HTTP. La misma dirección respondía desde otra conexión, y la web del CHC sí respondía a la PC. Se detuvo la descarga y no se esquivó el bloqueo.
 - **Espejos.** No hay ninguno conocido. Earth Engine tiene CHIRPS v3 diario pero no CHIRPS3-GEFS. El IRI Data Library solo tiene CHIRPS3 mensual y por décadas. Una revisión de un proyecto en GitHub no encontró copia v3 en ClimateSERV, Planetary Computer, Copernicus ni source.coop. El Early Warning Explorer (CHC y USGS) sirve mapas y series puntuales, no el archivo completo.
-- **Otra forma.** CHIRPS3-GEFS es, en esencia, el mapeo de cuantiles de la media del GEFS contra CHIRPS. El rectángulo del reforecast de la etapa 3 y la malla CHIRPS ya están en la PC, así que se puede rehacer en casa para 2000-2019.
+- **Otra forma.** CHIRPS3-GEFS es, en esencia, el mapeo de cuantiles de la media del GEFS contra CHIRPS. El rectángulo del reforecast de la etapa 3 y la malla CHIRPS ya están en la PC, así que se rehízo en casa para 2000-2019 (abajo).
+
+**CHIRPS3-GEFS casero** (`src/illapa_research/c3g_casero.py`, 5 pruebas; unos minutos en la PC):
+- **Método.** Se toma la media de los 5 miembros del GEFS de la etapa 3, en el día del SENAMHI y con los plazos 1 y 2. Se interpola bilinealmente a cada celda de 0,05° de CHIRPS. Luego se aplica un mapeo empírico de cuantiles por celda y mes (diciembre a abril) contra CHIRPS `rnl`. Los empates secos van al rango medio, y sobre el máximo se mantiene la razón de los máximos. Cada temporada se corrige con las otras 19.
+- **Salida.** El hindcast en `datos/c3g_casero/lima-este_c3g_casero.nc` (33 MB, crudo y casero, plazos 1 y 2), las tablas de cuantiles en `_tablas_lead{1,2}.npz` y las métricas en `catalogo/c3g_casero_lima-este_{resumen,pluviometros}.csv` y `_celdas.csv.gz`.
+
+Contra CHIRPS (mediana sobre las celdas de tierra, plazo 1, unos 3 000 días):
+
+| Versión | Sesgo | Error medio (mm/día) | r diaria | r péntada | Aciertos P90 | Falsas alarmas P90 | CSI P90 |
+|---|---|---|---|---|---|---|---|
+| GEFS interpolado | 2,32 | 3,48 | 0,32 | 0,39 | 0,65 | 0,84 | 0,15 |
+| CHIRPS3-GEFS casero | **1,01** | **1,58** | 0,29 | 0,36 | 0,22 | 0,79 | 0,12 |
+
+Contra los 11 pluviómetros del SENAMHI (2000-2014, mediana; `_pluviometros.csv`):
+
+| Versión | Sesgo | r diaria | r péntada | Aciertos P90 | CSI P90 |
+|---|---|---|---|---|---|
+| GEFS interpolado | 2,34 (Ñaña 51, Chosica 16) | 0,28 | 0,41 | 0,53 | 0,15 |
+| CHIRPS3-GEFS casero | 0,92 (Ñaña 9, Chosica 1,7) | 0,28 | 0,42 | 0,09 | 0,04 |
+| CHIRPS (la observación satelital, no un pronóstico) | 1,07 | 0,42 | 0,63 | 0,23 | 0,10 |
+
+**Qué se aprende:**
+1. **Es lo mismo que la etapa 1, a 5 km.** El mapeo deja los totales bien (sesgo ≈ 1 en la sierra) y baja el error medio a la mitad. Pero no mejora la correlación, y pierde los días fuertes: los aciertos en el P90 bajan de 0,53 a 0,09 en las estaciones.
+2. **Hereda el sesgo de CHIRPS en el fondo del valle.** Ñaña sigue con 9 veces lo observado y Chosica con 1,7: mejor que el GEFS crudo, pero el mapa diría llovizna donde no la hay.
+3. **El detalle de 0,05° no agrega habilidad.** La r de péntada es la del GEFS (0,42). Lo fino viene de la climatología de CHIRPS, como ya había dicho la etapa 0.
+4. **Para la web no reemplaza a la etapa 3.** Sirve como capa de «lluvia esperada en mm» con totales honestos en la sierra. Para «puede llover fuerte», la probabilidad calibrada sigue siendo la herramienta.
 
 ## 4. Etapa 1: la cantidad correcta en Lima Este
 
@@ -166,4 +191,7 @@ M.principal("lima-este")    # necesita datos/pisco/PISCOp_d.nc y el extra era5 (
 
 from illapa_research import probabilidad_malla as P
 P.principal("lima-este", procesos=12)   # extra gefs (eccodes); unos 33 min, después de la etapa 1
+
+from illapa_research import c3g_casero as K
+K.principal("lima-este")    # CHIRPS3-GEFS casero; necesita las etapas 0 y 3; unos minutos
 ```
