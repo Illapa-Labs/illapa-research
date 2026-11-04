@@ -361,3 +361,27 @@ def armar_c3g(destino: Path, cajas: dict) -> list[Path]:
         rutas.append(ruta)
     return rutas
 
+
+
+def indices_anuales(s, meses: tuple[int, ...] = MESES_LLUVIA):
+    """Wet-season indices of Túpac Yupanqui (2015) per rainy season (December counts with the next year):
+    total (PRCTOT), days >= 10 and >= 20 mm (R10MM, R20MM), mean rain of wet days >= 1 mm (SDII) and the
+    longest run of wet days (CDW)."""
+    import pandas as pd
+
+    s = s[s.index.month.isin(meses)].dropna()
+    temporada = pd.Index(np.where(s.index.month == 12, s.index.year + 1, s.index.year), name="temporada")
+
+    def cdw(x):
+        mojado = (x.to_numpy() >= 1).astype(int)
+        mejor = actual = 0
+        for v in mojado:
+            actual = actual + 1 if v else 0
+            mejor = max(mejor, actual)
+        return mejor
+
+    g = s.groupby(temporada)
+    return pd.DataFrame({"prctot": g.sum(), "r10mm": g.apply(lambda x: (x >= 10).sum()),
+                         "r20mm": g.apply(lambda x: (x >= 20).sum()),
+                         "sdii": g.apply(lambda x: x[x >= 1].mean() if (x >= 1).any() else 0.0),
+                         "cdw": g.apply(cdw), "dias": g.size()})

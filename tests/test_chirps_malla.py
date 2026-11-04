@@ -163,3 +163,13 @@ def test_descargar_c3g_arma_emision_por_plazo_con_nan_donde_falta(tmp_path, monk
     assert ds.sizes["lead"] == 2 and pd.Timestamp(ds.emision.values[0]) == pd.Timestamp("2009-11-28")
     v = ds["precip"].sel(emision="2010-03-01")
     assert float(v.sel(lead=0).mean()) == 1 and np.isnan(v.sel(lead=1)).all()  # 2 March was not published
+
+
+def test_indices_anuales_de_temporada():
+    idx = pd.date_range("2000-12-01", "2001-04-30")
+    v = np.zeros(len(idx))
+    v[:3] = [12, 25, 2]  # 1-3 Dec: three wet days in a row, one >= 20, two >= 10
+    v[50] = 0.5
+    r = C.indices_anuales(pd.Series(v, index=idx)).loc[2001]
+    assert r["prctot"] == pytest.approx(39.5) and r["r10mm"] == 2 and r["r20mm"] == 1
+    assert r["sdii"] == pytest.approx(13) and r["cdw"] == 3
