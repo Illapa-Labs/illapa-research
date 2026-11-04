@@ -69,7 +69,54 @@ El CSI se calcula por nodo a partir de los aciertos y las falsas alarmas.
 - Solo Lima Este.
 - Solo plazo 0: el archivo guarda la primera parte de cada corrida.
 
-## 5. Reproducir
+## 5. Etapa 3: probabilidad de lluvia fuerte en Lima Este
+
+**Pregunta.** Para cada nodo y cada día, ¿qué probabilidad hay de que la lluvia del día (7 a. m. a 7 a. m.) pase el percentil 95 de PISCOp en ese nodo?
+
+**Método** (`src/illapa_research/probabilidad_malla.py`, 5 pruebas):
+- **Pronóstico.** GEFSv12 reforecast 2000-2019 (NOAA, dominio público): corrida de 00 UTC, miembros c00 y p01-p04, 0,25°. Se lee por rangos de bytes, como en el capítulo 19, pero guardando un rectángulo de 8 × 9 celdas sobre Lima Este. Son 3 065 corridas, unos 33 minutos con 12 procesos en la PC.
+- **Día.** Las horas 12 a 36 de la corrida del día `d` son exactamente el día de PISCOp (lead 1, emitido a las 19:00 del día anterior). Las horas 36 a 60 de la corrida `d−1` dan el lead 2.
+- **Valor en el nodo.** Interpolación bilineal de cada miembro al nodo.
+- **Calibración por nodo.** Regresión logística sobre dos resúmenes del conjunto: la raíz de la media del conjunto, y la fracción de miembros sobre el percentil 95 del propio modelo en ese nodo.
+- **Validación.** Dejando una temporada fuera. Los umbrales, el ajuste y la climatología salen solo de las otras temporadas.
+- **Comparadores.** La «fracción cruda» (miembros sobre el umbral de PISCOp, lo que daría mostrar el conjunto tal cual) y la climatología del nodo.
+
+**Resultados** (todos los nodos y días de lluvia de 20 temporadas: unos 461 000 pares nodo-día; frecuencia del evento 5,1 %; `catalogo/probabilidad_lima-este_metricas.csv`):
+
+| Versión | Plazo | Brier | Mejora sobre la climatología | AUC | Probabilidad media |
+|---|---|---|---|---|---|
+| Calibrada | 1 día | 0,0457 | **+6,0 %** | **0,78** | 0,050 |
+| Calibrada | 2 días | 0,0456 | +6,2 % | 0,78 | 0,050 |
+| Fracción cruda del conjunto | 1 día | 0,200 | −312 % | 0,73 | 0,282 |
+| Climatología | — | 0,0486 | 0 | 0,50 | 0,050 |
+
+**Fiabilidad de la calibrada, plazo 1** (`catalogo/probabilidad_lima-este_fiabilidad.csv`):
+
+| Probabilidad dicha | Pares nodo-día | Probabilidad media dicha | Frecuencia observada |
+|---|---|---|---|
+| < 5 % | 310 732 | 2,3 % | 2,1 % |
+| 5 a 10 % | 89 639 | 7,1 % | 8,1 % |
+| 10 a 20 % | 50 297 | 13,5 % | 14,3 % |
+| 20 a 30 % | 7 330 | 23,6 % | 22,1 % |
+| 30 a 50 % | 2 408 | 37,2 % | 31,2 % |
+| ≥ 50 % | 670 | 62,5 % | **44,3 %** |
+
+**Qué se aprende:**
+1. **Calibrada y con señal.** Hasta el 30 % la probabilidad dice lo que pasa. Por encima exagera un poco: cuando dice 62 %, ocurre 44 %. Los días con 20 % o más son el 2,3 % de los pares nodo-día, y en ellos la lluvia fuerte ocurre entre 4 y 9 veces más que en un día cualquiera.
+2. **El conjunto crudo engaña.** Mostrar «cuántos miembros pasan el umbral» diría 80 % cuando ocurre 11 %: el GEFS a 25 km sobrestima la lluvia de la sierra, igual que el UKMO. Sin calibración no sirve para el mapa.
+3. **La mejora es modesta.** El Brier mejora un 6 % sobre la climatología. La probabilidad separa días (AUC 0,78), pero casi siempre se queda baja, porque el evento es raro y el pronóstico de lluvia en la sierra es difícil.
+4. **El plazo 2 vale lo mismo que el 1.** Cubre las 36 horas del mapa.
+5. **Compuerta 3: pasa,** con la salvedad de la banda alta, que se agrupa como «≥ 30 %».
+
+**Para la web.** Tres bandas de probabilidad («normal» < 10 %, «elevada» 10 a 30 %, «alta» ≥ 30 %), calculadas en el engine con la tabla `catalogo/probabilidad_lima-este_lead{1,2}.json`. La tabla da, por nodo, los dos umbrales y los tres coeficientes de la fórmula, sobre los mismos 5 miembros (c00, p01-p04) del GEFS operativo. **Falta verificar** la fuente del GEFS operativo con esos miembros (API de conjuntos de Open-Meteo o NOMADS) y que el GEFS operativo se comporte como el reforecast: son el mismo modelo, pero el reforecast tiene otra asimilación inicial.
+
+**Límites:**
+- PISCOp tiene pocas estaciones en la sierra alta.
+- El umbral es por nodo y relativo: no es un umbral de peligro.
+- Solo Lima Este.
+- 2000-2019: el reforecast no llega más allá.
+
+## 6. Reproducir
 
 ```bash
 uv run descargar-datos --solo chirps-malla     # etapa 0, en la PC remota (unas 4 h)
@@ -78,4 +125,7 @@ uv run descargar-datos --solo chirps-malla     # etapa 0, en la PC remota (unas 
 ```python
 from illapa_research import correccion_malla as M
 M.principal("lima-este")    # necesita datos/pisco/PISCOp_d.nc y el extra era5 (s3fs, omfiles); unos 3 min
+
+from illapa_research import probabilidad_malla as P
+P.principal("lima-este", procesos=12)   # extra gefs (eccodes); unos 33 min, después de la etapa 1
 ```
