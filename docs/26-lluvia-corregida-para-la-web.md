@@ -65,7 +65,13 @@ El mapa (`peru-alerta-lluvia`) dibuja la lluvia hora por hora del UK Met Office 
 3. **No ve la lluvia intensa y la vuelve llovizna.** Tiene muchos menos días de 10 y 20 mm, un SDII más bajo y el triple de días húmedos seguidos. Es lo que avisaba el readme del CHC: repartir una péntada con el tiempo de ERA5 crea rachas húmedas artificiales. Coincide con Túpac Yupanqui (2015).
 4. **El día es el mismo.** El mejor rezago es 0 en las 12 series: pese a la convención UTC, CHIRPS no queda corrido un día respecto del día de 7 a. m. del SENAMHI.
 
-**Qué implica para la etapa 2.** El detalle de 0,05° de CHIRPS sirve para el **patrón de la lluvia de la temporada en la sierra**. No sirve para lluvias fuertes de un día ni para el fondo del valle, que es justo donde vive la gente de Chosica y Chaclacayo. Un mapa diario de 5 km aprendido de CHIRPS mostraría llovizna donde no la hay y suavizaría los días fuertes. La etapa 2 queda limitada a la climatología. El CHIRPS3-GEFS hereda esto, y se medirá igual.
+**Qué implica para la etapa 2.** El detalle de 0,05° de CHIRPS sirve para el **patrón de la lluvia de la temporada en la sierra**. No sirve para lluvias fuertes de un día ni para el fondo del valle, que es justo donde vive la gente de Chosica y Chaclacayo. Un mapa diario de 5 km aprendido de CHIRPS mostraría llovizna donde no la hay y suavizaría los días fuertes. La etapa 2 queda limitada a la climatología. El CHIRPS3-GEFS hereda esto.
+
+**CHIRPS3-GEFS: no se pudo bajar.**
+- **Qué es.** El GEFS operativo ajustado a CHIRPS v3 a 0,05°, con archivo diario desde 2001 (sin 2020) y CC BY 4.0. Quedó como fuente opt-in (`--solo chirps3-gefs`).
+- **Qué pasó.** Justo después de las 5 horas de CHIRPS, `data.chc.ucsb.edu` dejó de responder a la IP de la PC: solo tiempos de espera, sin código HTTP. La misma dirección respondía desde otra conexión, y la web del CHC sí respondía a la PC. Se detuvo la descarga y no se esquivó el bloqueo.
+- **Espejos.** No hay ninguno conocido. Earth Engine tiene CHIRPS v3 diario pero no CHIRPS3-GEFS. El IRI Data Library solo tiene CHIRPS3 mensual y por décadas. Una revisión de un proyecto en GitHub no encontró copia v3 en ClimateSERV, Planetary Computer, Copernicus ni source.coop. El Early Warning Explorer (CHC y USGS) sirve mapas y series puntuales, no el archivo completo.
+- **Otra forma.** CHIRPS3-GEFS es, en esencia, el mapeo de cuantiles de la media del GEFS contra CHIRPS. El rectángulo del reforecast de la etapa 3 y la malla CHIRPS ya están en la PC, así que se puede rehacer en casa para 2000-2019.
 
 ## 4. Etapa 1: la cantidad correcta en Lima Este
 

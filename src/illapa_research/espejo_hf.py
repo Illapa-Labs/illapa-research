@@ -52,6 +52,12 @@ ARCHIVOS = {
     "gefs_reforecast/gefs_corridas.csv.gz": "gefs-reforecast",
     "pronosticos": "pronosticos-previous-runs",
     "open_meteo_ukmo_archivo.json": "pronosticos-previous-runs",
+    # chapter 26: CHIRPS v3 on the 0.05° grid of the map zones (the monthly caches are not mirrored)
+    "chirps_malla/lima-este_rnl.nc": "chirps-malla",
+    "chirps_malla/costa-norte_rnl.nc": "chirps-malla",
+    "chirps_malla/ancash_rnl.nc": "chirps-malla",
+    "chirps_malla/cusco_rnl.nc": "chirps-malla",
+    "chirps_malla/arequipa_rnl.nc": "chirps-malla",
     "MANIFIESTO.json": "",
 }
 
