@@ -90,10 +90,16 @@ def leer(fuente, cajas: dict) -> dict[str, np.ndarray]:
 
 def leer_dia(fecha, cajas: dict, producto: str = "rnl", intentos: int = 8) -> dict[str, np.ndarray] | None:
     """Windows of one day straight from the CHC server; None if the file is not published (404)."""
+    return leer_url(URL.format(producto=producto, a=fecha.year, m=fecha.month, d=fecha.day), cajas, intentos,
+                    f"{fecha:%Y-%m-%d} ({producto})")
+
+
+def leer_url(url: str, cajas: dict, intentos: int = 8, etiqueta: str = "") -> dict[str, np.ndarray] | None:
+    """Windows of any CHC 0.05° global GeoTIFF (CHIRPS v3, CHIRPS3-GEFS); None on 404."""
     import rasterio
     from rasterio.errors import RasterioIOError
 
-    url = "/vsicurl/" + URL.format(producto=producto, a=fecha.year, m=fecha.month, d=fecha.day)
+    url = "/vsicurl/" + url
     entorno = {"GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR", "CPL_VSIL_CURL_ALLOWED_EXTENSIONS": ".tif",
                "GDAL_HTTP_MAX_RETRY": "3", "GDAL_HTTP_RETRY_DELAY": "2", "GDAL_HTTP_TIMEOUT": "30"}
     for i in range(intentos):
@@ -106,7 +112,7 @@ def leer_dia(fecha, cajas: dict, producto: str = "rnl", intentos: int = 8) -> di
             if "404" in str(e) or "does not exist" in str(e):
                 return None
             time.sleep(min(60, 5 * 2**i))
-    raise RuntimeError(f"CHIRPS no respondió para {fecha:%Y-%m-%d} ({producto})")
+    raise RuntimeError(f"CHC no respondió para {etiqueta or url}")
 
 
 def _leer_o_marcar(fecha, cajas: dict, producto: str, faltantes: Path) -> dict[str, np.ndarray] | None:
@@ -263,3 +269,95 @@ def comparar(chirps, obs, meses: tuple[int, ...] = MESES_LLUVIA) -> dict[str, fl
         jm = j[j.index.month == m]
         out[f"razon_mes_{m:02d}"] = float(jm["c"].mean() / jm["o"].mean()) if jm["o"].mean() > 0 else float("nan")
     return out
+
+
+# ---------------------------------------------------------------------------- CHIRPS3-GEFS (forecasts)
+# CHIRPS3-GEFS (Harrison et al. 2022, Scientific Data 9, 375; dataset doi:10.15780/G2PH2M; CC BY 4.0): the
+# GEFSv12 00 UTC ensemble-mean rain, quantile-matched to CHIRPS v3 and put on the same 0.05° grid. The daily
+# archive keeps, for every issue date from 2001 (2020 is missing), 16 files: the rain of the issue day and of the
+# next 15 days. Same layout as CHIRPS v3 (7200 x 2400, strips, LZW, sea -9999), so `leer` reads it unchanged.
+URL_C3G = ("https://data.chc.ucsb.edu/products/CHIRPS-GEFS/v3/daily/global/{a}/{m:02d}/{d:02d}/"
+           "c3g_{A}.{M:02d}.{D:02d}.tif")
+
+
+def url_c3g(emision, lead: int) -> str:
+    import pandas as pd
+
+    t = pd.Timestamp(emision) + pd.Timedelta(days=lead)
+    return URL_C3G.format(a=emision.year, m=emision.month, d=emision.day, A=t.year, M=t.month, D=t.day)
+
+
+def descargar_c3g(destino: Path, leads: tuple[int, ...] = (0, 1, 2), desde: int = 2001, hasta: int | None = None,
+                  hilos: int = 4, zonas: Path = ZONAS) -> list[Path]:
+    """Hindcast of the rainy seasons `desde`..`hasta` (December to April; issues from 28 November so every rain
+    day has all its leads), one cache per season, then one NetCDF per zone `<zona>_c3g.nc` (emision, lead, lat, lon).
+    Files not published (404, as all of 2020) stay NaN."""
+    import pandas as pd
+
+    destino = Path(destino)
+    (destino / "cache").mkdir(parents=True, exist_ok=True)
+    cajas = cajas_zonas(zonas)
+    hasta = hasta or pd.Timestamp.today().year
+    for t in range(desde, hasta + 1):
+        ruta = destino / "cache" / f"c3g_{t}.npz"
+        if ruta.exists():
+            continue
+        fin = min(pd.Timestamp(f"{t}-04-30"), pd.Timestamp.today().normalize() - pd.Timedelta(days=1))
+        emisiones = pd.date_range(f"{t - 1}-11-28", fin, freq="D")
+        if not len(emisiones):
+            continue
+        tareas = [(e, k) for e in emisiones for k in leads]
+        fallidos = destino / "c3g_fallidos.txt"
+
+        def uno(tarea, fallidos=fallidos):
+            e, k = tarea
+            try:
+                return leer_url(url_c3g(e, k), cajas, etiqueta=f"c3g {e:%Y-%m-%d} lead {k}")
+            except RuntimeError:
+                with open(fallidos, "a", encoding="utf-8") as f:
+                    f.write(f"{e:%Y-%m-%d} {k}\n")
+                return None
+
+        t0 = time.monotonic()
+        with ThreadPoolExecutor(hilos) as pool:
+            leidos = list(pool.map(uno, tareas))
+        datos = {}
+        for z, c in cajas.items():
+            alto, ancho = ventana(c)[3], ventana(c)[2]
+            a = np.full((len(emisiones), len(leads), alto, ancho), np.nan, dtype="float32")
+            for (e, k), x in zip(tareas, leidos, strict=True):
+                if x is not None:
+                    a[emisiones.get_loc(e), leads.index(k)] = x[z]
+            datos[z] = a
+        np.savez_compressed(ruta, emisiones=np.array([e.strftime("%Y-%m-%d") for e in emisiones]),
+                            leads=np.array(leads), **datos)
+        n_ok = sum(x is not None for x in leidos)
+        print(f"  CHIRPS3-GEFS temporada {t}: {n_ok}/{len(tareas)} archivos ({time.monotonic() - t0:.0f} s)", flush=True)
+    return armar_c3g(destino, cajas)
+
+
+def armar_c3g(destino: Path, cajas: dict) -> list[Path]:
+    import xarray as xr
+
+    partes = sorted((Path(destino) / "cache").glob("c3g_[12][0-9][0-9][0-9].npz"))
+    if not partes:
+        return []
+    cargados = [np.load(p) for p in partes]
+    emis = np.concatenate([c["emisiones"] for c in cargados]).astype("datetime64[D]")
+    _, sel = np.unique(emis, return_index=True)
+    leads = cargados[0]["leads"]
+    rutas = []
+    for zona, caja in cajas.items():
+        lat, lon = coordenadas(caja)
+        v = np.concatenate([c[zona] for c in cargados])[sel]
+        ds = xr.Dataset({"precip": (("emision", "lead", "lat", "lon"), v, {"units": "mm/day"})},
+                        coords={"emision": emis[sel].astype("datetime64[ns]"), "lead": leads, "lat": lat, "lon": lon},
+                        attrs={"product": "CHIRPS3-GEFS daily (GEFSv12 00 UTC ensemble mean, quantile-matched to CHIRPS v3)",
+                               "lead": "days after the issue date (0 = the issue day)", "zone": zona,
+                               "license": "CC BY 4.0, Climate Hazards Center (UCSB)",
+                               "citation": "Harrison et al. (2022), Scientific Data 9, 375; doi:10.15780/G2PH2M"})
+        ruta = Path(destino) / f"{zona}_c3g.nc"
+        ds.to_netcdf(ruta, encoding={"precip": {"zlib": True, "complevel": 4}})
+        rutas.append(ruta)
+    return rutas
+

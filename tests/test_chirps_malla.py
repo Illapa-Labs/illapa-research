@@ -135,3 +135,31 @@ def test_un_dia_que_sigue_fallando_queda_en_nan_y_en_la_lista(tmp_path, monkeypa
     ds = xr.open_dataset(rutas[0])
     assert ds.sizes["time"] == 31 and np.isnan(ds["precip"].sel(time="2024-01-07")).all()
     assert (tmp_path / "m" / "rnl_dias_fallidos.txt").read_text().split() == ["2024-01-07"]
+
+
+def test_url_de_chirps3_gefs_por_emision_y_plazo():
+    u = C.url_c3g(pd.Timestamp("2026-11-03"), 1)
+    assert u.endswith("/v3/daily/global/2026/11/03/c3g_2026.11.04.tif")
+    assert C.url_c3g(pd.Timestamp("2016-12-31"), 2).endswith("/2016/12/31/c3g_2017.01.02.tif")
+
+
+def test_descargar_c3g_arma_emision_por_plazo_con_nan_donde_falta(tmp_path, monkeypatch):
+    zonas = tmp_path / "z.json"
+    zonas.write_text(json.dumps({"zonas": [{"id": "a", "west": -77.2, "north": -11.5, "step": 0.1, "cols": 2, "rows": 2}]}))
+    cajas = C.cajas_zonas(zonas)
+    forma = C.ventana(cajas["a"])[2:][::-1]
+
+    def falso(url, cajas_, intentos=8, etiqueta=""):
+        if url.endswith("c3g_2010.03.02.tif"):
+            return None  # not published
+        dia = int(url[-6:-4])
+        return {"a": np.full(forma, float(dia), dtype="float32")}
+
+    monkeypatch.setattr(C, "leer_url", falso)
+    rutas = C.descargar_c3g(tmp_path / "g", leads=(0, 1), desde=2010, hasta=2010, hilos=2, zonas=zonas)
+    import xarray as xr
+
+    ds = xr.open_dataset(rutas[0])
+    assert ds.sizes["lead"] == 2 and pd.Timestamp(ds.emision.values[0]) == pd.Timestamp("2009-11-28")
+    v = ds["precip"].sel(emision="2010-03-01")
+    assert float(v.sel(lead=0).mean()) == 1 and np.isnan(v.sel(lead=1)).all()  # 2 March was not published

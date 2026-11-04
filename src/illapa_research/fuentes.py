@@ -658,6 +658,14 @@ def _chirps_malla(destino: Path) -> list[str]:
     return [str(r.relative_to(destino.parent)) for r in rutas]
 
 
+def _chirps3_gefs(destino: Path) -> list[str]:
+    """CHIRPS3-GEFS daily hindcast (leads 0-2) on the 0.05° grid of the five forecast zones, rainy seasons 2001 on."""
+    from .chirps_malla import descargar_c3g
+
+    rutas = descargar_c3g(destino / "chirps_malla")
+    return [str(r.relative_to(destino.parent)) for r in rutas]
+
+
 def _igp_ec(destino: Path) -> list[str]:
     """E and C indices (Takahashi et al. 2011, ERSSTv5) as published by the IGP."""
     carpeta = destino / "enso"
@@ -698,7 +706,7 @@ def _pronosticos_previous_runs(destino: Path) -> list[str]:
 
 # Sources that `descargar-datos` skips unless they are named with --solo (heavy or slow servers).
 NO_POR_DEFECTO = frozenset(
-    {"chirps-v3", "chirps-malla", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast", "datos-del-estado"}
+    {"chirps-v3", "chirps-malla", "chirps3-gefs", "persiann-cdr", "era5-aws", "pronosticos-previous-runs", "gefs-reforecast", "datos-del-estado"}
 )
 
 
@@ -852,6 +860,14 @@ FUENTES: dict[str, Fuente] = {
             licencia="Dominio público y CC BY 4.0 (Climate Hazards Center)",
             atribucion="Funk, C. et al. (2026), CHIRPS v3, Scientific Data 13, 718, doi:10.1038/s41597-026-07096-4",
             descargar=_chirps_malla,
+        ),
+        Fuente(
+            id="chirps3-gefs",
+            nombre="CHIRPS3-GEFS diario (media del conjunto GEFS ajustada a CHIRPS v3, 0,05°), plazos 0 a 2, temporadas desde 2001",
+            url="https://www.chc.ucsb.edu/data/chirps-gefs",
+            licencia="CC BY 4.0 (Climate Hazards Center)",
+            atribucion="Harrison, L. et al. (2022), Scientific Data 9, 375; CHIRPS-GEFS, doi:10.15780/G2PH2M",
+            descargar=_chirps3_gefs,
         ),
         Fuente(
             id="igp-ec",
