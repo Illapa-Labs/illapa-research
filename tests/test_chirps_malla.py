@@ -115,3 +115,23 @@ def test_serie_punto_toma_la_celda_que_contiene_la_estacion():
     da = xr.DataArray(v, coords={"time": t, "lat": [-11.325, -11.375], "lon": [-77.375, -77.325]}, dims=("time", "lat", "lon"))
     s = C.serie_punto(da, -77.33, -11.37)
     assert list(s.values) == [3.0, 7.0, 11.0]
+
+
+def test_un_dia_que_sigue_fallando_queda_en_nan_y_en_la_lista(tmp_path, monkeypatch):
+    zonas = tmp_path / "z.json"
+    zonas.write_text(json.dumps({"zonas": [{"id": "a", "west": -77.2, "north": -11.5, "step": 0.1, "cols": 2, "rows": 2}]}))
+    cajas = C.cajas_zonas(zonas)
+    forma = C.ventana(cajas["a"])[2:][::-1]
+
+    def falso(fecha, cajas_, producto="rnl"):
+        if fecha == pd.Timestamp("2024-01-07"):
+            raise RuntimeError("sin respuesta")
+        return {"a": np.ones(forma, dtype="float32")}
+
+    monkeypatch.setattr(C, "leer_dia", falso)
+    rutas = C.descargar(tmp_path / "m", desde="2024-01-01", hasta="2024-01-31", hilos=2, zonas=zonas)
+    import xarray as xr
+
+    ds = xr.open_dataset(rutas[0])
+    assert ds.sizes["time"] == 31 and np.isnan(ds["precip"].sel(time="2024-01-07")).all()
+    assert (tmp_path / "m" / "rnl_dias_fallidos.txt").read_text().split() == ["2024-01-07"]

@@ -88,7 +88,7 @@ def leer(fuente, cajas: dict) -> dict[str, np.ndarray]:
     return out
 
 
-def leer_dia(fecha, cajas: dict, producto: str = "rnl", intentos: int = 5) -> dict[str, np.ndarray] | None:
+def leer_dia(fecha, cajas: dict, producto: str = "rnl", intentos: int = 8) -> dict[str, np.ndarray] | None:
     """Windows of one day straight from the CHC server; None if the file is not published (404)."""
     import rasterio
     from rasterio.errors import RasterioIOError
@@ -105,8 +105,18 @@ def leer_dia(fecha, cajas: dict, producto: str = "rnl", intentos: int = 5) -> di
         except RasterioIOError as e:
             if "404" in str(e) or "does not exist" in str(e):
                 return None
-            time.sleep(5 * (i + 1))
+            time.sleep(min(60, 5 * 2**i))
     raise RuntimeError(f"CHIRPS no respondió para {fecha:%Y-%m-%d} ({producto})")
+
+
+def _leer_o_marcar(fecha, cajas: dict, producto: str, faltantes: Path) -> dict[str, np.ndarray] | None:
+    """`leer_dia`, but a day the server keeps failing becomes NaN and is written to `faltantes`."""
+    try:
+        return leer_dia(fecha, cajas, producto)
+    except RuntimeError:
+        with open(faltantes, "a", encoding="utf-8") as f:
+            f.write(f"{fecha:%Y-%m-%d}\n")
+        return {z: np.full(ventana(c)[3:1:-1], np.nan, dtype="float32") for z, c in cajas.items()}
 
 
 def _mes(destino: Path, anio: int, mes: int, cajas: dict, producto: str, hilos: int, hasta) -> bool:
@@ -119,7 +129,8 @@ def _mes(destino: Path, anio: int, mes: int, cajas: dict, producto: str, hilos: 
     ini = pd.Timestamp(anio, mes, 1)
     dias = [d for d in pd.date_range(ini, ini + pd.offsets.MonthEnd(0), freq="D") if d <= hasta]
     with ThreadPoolExecutor(hilos) as pool:
-        leidos = list(pool.map(lambda d: leer_dia(d, cajas, producto), dias))
+        faltantes = destino / f"{producto}_dias_fallidos.txt"
+        leidos = list(pool.map(lambda d: _leer_o_marcar(d, cajas, producto, faltantes), dias))
     completos = [(d, x) for d, x in zip(dias, leidos, strict=True) if x is not None]
     entero = len(completos) == len(pd.date_range(ini, ini + pd.offsets.MonthEnd(0), freq="D"))
     if not completos:
