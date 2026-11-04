@@ -45,9 +45,9 @@ El mapa (`peru-alerta-lluvia`) dibuja la lluvia hora por hora del UK Met Office 
 | Serie | Altitud | Días | r diaria | r péntada | r mensual | CHIRPS / observado |
 |---|---|---|---|---|---|---|
 | PISCOp, 6 celdas del valle | — | 6 806 | 0,51 | 0,61 | 0,70 | 0,83 |
-| Ñaña | 566 m | 4 315 | 0,21 | 0,25 | 0,31 | **18,6** |
+| Ñaña | 543 m | 4 315 | 0,21 | 0,25 | 0,31 | **18,6** |
 | Chosica | 867 m | 3 512 | 0,22 | 0,39 | 0,58 | **2,11** |
-| Santa Eulalia | 982 m | 4 766 | 0,28 | 0,52 | 0,70 | **2,02** |
+| Santa Eulalia | 970 m | 4 766 | 0,28 | 0,52 | 0,70 | **2,02** |
 | Autisha | 2 220 m | 4 777 | 0,43 | 0,63 | 0,82 | 1,54 |
 | Matucana | 2 417 m | 5 262 | 0,43 | 0,65 | 0,77 | 1,12 |
 | Canchacalla | 2 400 m | 3 964 | 0,47 | 0,65 | 0,79 | 0,91 |
