@@ -25,6 +25,14 @@ El mapa (`peru-alerta-lluvia`) dibuja la lluvia hora por hora del UK Met Office 
 - **Costo.** Leer solo las filas de la ventana toma unos 25 a 45 s por mes para las cinco zonas: unas 4 horas desde 1981.
 - **Lo que es el dato diario** (readme del CHC). CHIRPS es un producto de péntadas y meses: estaciones más el satélite CHIRP. El valor diario reparte cada péntada entre sus días con el tiempo de ERA5 o de IMERG, interpolado bilinealmente a 0,05°, en días UTC. **El detalle de 0,05° es real a escala de péntada y mes, no de día.** `chirps_malla.pentadas` recupera la péntada.
 
+**Lo que ya dice el SENAMHI.** Túpac Yupanqui (2015), *Validación de los datos CHIRPS de precipitación para monitoreo de periodos secos y húmedos del Perú* (SENAMHI, Dirección de Hidrología; [PDF en SIGRID](https://sigrid.cenepred.gob.pe/sigridv3/storage/docs/PARA%20PUBLICAR/SENAMHI/Validacion%20de%20datos%20CHIRPS%20de%20Precipitacion%20para%20Monitoreo%20de%20Periodos%20Secos%20y%20Humedos%20en%20el%20Peru.pdf)), comparó 11 índices de lluvia extrema de CHIRPS **v2** diario a 0,05° con estaciones del SENAMHI, entre 1983 y 2014.
+- **Estaciones de la zona.** Entre ellas están varias del Rímac: Autisha, Carampoma, Matucana, Ñaña, Santa Eulalia y Huarochirí.
+- **Lo que funciona.** La lluvia total, los días con más de 10 y 20 mm (`R10MM`, `R20MM` y sus totales), la intensidad media de los días húmedos (`SDII`) y los días húmedos seguidos (`CDW`).
+- **Lo que falla.** Los días de lluvia ligera o nula, sobre todo en toda la costa.
+- **Sesgo.** Los índices de las estaciones salen más altos que los de CHIRPS: subestima los extremos.
+- **Andes centrales.** Ahí el índice con más estaciones significativas es `SDII`.
+- **Qué implica aquí.** Los umbrales de lluvia fuerte en los nodos del valle son bajos (percentil 95 de unos 7 mm), así que caen justo en el rango donde CHIRPS es menos confiable. Además, esas estaciones probablemente entraron en CHIRPS, así que la comparación no es independiente. La comprobación de la etapa 0 agrega estos mismos índices (`R10MM`, `R20MM`, `SDII`, `CDW`) para poder contrastar con ese estudio.
+
 Las comprobaciones contra PISCOp y los pluviómetros se agregan cuando termine la descarga.
 
 ## 4. Etapa 1: la cantidad correcta en Lima Este
