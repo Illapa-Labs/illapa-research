@@ -76,9 +76,12 @@ def leer(fuente, cajas: dict) -> dict[str, np.ndarray]:
     from rasterio.windows import Window
 
     t = fuente.transform
+    # The files store the cell size in float32 (0.05000000074505806): rounded, so a window has the
+    # same whole number of cells as `coordenadas` gives.
+    oeste, norte, res = round(t.c, 6), round(t.f, 6), round(t.a, 6)
     out = {}
     for nombre, caja in cajas.items():
-        c0, r0, ancho, alto = ventana(caja, t.c, t.f, t.a)
+        c0, r0, ancho, alto = ventana(caja, oeste, norte, res)
         a = fuente.read(1, window=Window(c0, r0, ancho, alto), boundless=True, fill_value=-9999).astype("float32")
         a[a < 0] = np.nan
         out[nombre] = a

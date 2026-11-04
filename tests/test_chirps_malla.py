@@ -10,12 +10,12 @@ from rasterio.windows import from_bounds
 from illapa_research import chirps_malla as C
 
 
-def _tif(ruta, oeste=-78.0, norte=-11.0, ancho=60, alto=50):
+def _tif(ruta, oeste=-78.0, norte=-11.0, ancho=60, alto=50, res=0.05):
     """A small CHIRPS-like GeoTIFF: 0.05° cells, value = 100*row + col, sea (-9999) in the first column."""
     v = (100 * np.arange(alto)[:, None] + np.arange(ancho)[None, :]).astype("float32")
     v[:, 0] = -9999
     with rasterio.open(ruta, "w", driver="GTiff", width=ancho, height=alto, count=1, dtype="float32",
-                       crs="EPSG:4326", transform=from_origin(oeste, norte, 0.05, 0.05)) as d:
+                       crs="EPSG:4326", transform=from_origin(oeste, norte, res, res)) as d:
         d.write(v, 1)
     return v
 
@@ -85,3 +85,13 @@ def test_media_de_caja_y_pentadas():
     p = C.pentadas(da)
     assert p.sizes["pentada"] == 6  # 6 pentads in January
     assert float(p.isel(pentada=0).mean()) == 5 and float(p.isel(pentada=5).mean()) == 6  # days 26-31
+
+
+def test_la_resolucion_en_float32_del_servidor_no_cambia_la_forma(tmp_path):
+    # CHIRPS v3 files store 0.05000000074505806; the window must still match `coordenadas`
+    _tif(tmp_path / "f32.tif", oeste=-78.0, norte=-11.0, ancho=60, alto=50, res=0.05000000074505806)
+    caja = (-77.9, -13.0, -77.5, -11.6)
+    with rasterio.open(tmp_path / "f32.tif") as src:
+        a = C.leer(src, {"z": caja})["z"]
+    lat, lon = C.coordenadas(caja, -78.0, -11.0)
+    assert a.shape == (len(lat), len(lon))
