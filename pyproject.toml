@@ -31,6 +31,11 @@ hf = [
 gpu = [
     "torch>=2.4",
 ]
+weathernext = [
+    "obstore>=0.8",
+    "zarr>=3.0",
+    "xarray>=2024.10",
+]
 satelite = [
     "pystac-client>=0.8",
     "planetary-computer>=1.0",
