@@ -257,6 +257,7 @@ def ukmo_bucket(celdas: pd.DataFrame, inicio: str, fin: str, hilos: int = 8) -> 
     chunks = [c for c in range(h(inicio) // UKMO_HORAS_POR_CHUNK, h(fin) // UKMO_HORAS_POR_CHUNK + 1) if c in disponibles]
 
     def uno(c: int) -> pd.DataFrame:
+        error = None
         for intento in range(4):
             try:
                 r = OmFileReader.from_fsspec(fs, f"{UKMO}/chunk_{c}.om")
@@ -272,11 +273,12 @@ def ukmo_bucket(celdas: pd.DataFrame, inicio: str, fin: str, hilos: int = 8) -> 
                 horas = pd.date_range(pd.Timestamp("1970-01-01") + pd.Timedelta(hours=c * UKMO_HORAS_POR_CHUNK),
                                       periods=bloque.shape[2], freq="h")
                 return pd.DataFrame({cel: bloque[r_.i - i0, r_.j - j0] for cel, r_ in celdas.iterrows()}, index=horas)
-            except Exception:  # noqa: BLE001 (transient S3 errors: wait and retry)
+            except Exception as e:  # noqa: BLE001 (transient S3 errors: wait and retry)
                 import time
 
+                error = e
                 time.sleep(3 * (intento + 1))
-        raise RuntimeError(f"No se pudo leer {UKMO}/chunk_{c}.om")
+        raise RuntimeError(f"No se pudo leer {UKMO}/chunk_{c}.om") from error
 
     with ThreadPoolExecutor(hilos) as ex:
         partes = list(ex.map(uno, chunks))
