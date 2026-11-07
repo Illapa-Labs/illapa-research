@@ -33,3 +33,10 @@ def test_solo_avisos_de_lluvia_descarta_viento_y_temperatura():
     a["title"] = "Precipitaciones en la sierra"
     t = V.tabla_avisos([a, b])
     assert len(V.dias_con_aviso(t, "LIMA")) == 3 and len(V.dias_con_aviso(t, "LIMA", solo_lluvia=True)) == 2
+
+
+def test_el_codigo_de_fenomeno_manda_sobre_el_titulo():
+    assert V.es_de_lluvia("Incremento de viento", "01;03")
+    assert not V.es_de_lluvia("Precipitaciones en la sierra", "03")
+    assert V.es_de_lluvia("Precipitaciones en la sierra")  # no codes: falls back to the title
+    assert not V.es_de_lluvia("Llovizna en la costa", "07")

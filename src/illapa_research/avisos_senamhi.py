@@ -22,7 +22,8 @@ import pandas as pd
 
 from .senamhi_api import ApiDetenida, ClienteApi
 
-_LLUVIA = re.compile(r"precipitaci|lluvia", re.IGNORECASE)  # not "llovizna": drizzle is not a heavy-rain warning
+_LLUVIA = re.compile(r"precipitaci|lluvia", re.IGNORECASE)  # title fallback; "llovizna" (drizzle) is not counted
+EVENTOS_LLUVIA = ("01", "08")  # phenomenon codes of the API catalogue: Precipitaciones, Lluvia (07 is Llovizna)
 
 PROVINCIAS = {"1501": "LIMA", "1507": "HUAROCHIRI"}
 DISTRITOS = {"150118": "LURIGANCHO", "150107": "CHACLACAYO", "150714": "RICARDO PALMA", "150728": "SANTA EULALIA",
@@ -62,6 +63,7 @@ def tabla_avisos(avisos: list[dict]) -> pd.DataFrame:
         filas.append({
             "id": x.get("id"), "numero": x.get("number"), "provincia": x.get("provincia"),
             "titulo": x.get("title"), "nivel": x.get("level"), "publicado": x.get("publishedDate"),
+            "eventos": ";".join(e.get("code", "") for e in (x.get("events") or [])),
             "inicio": ini, "fin": fin,
         })
     t = pd.DataFrame(filas).drop_duplicates(["id", "provincia"])
@@ -70,8 +72,13 @@ def tabla_avisos(avisos: list[dict]) -> pd.DataFrame:
     return t.sort_values("inicio").reset_index(drop=True)
 
 
-def es_de_lluvia(titulo: object) -> bool:
-    """True when the warning title is about rain (wind, temperature, snow and frost warnings are not)."""
+def es_de_lluvia(titulo: object, eventos: object = None) -> bool:
+    """True when the warning is about rain: by phenomenon code when the API gave it, else by title.
+
+    Wind, temperature, snow and frost warnings are not rain warnings.
+    """
+    if isinstance(eventos, str) and eventos:
+        return any(e in EVENTOS_LLUVIA for e in eventos.split(";"))
     return bool(_LLUVIA.search(str(titulo)))
 
 
@@ -80,7 +87,7 @@ def dias_con_aviso(t: pd.DataFrame, provincia: str, nivel_min: int = 1, solo_llu
     dias: set = set()
     s = t[(t["provincia"] == provincia) & (pd.to_numeric(t["nivel"], errors="coerce") >= nivel_min)]
     if solo_lluvia:
-        s = s[s["titulo"].map(es_de_lluvia)]
+        s = s[[es_de_lluvia(ti, ev) for ti, ev in zip(s["titulo"], s["eventos"] if "eventos" in s else [None] * len(s), strict=True)]]
     for ini, fin in zip(s["inicio"], s["fin"], strict=True):
         if pd.isna(ini) or pd.isna(fin):
             continue

@@ -3,7 +3,7 @@
 A warning that is active today can not be reconstructed tomorrow: the API gives history by year, but not
 what was published when. Each run saves, with its time stamp, the active and the issued (not started)
 weather warnings of the Lima and Huarochirí provinces, the short-term rain warnings of five districts
-and the recent daily series of three stations. About 15 calls per run (the account allows 1 000 a day).
+and the last rain of the automatic stations of both provinces and the recent series of three stations. About 19 calls per run (the account allows 1 000 a day).
 
 ``uv run python -m illapa_research.registro_senamhi`` (once a day; a second run on the same day is a no-op
 unless ``--forzar``). Files go to ``datos/senamhi_api/registro/`` (outside git and the public mirror) with
@@ -32,6 +32,8 @@ def llamadas() -> list[tuple[str, dict | None, str]]:
     for ub, nombre in DISTRITOS.items():
         for estado in ("active", "issued"):
             out.append((f"/short-term-warnings/{estado}", {"ubigeo": ub}, f"corto_{estado}_{nombre}"))
+    for prov in ("01", "07"):  # automatic stations: last valid rain within the 10-hour window, Lima and Huarochirí
+        out.append(("/variables/LLUVIA/stations", {"departmentId": "15", "provinceId": prov}, f"lluvia_red_{prov}"))
     for est, nombre in ESTACIONES.items():
         out.append((f"/stations/{est}/time-series", None, f"serie_{est}"))
     return out
