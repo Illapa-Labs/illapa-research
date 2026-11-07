@@ -24,7 +24,7 @@ Código: [`src/illapa_research/senamhi_api.py`](../src/illapa_research/senamhi_a
 | Modelo diario solo con antecedentes al 10 % de días | 10 % | 8 de 13 (62 %) |
 | Modelo diario solo con antecedentes al 20 % de días | 20 % | 12 de 13 (92 %) |
 
-Con el nivel mínimo 2 o 3 la cobertura de Lima no cambia (11 de 13) y la fracción de días con aviso baja del 50 % a unos 42 %.
+Con el nivel mínimo 2 el resultado de Lima no cambia (413 días de temporada con aviso, 11 de 13 huaicos); con el nivel 3 los días con aviso bajan de 413 a 319 y la cobertura sigue en 11 de 13 (`catalogo/senamhi_avisos_cobertura.csv`).
 
 ## 3. Lectura
 
