@@ -17,9 +17,11 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from . import senamhi
 from .avisos_senamhi import DISTRITOS, PROVINCIAS
 from .senamhi_api import LEYENDA, ApiDetenida, ClienteApi
 
+BBOX_LIMA = (-77.3, -12.4, -76.2, -11.5)
 ESTACIONES = {"111060": "CHOSICA (pluviómetro)", "111086": "SANTA EULALIA (pluviómetro)", "111291": "SAN MATEO DE OTAO"}
 
 
@@ -57,6 +59,21 @@ def tomar_foto(c: ClienteApi, carpeta: Path = Path("datos/senamhi_api/registro")
     return escritos
 
 
+def foto_sonics(carpeta: Path = Path("datos/senamhi_api/registro"), ahora: datetime | None = None) -> Path | None:
+    """Snapshot of the SONICS-PBI fluvial flood warning (WFS of the IDESEP GeoServer, public, not the API).
+
+    The layer holds only the current state (polygons of the subbasins by warning level 1 to 3 and the day
+    of the scenario), so it is worth saving every day. A box over Lima keeps it small; empty when no
+    subbasin of the region has a warning (the usual case in the dry season).
+    """
+    ahora = ahora or datetime.now(ZoneInfo("America/Lima"))
+    j = senamhi.wfs(senamhi.Cliente(), "dhi-seh-sonics", "SONICS", bbox=BBOX_LIMA, refrescar=True)
+    archivo = carpeta / f"{ahora.strftime('%Y-%m-%dT%H%M')}__sonics_lima.json"
+    archivo.write_text(json.dumps({"consultado": ahora.isoformat(), "servicio": "dhi-seh-sonics:SONICS",
+                                   "caja": BBOX_LIMA, "leyenda": LEYENDA, "data": j}, ensure_ascii=False), encoding="utf-8")
+    return archivo
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -66,6 +83,8 @@ def main(argv: list[str] | None = None) -> int:
     c = ClienteApi()
     try:
         escritos = tomar_foto(c, forzar=a.forzar)
+        if escritos:
+            escritos.append(foto_sonics())
     except ApiDetenida as e:
         print("DETENIDA:", e)
         return 1
