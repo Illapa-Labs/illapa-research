@@ -96,6 +96,49 @@ def cobertura(t: pd.DataFrame, fechas_huaico: list, provincia: str, nivel_min: i
     }
 
 
+def comparar_con_modelo(t: pd.DataFrame, desde: str = "2021-12-01") -> pd.DataFrame:
+    """Hit rate of the SENAMHI warnings and of the daily model at the same share of days in alarm.
+
+    The model is the ridge-logistic of chapter 05 (fixed C, one season out), with and without the rain
+    of the day, over the rainy-season days since `desde` (the first full season with warnings), and the
+    labels of the study zone. The warnings are issued ahead of time and cover a whole province, so this
+    is a comparison of coverage, not of operational skill.
+    """
+    from pathlib import Path
+
+    import numpy as np
+
+    from . import banco_modelos as B
+    from . import modelo_diario as M
+
+    D = M.cargar_datos(Path("."), solo_zona=True)
+    X, y, ts, _ = M.matrices(D)
+    yv = y.to_numpy()
+    idx = y.index
+    sel = np.asarray(idx >= desde)
+    dias = np.array([d.date() for d in idx])
+    ps = {"modelo con lluvia del día": B.logistica(X["lluvia+antecedentes"].to_numpy(dtype=float), yv, ts),
+          "modelo solo antecedentes": B.logistica(X["antecedentes"].to_numpy(dtype=float), yv, ts)}
+
+    def pod(mask) -> float:
+        return float((mask & sel & (yv == 1)).sum() / yv[sel].sum())
+
+    filas = []
+    for nombre, prov in (("aviso SENAMHI Lima", "LIMA"), ("aviso SENAMHI Huarochirí", "HUAROCHIRI")):
+        con = dias_con_aviso(t, prov)
+        a = np.array([d in con for d in dias])
+        frac = float((a & sel).sum() / sel.sum())
+        filas.append({"senal": nombre, "dias_en_alarma": frac, "pod": pod(a), "huaicos": int(yv[sel].sum())})
+        for nm, p in ps.items():
+            filas.append({"senal": f"{nm} (misma fracción)", "dias_en_alarma": frac,
+                          "pod": pod(p >= np.quantile(p[sel], 1 - frac)), "huaicos": int(yv[sel].sum())})
+    for f in (0.05, 0.10, 0.20):
+        for nm, p in ps.items():
+            filas.append({"senal": f"{nm} al {f:.0%}", "dias_en_alarma": f,
+                          "pod": pod(p >= np.quantile(p[sel], 1 - f)), "huaicos": int(yv[sel].sum())})
+    return pd.DataFrame(filas)
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
     from pathlib import Path
@@ -126,6 +169,9 @@ def main(argv: list[str] | None = None) -> int:
     out = pd.DataFrame(filas)
     out.round(4).to_csv(CATALOGO / "senamhi_avisos_cobertura.csv", index=False)
     print(out.round(3).to_string(index=False))
+    cmp = comparar_con_modelo(t)
+    cmp.round(4).to_csv(CATALOGO / "senamhi_avisos_vs_modelo.csv", index=False)
+    print(cmp.round(3).to_string(index=False))
     print("avisos por año y provincia:\n", t.groupby([t["inicio"].dt.year, "provincia"]).size().unstack(fill_value=0))
     return 0
 
