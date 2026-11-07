@@ -288,6 +288,43 @@ def ukmo_bucket(celdas: pd.DataFrame, inicio: str, fin: str, hilos: int = 8) -> 
     return out.loc[pd.Timestamp(inicio) : pd.Timestamp(fin)]
 
 
+def pluviometros_recientes(raiz: Path):
+    """(name, lon, lat, altitude, daily rain) of the Rímac conventional gauges from 2018 (`senamhi.diaria_reciente`)."""
+    from .senamhi import RECIENTES_NOMBRES
+
+    tablas = Path(raiz) / "datos" / "senamhi" / "tablas"
+    est = pd.read_csv(tablas / "estaciones.csv", dtype={"stationId": str}).set_index("stationId")
+    for k, n in RECIENTES_NOMBRES.items():
+        ruta = tablas / f"diaria_reciente_{n}.csv"
+        if not ruta.exists() or k not in est.index:
+            continue
+        r = est.loc[k]
+        s = pd.read_csv(ruta, index_col=0, parse_dates=True)["lluvia_mm"]
+        yield r["name"], float(r["longitude"]), float(r["latitude"]), float(r["altitude"]), s
+
+
+def contra_pluviometros(versiones: dict[str, pd.DataFrame], nd: pd.DataFrame, gauges, max_grados: float = 0.075) -> pd.DataFrame:
+    """Every version at the node nearest to each gauge, against the gauge, in the rainy months.
+
+    The gauge day is read at 7 a.m., the same day as the nodes. Gauges farther than `max_grados` from every
+    node are skipped. Thresholds are the gauge's own percentiles over the compared days."""
+    from .c3g_casero import metricas_celda
+
+    filas = []
+    for nom, lon, lat, alt, s in gauges:
+        d2 = (nd["lat"] - lat) ** 2 + (nd["lon"] - lon) ** 2
+        c = d2.idxmin()
+        if np.sqrt(d2[c]) > max_grados:
+            continue
+        for v, df in versiones.items():
+            dias = df.index[np.isin(df.index.month, MESES_LLUVIAS)]
+            x = df.loc[dias, c].to_numpy(dtype=float)
+            o = s.reindex(dias).to_numpy(dtype=float)
+            filas.append({"estacion": nom, "altitud_m": alt, "nodo": int(c), "km_al_nodo": round(float(np.sqrt(d2[c])) * 111, 1),
+                          "version": v, **metricas_celda(x, o, pd.DatetimeIndex(dias))})
+    return pd.DataFrame(filas)
+
+
 def principal(zona_id: str = "lima-este", raiz: Path = Path("."), hasta: str = "2025-12-31") -> pd.DataFrame:
     """Stage 1 for one zone: data (cached in `datos/correccion_malla/`), year-out validation, tables.
 
@@ -327,6 +364,9 @@ def principal(zona_id: str = "lima-este", raiz: Path = Path("."), hasta: str = "
     res = resumen(tablas)
     res.insert(0, "dias_lluvias", int((regimen(dias) == "lluvias").sum()))
     res.round(4).to_csv(raiz / "catalogo" / f"correccion_{zona_id}_resumen.csv")
+    pl = contra_pluviometros({**versiones, "pisco": obs}, nd, pluviometros_recientes(raiz))
+    if len(pl):
+        pl.round(4).to_csv(raiz / "catalogo" / f"correccion_{zona_id}_pluviometros.csv", index=False)
     fuente = "PISCOp v3.0 (SENAMHI, GPL-3.0) contra UKMO global 10 km (Open-Meteo, CC BY-SA 4.0)"
     for nombre, metodo, kw in (("escala", Escala, {}), ("cuantiles", MapeoCuantiles, {"n": 20})):
         t = a_json(ajustar(mod, obs, nd, metodo, **kw), z, nombre, fuente)

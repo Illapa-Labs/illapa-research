@@ -114,3 +114,19 @@ def test_indice_ukmo_devuelve_la_celda_del_centro_que_da_la_api():
     # centres returned by the API in chapter 14
     assert M.indice_ukmo(-11.90625, -76.78125) == (833, 734)
     assert M.indice_ukmo(-12.0, -76.640625) == (832, 735)
+
+
+def test_contra_pluviometros_usa_el_nodo_mas_cercano_y_salta_los_lejanos():
+    import numpy as np
+    import pandas as pd
+
+    from illapa_research import correccion_malla as M
+
+    nd = pd.DataFrame({"lat": [-11.9, -11.8], "lon": [-76.7, -76.6]}, index=[3, 7])
+    dias = pd.date_range("2023-01-01", "2023-04-30")
+    y = pd.Series(np.random.default_rng(0).gamma(0.5, 4, len(dias)), index=dias)
+    mod = pd.DataFrame({3: y.to_numpy(), 7: 0.0}, index=dias)
+    gauges = [("CERCA", -76.69, -11.91, 900.0, y), ("LEJOS", -75.0, -10.0, 4000.0, y)]
+    t = M.contra_pluviometros({"crudo": mod}, nd, gauges)
+    assert t["estacion"].tolist() == ["CERCA"] and t["nodo"].iloc[0] == 3
+    assert t["r_diaria"].iloc[0] == 1.0 and t["sesgo"].iloc[0] == 1.0
