@@ -104,6 +104,8 @@ class ClienteApi:
         if r.status_code in (401, 403, 429):
             motivo = r.text[:200].replace(clave, "***")
             raise ApiDetenida(f"{r.status_code}: {motivo}")
+        if r.status_code == 400:  # a bad parameter: show which one, the call is not cached
+            raise ValueError(f"400: {r.text[:300]}".replace(clave, "***"))
         r.raise_for_status()
         cuerpo = r.json()
         if cuerpo.get("status") is False:
