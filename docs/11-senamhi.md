@@ -159,7 +159,7 @@ Con tres huaicos no hay potencia para decir nada fino: el aviso de nivel 1 cubri
 
 ### 6.7 Anomalías de lluvia de los Niños (T35)
 
-Clase de anomalía (centro del rango, unidad no declarada en la capa) en el punto y días de huaico del catálogo en la ventana de tres meses:
+Clase de anomalía (centro del rango, en % según la ficha del servicio: «Range of anomaly, in %») en el punto y días de huaico del catálogo en la ventana de tres meses:
 
 | Evento | Trimestre | Chosica | Santa Eulalia | Matucana | Ticlio | Días de huaico |
 |---|---|---|---|---|---|---|
@@ -177,7 +177,7 @@ Spearman entre la anomalía y los días de huaico: Chosica +0,87 (n = 9), Santa 
 
 ### 6.9 Anomalías de los Niños por cuenca (T35, segunda parte)
 
-Se leyó la clase de anomalía en la salida de cada una de las 24 cuencas con historial (13 capas, una consulta cada una sobre la caja de todas las salidas; `senamhi.anomalias_ninos_cuencas`, resultado en `catalogo/senamhi_anomalias_ninos_cuencas.csv`). Las capas **sí distinguen entre cuencas** vecinas: hasta 5 clases distintas en 2017 y 3 en 1983, 1998 y 2023. Después se promedió la anomalía de los trimestres de cada evento y se comparó, dentro de cada temporada, con las cuencas que se activaron (120 pares cuenca-temporada, 38 activaciones; `catalogo/senamhi_anomalias_vs_activacion.csv`):
+Se leyó la clase de anomalía en la salida de cada una de las 24 cuencas con historial (13 capas, una consulta cada una sobre la caja de todas las salidas; `senamhi.anomalias_ninos_cuencas`, resultado en `catalogo/senamhi_anomalias_ninos_cuencas.csv`). Las capas (anomalía en %; el servicio `nino-precipitacion-5` es el evento de 1998, y los otros cuatro eventos están en `g_02_01`, `g_02_04`, `g_02_05` y `g_02_06`) **sí distinguen entre cuencas** vecinas: hasta 5 clases distintas en 2017 y 3 en 1983, 1998 y 2023. Después se promedió la anomalía de los trimestres de cada evento y se comparó, dentro de cada temporada, con las cuencas que se activaron (120 pares cuenca-temporada, 38 activaciones; `catalogo/senamhi_anomalias_vs_activacion.csv`):
 
 | Medida (dentro de cada temporada) | AUC | p |
 |---|---|---|
@@ -189,6 +189,7 @@ Se leyó la clase de anomalía en la salida de cada una de las 24 cuencas con hi
 
 - Spearman entre la anomalía y los días de activación por cuenca: +0,39 (1983), +0,32 (1998), +0,45 (2017), +0,30 (2023) y −0,21 (2024, con una sola cuenca activa).
 - **La señal de la anomalía es el gradiente este-oeste.** La anomalía se correlaciona con la longitud (+0,36) y con la latitud (+0,36), y quitando esa tendencia lineal el AUC queda en 0,49. La longitud sola ya da 0,65: las cuencas activadas en estos cinco Niños están más al este, donde las capas dan más lluvia y también donde están Chosica y Santa Eulalia. No hay evidencia de que la anomalía oficial añada información sobre qué quebrada se activa más allá de dónde está.
+- Existe además un espacio de trabajo `g_02_07` con tres compuestos (global positivo 1983-1998-2016, global negativo y costero positivo 2017-2023); no se usaron: son mapas de un solo patrón por tipo de Niño y no cambian la conclusión por cuenca.
 - La susceptibilidad física también da un AUC de 0,62 en estas cinco temporadas, por encima de lo que el capítulo 03 encontraba; es la misma limitación (cuencas vecinas, pocas activaciones y posible confusión con la ubicación) y no cambia la conclusión de que el terreno no ordena las quebradas.
 
 ## 7. Qué dice esto
