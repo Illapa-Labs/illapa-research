@@ -523,3 +523,28 @@ def probabilidad_con_presupuesto(p: np.ndarray, y: np.ndarray, fraccion: float) 
     a = p >= corte
     yt = (y | np.r_[0, y[:-1]] | np.r_[y[1:], 0]).astype(int)
     return {"POD": float(y[a].sum() / y.sum()), "FAR_dias": float((yt[a] == 0).mean())}
+
+
+def anomalias_ninos_cuencas(c: Cliente, cuencas: list[dict]) -> pd.DataFrame:
+    """Rain-anomaly class of the Niño events at the outlet of each basin, by event and trimester.
+
+    `cuencas`: dicts with ``slug``, ``salida_lon`` and ``salida_lat``. One WFS request per layer over the
+    box of all outlets (cached); the class is that of the polygon that contains each outlet. The layer's
+    classes cover tens of kilometres, so close basins share a class: that is what this table measures.
+    """
+    from shapely.geometry import Point, shape
+
+    xs = [q["salida_lon"] for q in cuencas]
+    ys = [q["salida_lat"] for q in cuencas]
+    caja = (min(xs) - 0.05, min(ys) - 0.05, max(xs) + 0.05, max(ys) + 0.05)
+    filas = []
+    for (ws, capa), (anio, trim) in CAPAS_NINOS.items():
+        j = wfs(c, ws, capa, bbox=caja)
+        poligonos = [(f["properties"].get("rango"), shape(f["geometry"]).buffer(0)) for f in j["features"]]
+        for q in cuencas:
+            p = Point(q["salida_lon"], q["salida_lat"])
+            r = sorted({str(rg) for rg, g in poligonos if g.contains(p)})
+            filas.append({"slug": q["slug"], "evento": anio, "trimestre": trim, "rango": "; ".join(r) or None})
+    d = pd.DataFrame(filas)
+    d["anomalia_centro"] = d["rango"].map(_centro_rango)
+    return d
