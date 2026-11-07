@@ -157,3 +157,11 @@ def test_evalua_alarmas_cuenta_pod_y_falsas_alarmas_con_tolerancia():
     m = pd.Series(True, index=idx)
     r = S.evalua_alarmas(a, y, m)
     assert r["POD"] == 1.0 and r["FAR_dias"] == pytest.approx(1 / 3)
+
+
+def test_las_trazas_cuentan_como_cero_y_sin_dato_queda_vacio():
+    from illapa_research.senamhi import lluvia_convencional
+
+    v = lluvia_convencional(pd.Series([0.0, "T", 2.5, None, "S/D", " t "]))
+    assert v.tolist()[:3] == [0.0, 0.0, 2.5]
+    assert v.iloc[3:5].isna().all() and v.iloc[5] == 0.0

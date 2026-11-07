@@ -220,6 +220,29 @@ AUTOMATICAS_NOMBRES = {
     "472EC742": "san_mateo_otao_auto", "472CA750": "santiago_tuna_auto", "472E24B0": "santa_eulalia_auto",
 }
 VALLE = ["chosica", "nana", "chosica_auto", "nana_auto"]
+# The same conventional gauges under their current codes: the station map page and this API publish them
+# month by month from 2018 (2021 for some); the researcher download above stops in 2014.
+RECIENTES_NOMBRES = {
+    "111060": "chosica", "111023": "nana", "111027": "matucana", "111086": "santa_eulalia", "111077": "autisha",
+    "111091": "carampoma", "111058": "canchacalla", "111092": "santiago_tuna", "111089": "huaros",
+    "111088": "lachaqui", "111062": "sheque",
+}
+
+
+def lluvia_convencional(valores: pd.Series) -> pd.Series:
+    """Daily rain (mm) of a conventional gauge: a trace ``T`` (< 0.1 mm/day) counts as 0, ``S/D`` and empty stay missing."""
+    v = valores.astype("object").where(valores.astype(str).str.strip().str.upper() != "T", 0.0)
+    return pd.to_numeric(v, errors="coerce")
+
+
+def diaria_reciente(c: Cliente, estacion: str) -> pd.Series:
+    """Daily rain of a conventional gauge from 2018, from the monthly readings (current station code)."""
+    s = c.serie(estacion)
+    if s.empty or "PRECIPITACION" not in s:
+        return pd.Series(dtype=float, name="lluvia_mm")
+    out = lluvia_convencional(s["PRECIPITACION"]).rename("lluvia_mm")
+    out.index.name = "fecha"
+    return out
 
 
 def red_historica(c: Cliente) -> pd.DataFrame:
