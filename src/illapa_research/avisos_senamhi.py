@@ -143,7 +143,7 @@ def comparar_con_modelo(t: pd.DataFrame, desde: str = "2021-12-01", solo_lluvia:
         frac = float((a & sel).sum() / sel.sum())
         filas.append({"senal": nombre, "dias_en_alarma": frac, "pod": pod(a), "huaicos": int(yv[sel].sum())})
         for nm, p in ps.items():
-            filas.append({"senal": f"{nm} (misma fracción)", "dias_en_alarma": frac,
+            filas.append({"senal": f"{nm} (misma fracción que {nombre})", "dias_en_alarma": frac,
                           "pod": pod(p >= np.quantile(p[sel], 1 - frac)), "huaicos": int(yv[sel].sum())})
     for f in (0.05, 0.10, 0.20):
         for nm, p in ps.items():
@@ -184,7 +184,9 @@ def main(argv: list[str] | None = None) -> int:
     out = pd.DataFrame(filas)
     out.round(4).to_csv(CATALOGO / "senamhi_avisos_cobertura.csv", index=False)
     print(out.round(3).to_string(index=False))
-    cmp = pd.concat([comparar_con_modelo(t, solo_lluvia=True), comparar_con_modelo(t)]).drop_duplicates(["senal"])
+    todos, lluvia = comparar_con_modelo(t), comparar_con_modelo(t, solo_lluvia=True)
+    # the fixed-share rows (5, 10, 20 %) are the same in both runs: keep them once
+    cmp = pd.concat([lluvia, todos[todos["senal"].str.contains("aviso|misma")]]).drop_duplicates(["senal"])
     cmp.round(4).to_csv(CATALOGO / "senamhi_avisos_vs_modelo.csv", index=False)
     print(cmp.round(3).to_string(index=False))
     print("avisos por año y provincia:\n", t.groupby([t["inicio"].dt.year, "provincia"]).size().unstack(fill_value=0))
