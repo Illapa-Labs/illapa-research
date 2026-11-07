@@ -74,6 +74,25 @@ def foto_sonics(carpeta: Path = Path("datos/senamhi_api/registro"), ahora: datet
     return archivo
 
 
+CAPAS_CCPP = ["SONICS-CCPP"] + [f"SONICS-CCPP-PRONOSTICO-{i:02d}" for i in range(1, 8)]
+
+
+def foto_sonics_ccpp(carpeta: Path = Path("datos/senamhi_api/registro"), ahora: datetime | None = None) -> Path:
+    """Populated places of the department of Lima under a SONICS-PBI fluvial flood warning, today and day 1 to 7.
+
+    One layer per forecast day, only the current state is served (no history), so this is the record of
+    what SENAMHI forecast on each date. Fields: place code, name of the area, district, province, level.
+    """
+    ahora = ahora or datetime.now(ZoneInfo("America/Lima"))
+    c = senamhi.Cliente()
+    capas = {n: senamhi.wfs(c, "dhi-seh-sonics", n, cql="nomb_dep='LIMA'", refrescar=True)["features"] for n in CAPAS_CCPP}
+    archivo = carpeta / f"{ahora.strftime('%Y-%m-%dT%H%M')}__sonics_ccpp_lima.json"
+    archivo.write_text(json.dumps({"consultado": ahora.isoformat(), "servicio": "dhi-seh-sonics:SONICS-CCPP*",
+                                   "filtro": "nomb_dep='LIMA'", "leyenda": LEYENDA, "capas": capas},
+                                  ensure_ascii=False), encoding="utf-8")
+    return archivo
+
+
 def main(argv: list[str] | None = None) -> int:
     import argparse
 
@@ -85,6 +104,7 @@ def main(argv: list[str] | None = None) -> int:
         escritos = tomar_foto(c, forzar=a.forzar)
         if escritos:
             escritos.append(foto_sonics())
+            escritos.append(foto_sonics_ccpp())
     except ApiDetenida as e:
         print("DETENIDA:", e)
         return 1
