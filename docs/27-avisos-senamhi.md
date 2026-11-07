@@ -13,28 +13,34 @@ Código: [`src/illapa_research/senamhi_api.py`](../src/illapa_research/senamhi_a
 
 ## 2. Resultados
 
-| Señal | Días en alarma | Días con huaico cubiertos |
-|---|---|---|
-| Aviso SENAMHI, provincia de Lima (cualquier nivel) | **50 %** | 11 de 13 (85 %) |
-| Aviso SENAMHI, provincia de Huarochirí | **82 %** | 11 de 13 (85 %) |
-| Modelo diario con la lluvia del día, mismo 50 % de días | 50 % | 13 de 13 |
-| Modelo diario solo con antecedentes, mismo 50 % de días | 50 % | 13 de 13 |
-| Modelo diario con la lluvia del día al 5 % de días | 5 % | 9 de 13 (69 %) |
-| Modelo diario con la lluvia del día al 10 % de días | 10 % | 12 de 13 (92 %) |
-| Modelo diario solo con antecedentes al 10 % de días | 10 % | 8 de 13 (62 %) |
-| Modelo diario solo con antecedentes al 20 % de días | 20 % | 12 de 13 (92 %) |
+Los avisos meteorológicos incluyen viento, temperatura, heladas y nevadas, no solo lluvia: de 1 314 avisos únicos desde 2021, los de lluvia dicen «precipitaciones» o «lluvia» en el título (no se cuenta «llovizna»). Se calcula con todos los avisos y solo con los de lluvia.
 
-Con el nivel mínimo 2 el resultado de Lima no cambia (413 días de temporada con aviso, 11 de 13 huaicos); con el nivel 3 los días con aviso bajan de 413 a 319 y la cobertura sigue en 11 de 13 (`catalogo/senamhi_avisos_cobertura.csv`).
+| Señal | Días de temporada en alarma | Huaicos cubiertos (de 13) |
+|---|---|---|
+| Aviso SENAMHI, Lima, **solo lluvia** | **18,5 %** | 8 (62 %) |
+| Modelo diario (con la lluvia del día), mismo 18,5 % de días | 18,5 % | 12 |
+| Aviso SENAMHI, Huarochirí, **solo lluvia** | 69,7 % | 11 (85 %) |
+| Modelo diario (con la lluvia del día), mismo 69,7 % de días | 69,7 % | 13 |
+| Aviso SENAMHI, Lima, todos los tipos | 49,7 % | 11 (85 %) |
+| Aviso SENAMHI, Huarochirí, todos los tipos | 82,4 % | 11 (85 %) |
+| Modelo diario con la lluvia del día al 5 % de días | 5 % | 9 (69 %) |
+| Modelo diario con la lluvia del día al 10 % de días | 10 % | 12 (92 %) |
+| Modelo diario solo con antecedentes al 10 % de días | 10 % | 8 (62 %) |
+| Modelo diario solo con antecedentes al 20 % de días | 20 % | 12 (92 %) |
+
+Los avisos de Lima con nivel 3 o más y solo de lluvia siguen cubriendo 8 de 13 con 143 días de aviso; no cambian con el nivel (`catalogo/senamhi_avisos_cobertura.csv`).
 
 ## 3. Lectura
 
-- **Los avisos están activos en la mitad de los días de lluvia de Lima y en cuatro quintos de los de Huarochirí.** Cubren 11 de los 13 huaicos, pero con una alarma casi permanente: de los 413 días de temporada con aviso en Lima, solo 11 tuvieron huaico (97 % de «falsas alarmas» por día).
-- **A igual fracción de días en alarma, nuestro modelo cubre más** (todos los huaicos con el 50 % de días, 92 % con el 10 %). No es una comparación operativa justa: los avisos se emiten con antelación y cubren una provincia entera, y el modelo usa la lluvia del propio día y se entrenó con las demás temporadas, incluidas las posteriores. Compararlo con el modelo «solo antecedentes» (información del día anterior) es más honesto, y aun así supera a los avisos con el 20 % de días.
-- **No sustituye ni mejora lo que hace el SENAMHI:** sus avisos son una guía amplia para toda una provincia, no una predicción del día y la quebrada. Lo que muestra esta comparación es cuánta cobertura da una señal pública y que un modelo local puede ser mucho más selectivo.
+- **Los avisos de lluvia de Lima son más selectivos de lo que parecía** (activos en el 18 % de los días de lluvia), pero cubren menos: 8 de 13 huaicos (62 %). Los de Huarochirí, la provincia de Santa Eulalia y Ricardo Palma, cubren 11 de 13 pero estuvieron activos en siete de cada diez días.
+- **Con todos los avisos (también viento y temperatura)** la cobertura sube a 11 de 13 con la mitad de los días en alarma: ese número cuenta como aviso cosas que no son lluvia y no debe leerse como una cobertura de huaicos.
+- **A igual fracción de días en alarma, nuestro modelo cubre más:** 12 de 13 con el 18,5 % de días (contra 8 de los avisos de lluvia de Lima) y 13 de 13 con el 69,7 %. La comparación no es operativa: los avisos se emiten con antelación y cubren una provincia entera, y el modelo usa la lluvia del propio día y se entrenó con las demás temporadas, incluidas las posteriores. Con el modelo «solo antecedentes» (información del día anterior) la ventaja también existe a partir del 20 % de los días.
+- **Lo que no dice esta comparación:** que el modelo mejore al SENAMHI. Los avisos son una guía amplia para toda una provincia y no una predicción del día y de la quebrada. Muestran cuánta cobertura da una señal pública y que un modelo local puede ser más selectivo.
 
 ## 4. Límites
 
-- Solo 13 días con huaico desde diciembre de 2021: el 85 % es 11 de 13 y un día más o menos cambia la cifra 7 puntos.
+- Solo 13 días con huaico desde diciembre de 2021: 8 de 13 es 62 % y un día más o menos cambia la cifra ocho puntos.
+- Los avisos se filtran por el título («precipitaciones» o «lluvia»), no por el código de evento de la API (`/weather-warnings/events` lo da, pero los avisos descargados no traen ese campo); el filtro por título es una aproximación.
 - Los avisos de lluvia a corto plazo (distrito) tienen solo dos años y no se evaluaron.
 - No se probó un umbral operativo, ni el momento de emisión del aviso (un aviso publicado el mismo día de un huaico cuenta como cobertura).
 - Los datos crudos de la API quedan fuera de git y del espejo público: no se conocen las condiciones de redistribución de esta cuenta.
