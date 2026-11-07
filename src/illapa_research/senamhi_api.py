@@ -87,10 +87,14 @@ class ClienteApi:
         clave = json.dumps([ruta, sorted((params or {}).items())], ensure_ascii=False)
         return self.carpeta / "cache" / (hashlib.sha1(clave.encode()).hexdigest()[:16] + ".json")
 
-    def get(self, ruta: str, params: dict | None = None):
-        """GET ``BASE + ruta``; returns the ``data`` field of the envelope. Cached; budgeted; stops on refusals."""
+    def get(self, ruta: str, params: dict | None = None, fresco: bool = False):
+        """GET ``BASE + ruta``; returns the ``data`` field of the envelope. Cached; budgeted; stops on refusals.
+
+        ``fresco=True`` skips the cache (for snapshots of things that change, like active warnings): the call
+        counts against the budget and its answer is not cached.
+        """
         cache = self._ruta_cache(ruta, params)
-        if cache.exists():
+        if cache.exists() and not fresco:
             return json.loads(cache.read_text(encoding="utf-8"))["data"]
         if self.llamadas_hoy() >= self.tope_dia:
             raise ApiDetenida(f"Tope diario propio alcanzado ({self.tope_dia} llamadas); la cuenta permite 1 000")
@@ -110,7 +114,8 @@ class ClienteApi:
         cuerpo = r.json()
         if cuerpo.get("status") is False:
             raise ApiDetenida(f"La API respondió con error: {cuerpo.get('message')} {cuerpo.get('validations')}")
-        cache.write_text(json.dumps(cuerpo, ensure_ascii=False), encoding="utf-8")
+        if not fresco:
+            cache.write_text(json.dumps(cuerpo, ensure_ascii=False), encoding="utf-8")
         return cuerpo["data"]
 
     # ---- endpoints seen in the guide (parameters not yet confirmed) -------------------------
