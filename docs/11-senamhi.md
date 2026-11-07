@@ -15,7 +15,7 @@ Notebook: [`notebooks/11-senamhi.ipynb`](../notebooks/11-senamhi.ipynb). Código
 | T32 | El nivel del río en Chosica concuerda solo en parte con el caudal de GloFAS |
 | T33 | Las reglas oficiales de umbral de lluvia (`g_umbrales`) logran un POD parecido al de nuestros modelos al mismo número de días de alarma, con tanta alarma falsa como ellos |
 | T34 | Los avisos meteorológicos históricos del GeoServer marcan los huaicos de 2020, pero con casi todos los días de lluvia como aviso |
-| T35 | La anomalía de lluvia de los Niños del SENAMHI ordena los trimestres por días de huaico |
+| T35 | La anomalía de lluvia de los Niños del SENAMHI ordena los trimestres por días de huaico (y, por cuenca, no añade nada al gradiente este-oeste) |
 | T36 | Las capas de «activación de quebrada» permiten ubicar las quebradas que faltan (Cashahuacra, Huampaní, Santa María…) |
 
 ## 2. Qué hay y cómo se accede
@@ -174,6 +174,22 @@ Spearman entre la anomalía y los días de huaico: Chosica +0,87 (n = 9), Santa 
 ### 6.8 Capas de «activación de quebrada» (T36): no sirven para ubicar quebradas
 
 `view_av_activ_qdra` y `ccpp_filter` traen polígonos por distrito (`nombdep`, `nombprov`, `nombdist`), centros poblados bajo aviso, nivel, fecha y descripción, **sin el nombre de la quebrada**; el histórico (`view_av_activ_qdrahist`) devuelve 0 filas. El 30 de octubre de 2026 no había ningún aviso dentro de lon −77,0 a −76,4 y lat −12,1 a −11,8 (la prueba de que el filtro espacial funciona: en un cuadro de Amazonas devolvió 37). Por eso no se agregó ninguna quebrada a `catalogo/quebradas_referencias.csv` desde esta fuente. Cashahuacra, Huampaní, Huascata, La Floresta y Santa María siguen sin cuenca.
+
+### 6.9 Anomalías de los Niños por cuenca (T35, segunda parte)
+
+Se leyó la clase de anomalía en la salida de cada una de las 24 cuencas con historial (13 capas, una consulta cada una sobre la caja de todas las salidas; `senamhi.anomalias_ninos_cuencas`, resultado en `catalogo/senamhi_anomalias_ninos_cuencas.csv`). Las capas **sí distinguen entre cuencas** vecinas: hasta 5 clases distintas en 2017 y 3 en 1983, 1998 y 2023. Después se promedió la anomalía de los trimestres de cada evento y se comparó, dentro de cada temporada, con las cuencas que se activaron (120 pares cuenca-temporada, 38 activaciones; `catalogo/senamhi_anomalias_vs_activacion.csv`):
+
+| Medida (dentro de cada temporada) | AUC | p |
+|---|---|---|
+| Anomalía oficial de lluvia en la salida | 0,62 | 0,002 |
+| Longitud de la salida (más al este) | 0,65 | 0,002 |
+| Edificios cerca de la salida | 0,61 | 0,02 |
+| Susceptibilidad física | 0,62 | 0,05 |
+| **Anomalía tras quitar la tendencia de longitud y latitud** | **0,49** | **0,56** |
+
+- Spearman entre la anomalía y los días de activación por cuenca: +0,39 (1983), +0,32 (1998), +0,45 (2017), +0,30 (2023) y −0,21 (2024, con una sola cuenca activa).
+- **La señal de la anomalía es el gradiente este-oeste.** La anomalía se correlaciona con la longitud (+0,36) y con la latitud (+0,36), y quitando esa tendencia lineal el AUC queda en 0,49. La longitud sola ya da 0,65: las cuencas activadas en estos cinco Niños están más al este, donde las capas dan más lluvia y también donde están Chosica y Santa Eulalia. No hay evidencia de que la anomalía oficial añada información sobre qué quebrada se activa más allá de dónde está.
+- La susceptibilidad física también da un AUC de 0,62 en estas cinco temporadas, por encima de lo que el capítulo 03 encontraba; es la misma limitación (cuencas vecinas, pocas activaciones y posible confusión con la ubicación) y no cambia la conclusión de que el terreno no ordena las quebradas.
 
 ## 7. Qué dice esto
 
