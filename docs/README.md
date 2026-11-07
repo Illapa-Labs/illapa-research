@@ -32,3 +32,4 @@ Cada archivo es un capítulo, escrito como se escribiría una tesis: pregunta, d
 | [24 · Banco de modelos](24-banco-de-modelos.md) | Logística, boosting monótono, GRU y conjunto con la misma validación: la logística sigue siendo la mejor | `05` |
 | [25 · Etiquetas con satélite](25-etiquetas-con-satelite.md) | Dos diseños de cambio por temporada (disco de salida y cauce del DEM) contra las activaciones del catálogo; sin señal (AUC 0,43 a 0,61) | `—` |
 | [26 · Lluvia corregida para el mapa](26-lluvia-corregida-para-la-web.md) | CHIRPS en malla de 0,05°, corrección por nodo del UKMO contra PISCOp (el sesgo se arregla, pero los días fuertes se ven menos) y probabilidad calibrada de lluvia fuerte con el GEFS | — |
+| [27 · Avisos del SENAMHI](27-avisos-senamhi.md) | Cobertura de los días con huaico por los avisos oficiales (API de interoperabilidad) y comparación con el modelo diario a igual fracción de días | `—` |
