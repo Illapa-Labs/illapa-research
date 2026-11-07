@@ -126,6 +126,31 @@ El CSI se calcula por nodo a partir de los aciertos y las falsas alarmas.
 
 **Lo que esto implica para la web.** Un mapa de mm corregidos sería más honesto con los totales, pero mostraría menos los días fuertes. La forma de comunicar «puede llover fuerte» con un pronóstico de tan poca habilidad diaria es una **probabilidad** (etapa 3), no un número de mm.
 
+**Contra los pluviómetros del SENAMHI** (`correccion_malla.contra_pluviometros`; `catalogo/correccion_lima-este_pluviometros.csv`):
+- **Qué se compara.** Nueve pluviómetros convencionales del Rímac con datos de 2018 o 2021 en adelante (`senamhi.diaria_reciente`). Cada uno se compara con el nodo del mapa más cercano, a entre 3 y 6 km. Son los meses de lluvia de febrero de 2022 a diciembre de 2025, de 423 a 546 días por estación. Las cinco versiones se miden contra el pluviómetro.
+- **Umbrales.** Son los percentiles de cada pluviómetro.
+- **En el valle el «día fuerte» es cualquier lluvia.** Llueve solo el 4 al 13 % de los días: el P90 es de 0,4 mm en Chosica, 0,7 mm en Santa Eulalia y 0 en Ñaña. Ahí el CSI no mide lluvia fuerte.
+
+Mediana de cada grupo:
+
+| Grupo | Versión | Sesgo | Error medio (mm/día) | r diaria | r péntada | Aciertos P90 | Falsas alarmas P90 | CSI P90 |
+|---|---|---|---|---|---|---|---|---|
+| Sierra (6, de 2 220 a 3 624 m) | UKMO crudo | **3,13** | 6,91 | 0,39 | 0,60 | 0,78 | 0,81 | 0,18 |
+| | Factor | 1,23 | 3,16 | 0,39 | 0,58 | 0,24 | 0,75 | 0,14 |
+| | Cuantiles, 3 × 3 | 1,21 | 3,03 | 0,39 | 0,60 | 0,27 | 0,75 | 0,14 |
+| | Cuantiles, sin vecinos | **1,09** | **2,92** | 0,37 | 0,57 | 0,23 | 0,74 | 0,14 |
+| | PISCOp en el nodo | 1,08 | 1,90 | 0,76 | 0,88 | 0,42 | 0,37 | 0,31 |
+| Valle (Chosica, Santa Eulalia, Ñaña) | UKMO crudo | **7,72** | 2,06 | 0,56 | 0,79 | — | — | — |
+| | Factor | 1,96 | 0,56 | 0,55 | 0,78 | — | — | — |
+| | Cuantiles, sin vecinos | 2,24 | 0,72 | 0,56 | 0,81 | — | — | — |
+| | PISCOp en el nodo | 2,08 | 0,57 | 0,72 | 0,85 | — | — | — |
+
+**Qué se aprende:**
+1. **Los pluviómetros confirman la etapa 1.** El mapa de hoy marca 3 veces la lluvia de la sierra y casi 8 veces la del valle. Corregido, la sierra queda en ×1,1 a ×1,2 y el error medio baja a menos de la mitad. La correlación no cambia, y los días fuertes acertados bajan de 0,78 a 0,23–0,27.
+2. **En el valle la corrección llega solo hasta PISCOp, y PISCOp ya marca el doble.** El nodo está a 3–5 km de la estación y cubre ladera, así que queda en ×2. Para el fondo del valle, el mapa seguiría exagerando la lluvia.
+3. **PISCOp no es independiente de estas estaciones.** Su r diaria con ellas es de 0,72 a 0,77, y es probable que las use. Sirve como techo de lo alcanzable, no como competidor.
+4. **El veredicto de la web no cambia.** Los mm corregidos sirven para totales honestos en la sierra. Para «puede llover fuerte» se usa la probabilidad (etapa 3).
+
 **Límites:**
 - 3,5 temporadas de lluvia; PISCOp termina en diciembre de 2025.
 - PISCOp es una malla interpolada de estaciones: en la sierra alta tiene pocas.
