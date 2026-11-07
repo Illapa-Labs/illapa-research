@@ -21,3 +21,15 @@ def test_cobertura_pod_y_far():
     r = V.cobertura(t, [date(2024, 2, 11), date(2024, 2, 25), date(2023, 1, 1)], "LIMA")
     assert r["huaicos"] == 2 and r["con_aviso"] == 1 and r["pod"] == 0.5
     assert r["dias_aviso"] == 2 and abs(r["far"] - 0.5) < 1e-9
+
+
+def test_solo_avisos_de_lluvia_descarta_viento_y_temperatura():
+    assert V.es_de_lluvia("Precipitaciones en la sierra centro y sur")
+    assert V.es_de_lluvia("Lluvia en la costa")
+    assert not V.es_de_lluvia("Incremento de viento en la costa")
+    assert not V.es_de_lluvia("Descenso de temperatura nocturna en la sierra")
+    a = _aviso(1, "2024-02-10T00:00:00", "2024-02-11T23:59:59")
+    b = {**_aviso(2, "2024-02-15T00:00:00", "2024-02-15T23:59:59"), "title": "Incremento de viento en la costa"}
+    a["title"] = "Precipitaciones en la sierra"
+    t = V.tabla_avisos([a, b])
+    assert len(V.dias_con_aviso(t, "LIMA")) == 3 and len(V.dias_con_aviso(t, "LIMA", solo_lluvia=True)) == 2

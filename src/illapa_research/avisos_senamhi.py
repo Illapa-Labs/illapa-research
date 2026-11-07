@@ -16,9 +16,13 @@ the series are not official products of this repository.
 
 from __future__ import annotations
 
+import re
+
 import pandas as pd
 
 from .senamhi_api import ApiDetenida, ClienteApi
+
+_LLUVIA = re.compile(r"precipitaci|lluvia", re.IGNORECASE)  # not "llovizna": drizzle is not a heavy-rain warning
 
 PROVINCIAS = {"1501": "LIMA", "1507": "HUAROCHIRI"}
 DISTRITOS = {"150118": "LURIGANCHO", "150107": "CHACLACAYO", "150714": "RICARDO PALMA", "150728": "SANTA EULALIA",
@@ -66,10 +70,17 @@ def tabla_avisos(avisos: list[dict]) -> pd.DataFrame:
     return t.sort_values("inicio").reset_index(drop=True)
 
 
-def dias_con_aviso(t: pd.DataFrame, provincia: str, nivel_min: int = 1) -> set:
+def es_de_lluvia(titulo: object) -> bool:
+    """True when the warning title is about rain (wind, temperature, snow and frost warnings are not)."""
+    return bool(_LLUVIA.search(str(titulo)))
+
+
+def dias_con_aviso(t: pd.DataFrame, provincia: str, nivel_min: int = 1, solo_lluvia: bool = False) -> set:
     """Calendar days covered by at least one warning of the province with level >= nivel_min."""
     dias: set = set()
     s = t[(t["provincia"] == provincia) & (pd.to_numeric(t["nivel"], errors="coerce") >= nivel_min)]
+    if solo_lluvia:
+        s = s[s["titulo"].map(es_de_lluvia)]
     for ini, fin in zip(s["inicio"], s["fin"], strict=True):
         if pd.isna(ini) or pd.isna(fin):
             continue
@@ -77,12 +88,13 @@ def dias_con_aviso(t: pd.DataFrame, provincia: str, nivel_min: int = 1) -> set:
     return dias
 
 
-def cobertura(t: pd.DataFrame, fechas_huaico: list, provincia: str, nivel_min: int = 1) -> dict[str, float]:
+def cobertura(t: pd.DataFrame, fechas_huaico: list, provincia: str, nivel_min: int = 1,
+              solo_lluvia: bool = False) -> dict[str, float]:
     """Share of huaico days with an active warning, and share of rainy-season days with warning that had a huaico.
 
     Rainy season: 1 December to 30 April. Only days from the first warning onwards are compared.
     """
-    con = dias_con_aviso(t, provincia, nivel_min)
+    con = dias_con_aviso(t, provincia, nivel_min, solo_lluvia)
     if not con:
         return {"huaicos": 0, "con_aviso": 0, "pod": float("nan"), "dias_aviso": 0, "far": float("nan")}
     desde = min(con)
@@ -96,7 +108,7 @@ def cobertura(t: pd.DataFrame, fechas_huaico: list, provincia: str, nivel_min: i
     }
 
 
-def comparar_con_modelo(t: pd.DataFrame, desde: str = "2021-12-01") -> pd.DataFrame:
+def comparar_con_modelo(t: pd.DataFrame, desde: str = "2021-12-01", solo_lluvia: bool = False) -> pd.DataFrame:
     """Hit rate of the SENAMHI warnings and of the daily model at the same share of days in alarm.
 
     The model is the ridge-logistic of chapter 05 (fixed C, one season out), with and without the rain
@@ -124,8 +136,9 @@ def comparar_con_modelo(t: pd.DataFrame, desde: str = "2021-12-01") -> pd.DataFr
         return float((mask & sel & (yv == 1)).sum() / yv[sel].sum())
 
     filas = []
-    for nombre, prov in (("aviso SENAMHI Lima", "LIMA"), ("aviso SENAMHI Huarochirí", "HUAROCHIRI")):
-        con = dias_con_aviso(t, prov)
+    etiqueta = "aviso de lluvia SENAMHI" if solo_lluvia else "aviso SENAMHI"
+    for nombre, prov in ((f"{etiqueta} Lima", "LIMA"), (f"{etiqueta} Huarochirí", "HUAROCHIRI")):
+        con = dias_con_aviso(t, prov, solo_lluvia=solo_lluvia)
         a = np.array([d in con for d in dias])
         frac = float((a & sel).sum() / sel.sum())
         filas.append({"senal": nombre, "dias_en_alarma": frac, "pod": pod(a), "huaicos": int(yv[sel].sum())})
@@ -165,11 +178,13 @@ def main(argv: list[str] | None = None) -> int:
     filas = []
     for prov in PROVINCIAS.values():
         for nivel in (1, 2, 3):
-            filas.append({"provincia": prov, "nivel_minimo": nivel, **cobertura(t, fechas, prov, nivel)})
+            for solo in (False, True):
+                filas.append({"provincia": prov, "nivel_minimo": nivel, "solo_lluvia": solo,
+                              **cobertura(t, fechas, prov, nivel, solo)})
     out = pd.DataFrame(filas)
     out.round(4).to_csv(CATALOGO / "senamhi_avisos_cobertura.csv", index=False)
     print(out.round(3).to_string(index=False))
-    cmp = comparar_con_modelo(t)
+    cmp = pd.concat([comparar_con_modelo(t, solo_lluvia=True), comparar_con_modelo(t)]).drop_duplicates(["senal"])
     cmp.round(4).to_csv(CATALOGO / "senamhi_avisos_vs_modelo.csv", index=False)
     print(cmp.round(3).to_string(index=False))
     print("avisos por año y provincia:\n", t.groupby([t["inicio"].dt.year, "provincia"]).size().unstack(fill_value=0))
