@@ -63,3 +63,12 @@ def test_la_clave_se_lee_del_archivo_sin_imprimirla(tmp_path, monkeypatch):
     with pytest.raises(A.ApiDetenida):
         A.leer_clave(f)
     assert json.dumps({"k": 1})
+
+
+def test_sin_clave_no_gasta_presupuesto(tmp_path, monkeypatch):
+    monkeypatch.delenv(A.VARIABLE, raising=False)
+    monkeypatch.setattr(A.Path, "home", classmethod(lambda cls: tmp_path))
+    c = A.ClienteApi(tmp_path / "api", pausa=0)
+    with pytest.raises(A.ApiDetenida):
+        c.get("/x")
+    assert c.llamadas_hoy() == 0

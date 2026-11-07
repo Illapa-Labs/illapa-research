@@ -94,14 +94,15 @@ class ClienteApi:
             return json.loads(cache.read_text(encoding="utf-8"))["data"]
         if self.llamadas_hoy() >= self.tope_dia:
             raise ApiDetenida(f"Tope diario propio alcanzado ({self.tope_dia} llamadas); la cuenta permite 1 000")
+        clave = self._clave or leer_clave()  # before counting: a missing key must not use the budget
         falta = self.pausa - (time.monotonic() - self._ultimo)
         if falta > 0:
             time.sleep(falta)
         self._ultimo = time.monotonic()
         self._contar()
-        r = self.s.get(BASE + ruta, params=params, headers={"apikey": self._clave or leer_clave()}, timeout=60)
+        r = self.s.get(BASE + ruta, params=params, headers={"apikey": clave}, timeout=60)
         if r.status_code in (401, 403, 429):
-            motivo = r.text[:200].replace(self._clave or "", "***")
+            motivo = r.text[:200].replace(clave, "***")
             raise ApiDetenida(f"{r.status_code}: {motivo}")
         r.raise_for_status()
         cuerpo = r.json()
